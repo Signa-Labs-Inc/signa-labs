@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:doppler": "doppler run -- next dev",
     "build": "next build",
+    "build:doppler": "doppler run -- next build",
     "start": "next start",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
