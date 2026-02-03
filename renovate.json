@@ -1,0 +1,34 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":disableDependencyDashboard",
+    ":semanticCommits",
+    ":separateMajorReleases",
+    "group:allNonMajor"
+  ],
+  "labels": ["dependencies"],
+  "rangeStrategy": "bump",
+  "schedule": ["before 9am on monday"],
+  "timezone": "America/New_York",
+  "prHourlyLimit": 5,
+  "prConcurrentLimit": 10,
+  "packageRules": [
+    {
+      "matchPackagePatterns": ["*"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "minor and patch dependencies",
+      "automerge": false
+    },
+    {
+      "matchPackagePatterns": ["eslint", "prettier", "@types/*"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "linting and types",
+      "automerge": true
+    },
+    {
+      "matchPackagePatterns": ["vitest", "@testing-library/*"],
+      "groupName": "testing dependencies"
+    }
+  ]
+}
