@@ -1,6 +1,6 @@
-import { clerkMiddleware } from '@clerk/nextjs/server';
-
-export default clerkMiddleware();
+// TODO: Add Clerk middleware once Clerk account is set up
+// import { clerkMiddleware } from '@clerk/nextjs/server';
+// export default clerkMiddleware();
 
 export const config = {
   matcher: [
