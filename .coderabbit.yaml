@@ -4,7 +4,6 @@ tone_instructions: >-
   Be concise and direct. Focus on actionable feedback.
   Skip praise for obvious things.
 early_access: false
-
 reviews:
   profile: chill
   request_changes_workflow: false
