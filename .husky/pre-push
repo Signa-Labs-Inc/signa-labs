@@ -1,1 +1,1 @@
-doppler run -- pnpm build
+NODE_ENV=production doppler run --preserve-env=NODE_ENV -- pnpm build

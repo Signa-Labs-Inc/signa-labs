@@ -112,6 +112,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build
-        run: doppler run -- pnpm build
+        run: doppler run --preserve-env=NODE_ENV -- pnpm build
         env:
+          NODE_ENV: production
           DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
