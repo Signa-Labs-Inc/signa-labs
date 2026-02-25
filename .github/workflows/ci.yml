@@ -105,10 +105,14 @@ jobs:
           node-version: 22
           cache: 'pnpm'
 
+      - name: Install Doppler CLI
+        uses: dopplerhq/cli-action@v3
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Build
-        run: pnpm build
+        run: doppler run --preserve-env=NODE_ENV -- pnpm build
         env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          NODE_ENV: production
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
