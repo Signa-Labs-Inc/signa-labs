@@ -17,4 +17,4 @@ export { subscriptions } from './subscriptions';
 export { userLearningStats } from './user_learning_stats';
 export { users } from './users';
 export { usersProfiles } from './users_profiles';
-export { contentRelations, relations } from '../relations';
+export { contentRelations, billingRelations } from '../relations';

@@ -17,7 +17,7 @@ export const paymentRecords = pgTable(
     currency: text().notNull().default('usd'),
     status: text().notNull(),
     description: text(),
-    paidAt: timestamp('paid_at', { withTimezone: true }).notNull(),
+    paidAt: timestamp('paid_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [

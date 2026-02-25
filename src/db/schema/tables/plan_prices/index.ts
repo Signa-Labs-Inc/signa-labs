@@ -1,4 +1,13 @@
-import { boolean, check, index, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import {
+  boolean,
+  check,
+  index,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from 'drizzle-orm/pg-core';
 import { plans } from '../plans';
 import { sql } from 'drizzle-orm/sql/sql';
 export const planPrices = pgTable(
@@ -16,6 +25,7 @@ export const planPrices = pgTable(
   },
   (table) => [
     check('plan_prices_interval_check', sql`${table.interval} IN ('month', 'year', 'lifetime')`),
+    uniqueIndex('idx_plan_prices_id_plan').on(table.id, table.planId),
     index('idx_plan_prices_plan').on(table.planId),
     index('idx_plan_prices_active')
       .on(table.planId)

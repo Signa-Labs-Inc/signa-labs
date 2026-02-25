@@ -1,17 +1,21 @@
 import { sql } from 'drizzle-orm';
-import { check, index, jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import {
+  check,
+  foreignKey,
+  index,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from 'drizzle-orm/pg-core';
 import { exerciseAttempts } from '../exercise_attempts';
-import { users } from '../users';
 export const exerciseEvents = pgTable(
   'exercise_events',
   {
     id: uuid().primaryKey().defaultRandom(),
-    attemptId: uuid('attempt_id')
-      .notNull()
-      .references(() => exerciseAttempts.id),
-    userId: uuid('user_id')
-      .notNull()
-      .references(() => users.id),
+    attemptId: uuid('attempt_id').notNull(),
+    userId: uuid('user_id').notNull(),
     eventType: text('event_type').notNull(),
     payload: jsonb().notNull().default({}),
     occurredAt: timestamp('occurred_at', { withTimezone: true }).notNull().defaultNow(),
@@ -26,5 +30,10 @@ export const exerciseEvents = pgTable(
     index('idx_events_user').on(table.userId),
     index('idx_events_type').on(table.eventType),
     index('idx_events_occurred').on(table.occurredAt),
+    foreignKey({
+      columns: [table.attemptId, table.userId],
+      foreignColumns: [exerciseAttempts.id, exerciseAttempts.userId],
+      name: 'fk_events_attempt_user',
+    }),
   ]
 );

@@ -1,6 +1,7 @@
 import {
   boolean,
   check,
+  foreignKey,
   index,
   integer,
   pgTable,
@@ -27,12 +28,8 @@ export const subscriptions = pgTable(
     ownerType: text('owner_type').notNull(),
 
     // Plan and pricing
-    planId: text('plan_id')
-      .notNull()
-      .references(() => plans.id),
-    planPriceId: uuid('plan_price_id')
-      .notNull()
-      .references(() => planPrices.id),
+    planId: text('plan_id').notNull(),
+    planPriceId: uuid('plan_price_id').notNull(),
 
     // Stripe
     stripeSubscriptionId: text('stripe_subscription_id').unique(),
@@ -85,6 +82,18 @@ export const subscriptions = pgTable(
       .where(
         sql`${table.orgId} IS NOT NULL AND ${table.status} IN ('active', 'trialing', 'past_due')`
       ),
+    // FK: planId must exist in plans
+    foreignKey({
+      columns: [table.planId],
+      foreignColumns: [plans.id],
+      name: 'fk_subscriptions_plan',
+    }),
+    // Composite FK: ensures planPriceId belongs to planId
+    foreignKey({
+      columns: [table.planPriceId, table.planId],
+      foreignColumns: [planPrices.id, planPrices.planId],
+      name: 'fk_subscriptions_price_plan',
+    }),
     index('idx_subscriptions_user').on(table.userId),
     index('idx_subscriptions_org').on(table.orgId),
     index('idx_subscriptions_status').on(table.status),

@@ -11,7 +11,7 @@ import { subscriptionSeats } from '../tables/subscription_seats';
 import { subscriptions } from '../tables/subscriptions';
 import { userLearningStats } from '../tables/user_learning_stats';
 import { users } from '../tables/users';
-import { defineRelations } from 'drizzle-orm';
+import { defineRelations, defineRelationsPart } from 'drizzle-orm';
 import { organizations } from '../tables/organizations';
 import { plans } from '../tables/plans';
 import { planPrices } from '../tables/plan_prices';
@@ -113,7 +113,7 @@ export const contentRelations = defineRelations(
   })
 );
 
-export const relations = defineRelations(
+export const billingRelations = defineRelationsPart(
   {
     organizations,
     users,
@@ -144,7 +144,7 @@ export const relations = defineRelations(
       seatAssignments: r.many.subscriptionSeats(),
       notifications: r.many.notifications(),
     },
-    userProfiles: {
+    usersProfiles: {
       user: r.one.users({
         from: r.usersProfiles.userId,
         to: r.users.id,

@@ -1,7 +1,7 @@
 import { index, pgTable, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 import { users } from '../users';
 import { subscriptions } from '../subscriptions';
-import { sql } from 'drizzle-orm/sql/sql';
+import { sql } from 'drizzle-orm';
 
 export const subscriptionSeats = pgTable(
   'subscription_seats',
@@ -18,7 +18,9 @@ export const subscriptionSeats = pgTable(
     removedAt: timestamp('removed_at', { withTimezone: true }),
   },
   (table) => [
-    uniqueIndex('idx_seats_unique').on(table.subscriptionId, table.userId),
+    uniqueIndex('idx_seats_unique')
+      .on(table.subscriptionId, table.userId)
+      .where(sql`${table.removedAt} IS NULL`),
     index('idx_seats_subscription').on(table.subscriptionId),
     index('idx_seats_active')
       .on(table.subscriptionId)
