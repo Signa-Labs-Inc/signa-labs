@@ -10,7 +10,7 @@ export const users = pgTable(
     clerkId: text('clerk_id').notNull().unique(),
     email: text().unique().notNull(),
     emailVerifiedAt: timestamp('email_verified_at', { withTimezone: true }),
-    role: text().notNull().default('learner'),
+    role: text().notNull().default('learner').$type<'learner' | 'admin' | 'super_admin'>(),
     orgId: uuid('org_id').references(() => organizations.id),
     stripeCustomerId: text('stripe_customer_id').unique(),
     ...timestamps,
