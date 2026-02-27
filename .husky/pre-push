@@ -1,1 +1,2 @@
+[ -n "$CI" ] && exit 0
 NODE_ENV=production doppler run --preserve-env=NODE_ENV -- pnpm build
