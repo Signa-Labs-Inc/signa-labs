@@ -44,15 +44,18 @@ export async function getOrCreateFromClerk(clerkId: string): Promise<User> {
 export async function getUserByClerkId(clerkId: string): Promise<User> {
   const user = await reader.getUserByClerkId(clerkId);
   if (!user) {
-    throw new NotFoundError('User not found');
+    throw new NotFoundError('User', clerkId);
   }
   return user;
 }
 
 export async function updateUser(clerkId: string, params: UpdateUserParams): Promise<User> {
+  if (Object.keys(params).length === 0) {
+    throw new ValidationError('At least one field must be provided to update');
+  }
   const user = await writer.updateUser(clerkId, params);
   if (!user) {
-    throw new NotFoundError('Failed to update user');
+    throw new NotFoundError('User', clerkId);
   }
   return user;
 }
