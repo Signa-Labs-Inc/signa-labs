@@ -2,7 +2,8 @@ import { verifyWebhook } from '@clerk/nextjs/webhooks';
 import { NextRequest } from 'next/server';
 import * as userService from '@/lib/services/users/users.service';
 import { USER_DEFAULT_ROLE } from '@/lib/services/users/users.constants';
-import { AppError } from '@/lib/utils/errors';
+import { handleError } from '@/lib/utils/api.handler-errors';
+import { isClerkRuntimeError } from '@clerk/nextjs/errors';
 export async function POST(req: NextRequest) {
   try {
     const event = await verifyWebhook(req);
@@ -49,11 +50,9 @@ export async function POST(req: NextRequest) {
     }
     return new Response('Webhook received', { status: 200 });
   } catch (error) {
-    if (error instanceof AppError) {
-      console.error('Clerk webhook service error:', error);
-      return new Response('Internal server error', { status: 500 });
+    if (isClerkRuntimeError(error)) {
+      return new Response('Webhook verification failed', { status: 400 });
     }
-    console.error('Clerk webhook verification failed:', error);
-    return new Response('Webhook verification failed', { status: 400 });
+    return handleError(error);
   }
 }
