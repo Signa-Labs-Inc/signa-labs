@@ -4,6 +4,21 @@
 import 'dotenv/config';
 import { db } from '@/index';
 import { exerciseEnvironments, exercises, exerciseFiles } from '@/db/schema/tables';
+import { eq } from 'drizzle-orm';
+
+async function upsertEnvironment(values: typeof exerciseEnvironments.$inferInsert) {
+  const [inserted] = await db
+    .insert(exerciseEnvironments)
+    .values(values)
+    .onConflictDoNothing()
+    .returning();
+  if (inserted) return inserted;
+  const [existing] = await db
+    .select()
+    .from(exerciseEnvironments)
+    .where(eq(exerciseEnvironments.name, values.name));
+  return existing;
+}
 
 async function seed() {
   console.log('🌱 Seeding exercise environments...');
@@ -12,47 +27,35 @@ async function seed() {
   // ENVIRONMENTS
   // =========================================================================
 
-  const [pythonCore] = await db
-    .insert(exerciseEnvironments)
-    .values({
-      name: 'python_core',
-      displayName: 'Python',
-      description: 'Standard Python environment with pytest',
-      baseImage: 'python:3.12-slim',
-      preinstalledPackages: ['pytest'],
-      supportedLanguages: ['python'],
-      maxExecutionSeconds: 30,
-    })
-    .onConflictDoNothing()
-    .returning();
+  const pythonCore = await upsertEnvironment({
+    name: 'python_core',
+    displayName: 'Python',
+    description: 'Standard Python environment with pytest',
+    baseImage: 'python:3.12-slim',
+    preinstalledPackages: ['pytest'],
+    supportedLanguages: ['python'],
+    maxExecutionSeconds: 30,
+  });
 
-  const [nodeCore] = await db
-    .insert(exerciseEnvironments)
-    .values({
-      name: 'node_core',
-      displayName: 'Node.js',
-      description: 'Node.js with Jest and TypeScript',
-      baseImage: 'node:20-slim',
-      preinstalledPackages: ['jest', 'typescript', 'ts-jest', '@types/jest'],
-      supportedLanguages: ['typescript', 'javascript'],
-      maxExecutionSeconds: 30,
-    })
-    .onConflictDoNothing()
-    .returning();
+  const nodeCore = await upsertEnvironment({
+    name: 'node_core',
+    displayName: 'Node.js',
+    description: 'Node.js with Jest and TypeScript',
+    baseImage: 'node:20-slim',
+    preinstalledPackages: ['jest', 'typescript', 'ts-jest', '@types/jest'],
+    supportedLanguages: ['typescript', 'javascript'],
+    maxExecutionSeconds: 30,
+  });
 
-  const [goCore] = await db
-    .insert(exerciseEnvironments)
-    .values({
-      name: 'go_core',
-      displayName: 'Go',
-      description: 'Go standard library with built-in testing',
-      baseImage: 'golang:1.22-alpine',
-      preinstalledPackages: [],
-      supportedLanguages: ['go'],
-      maxExecutionSeconds: 30,
-    })
-    .onConflictDoNothing()
-    .returning();
+  const goCore = await upsertEnvironment({
+    name: 'go_core',
+    displayName: 'Go',
+    description: 'Go standard library with built-in testing',
+    baseImage: 'golang:1.22-alpine',
+    preinstalledPackages: [],
+    supportedLanguages: ['go'],
+    maxExecutionSeconds: 30,
+  });
 
   console.log('✅ Environments seeded');
   console.log('🌱 Seeding exercises...');
