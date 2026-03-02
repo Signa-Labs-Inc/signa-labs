@@ -3,6 +3,7 @@ import { NextRequest } from 'next/server';
 import * as userService from '@/lib/services/users/users.service';
 import { USER_DEFAULT_ROLE } from '@/lib/services/users/users.constants';
 import { handleError } from '@/lib/utils/api.handler-errors';
+import { isClerkRuntimeError } from '@clerk/nextjs/errors';
 export async function POST(req: NextRequest) {
   try {
     const event = await verifyWebhook(req);
@@ -49,6 +50,9 @@ export async function POST(req: NextRequest) {
     }
     return new Response('Webhook received', { status: 200 });
   } catch (error) {
+    if (isClerkRuntimeError(error)) {
+      return new Response('Webhook verification failed', { status: 400 });
+    }
     return handleError(error);
   }
 }
