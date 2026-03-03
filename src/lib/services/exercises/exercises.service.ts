@@ -20,7 +20,7 @@ export async function listPlatformExercises(
     difficulty: exercise.difficulty,
     language: exercise.language,
     tags: exercise.tags ?? [],
-    environmentName: exercise.environment?.name ?? '',
+    environmentName: exercise.environment?.displayName ?? '',
   }));
 }
 
@@ -30,7 +30,7 @@ export async function getAvailableTags(): Promise<string[]> {
 
 export async function getExerciseDetail(exerciseId: string): Promise<ExerciseDetail> {
   const exercise = await reader.getExerciseById(exerciseId);
-  if (!exercise) throw new NotFoundError('Exercise');
+  if (!exercise) throw new NotFoundError('Exercise', exerciseId);
 
   const starterFiles = await reader.getExerciseStarterFiles(exerciseId);
   const supportFiles = await reader.getExerciseSupportFiles(exerciseId);
@@ -54,7 +54,7 @@ export async function getExerciseHint(
   hintIndex: number
 ): Promise<ExerciseHint> {
   const exercise = await reader.getExerciseById(exerciseId);
-  if (!exercise) throw new NotFoundError('Exercise');
+  if (!exercise) throw new NotFoundError('Exercise', exerciseId);
 
   const hints = (exercise.hints ?? []) as string[];
 
@@ -72,7 +72,7 @@ export async function getExerciseHint(
 /** Get solution files for an exercise (user explicitly peeks) */
 export async function getExerciseSolution(exerciseId: string): Promise<ExerciseSolution> {
   const exercise = await reader.getExerciseById(exerciseId);
-  if (!exercise) throw new NotFoundError('Exercise not found');
+  if (!exercise) throw new NotFoundError('Exercise', exerciseId);
   const files = await reader.getExerciseSolutionFiles(exerciseId);
   return { files };
 }
