@@ -13,6 +13,11 @@ import { promptTemplates } from '../prompt_templates';
 import { exerciseEnvironments } from '../exercise_environments';
 import { users } from '../users';
 import { sql } from 'drizzle-orm';
+import type {
+  ExerciseDifficulty,
+  ExerciseLanguage,
+  ExerciseOrigin,
+} from '@/lib/services/exercises/exercises.constants';
 
 export const exercises = pgTable(
   'exercises',
@@ -20,7 +25,7 @@ export const exercises = pgTable(
     id: uuid().primaryKey().defaultRandom(),
 
     // Origin
-    origin: text().notNull(),
+    origin: text().$type<ExerciseOrigin>().notNull(),
     createdBy: uuid('created_by').references(() => users.id),
     userPrompt: text('user_prompt'),
 
@@ -36,11 +41,11 @@ export const exercises = pgTable(
     // Content
     title: text().notNull(),
     description: text().notNull(),
-    difficulty: text().notNull().default('medium'),
-    language: text().notNull(),
+    difficulty: text().$type<ExerciseDifficulty>().notNull().default('medium'),
+    language: text().$type<ExerciseLanguage>().notNull(),
 
     // Hints
-    hints: jsonb().notNull().default([]),
+    hints: jsonb().$type<string[]>().notNull().default([]),
 
     // Validation
     isValidated: boolean('is_validated').notNull().default(false),

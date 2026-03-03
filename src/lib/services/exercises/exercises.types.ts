@@ -1,0 +1,69 @@
+import { ExerciseDifficulty, ExerciseLanguage } from './exercises.constants';
+export type Exercise = {
+  id: string;
+  title: string;
+  origin: string;
+  difficulty: ExerciseDifficulty;
+  description: string;
+  language: ExerciseLanguage;
+  tags: string[] | null;
+  hints?: string[] | null;
+  environment: ExerciseEnvironment;
+};
+/** Minimal exercise data for catalog listings */
+export type ExerciseSummary = {
+  id: string;
+  title: string;
+  description: string;
+  difficulty: ExerciseDifficulty;
+  language: ExerciseLanguage;
+  tags: string[];
+  environmentName: string;
+};
+/** Full exercise data for the workspace page */
+export type ExerciseDetail = {
+  id: string;
+  title: string;
+  description: string;
+  difficulty: ExerciseDifficulty;
+  language: ExerciseLanguage;
+  tags: string[];
+  hintCount: number;
+  environment: ExerciseEnvironment;
+  starterFiles: ExerciseFile[];
+  supportFiles: ExerciseFile[];
+};
+/** A single file belonging to an exercise */
+export type ExerciseFile = {
+  id: string;
+  filePath: string;
+  fileName: string;
+  content: string;
+  isEditable: boolean;
+  sortOrder: number;
+};
+
+/** Hints returned one at a time */
+export type ExerciseHint = {
+  index: number;
+  text: string;
+  total: number;
+};
+
+/** Solution files (revealed on request) */
+export type ExerciseSolution = {
+  files: ExerciseFile[];
+};
+
+export type ExerciseCatalogFilters = {
+  language?: ExerciseLanguage;
+  difficulty?: ExerciseDifficulty;
+  tag?: string;
+  search?: string;
+};
+
+export type ExerciseEnvironment = {
+  id: string;
+  name: string;
+  displayName: string;
+};
