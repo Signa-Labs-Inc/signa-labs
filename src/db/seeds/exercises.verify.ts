@@ -43,6 +43,7 @@ async function verify() {
   console.log('\n--- NotFoundError test ---');
   try {
     await exerciseService.getExerciseDetail('00000000-0000-0000-0000-000000000000');
+    throw new Error('Expected NotFoundError but call resolved successfully');
   } catch (err) {
     console.log(`Correctly threw: ${(err as Error).message}`);
   }
