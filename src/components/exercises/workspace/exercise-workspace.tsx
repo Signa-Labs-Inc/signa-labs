@@ -112,6 +112,7 @@ export function ExerciseWorkspace({ exercise }: ExerciseWorkspaceProps) {
                 language={exercise.language}
                 readOnly={!activeFile.isEditable}
                 onChange={handleCodeChange}
+                filePath={activeFile.filePath}
               />
             )}
           </div>
