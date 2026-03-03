@@ -60,8 +60,8 @@ function runTests() {
     };
   }
 
-  const testFiles = readdirSync(TESTS_DIR).filter(
-    (f) => f.match(/\.(test|spec)\.(js|mjs|cjs|ts|mts)$/)
+  const testFiles = readdirSync(TESTS_DIR).filter((f) =>
+    f.match(/\.(test|spec)\.(js|mjs|cjs|ts|mts)$/)
   );
 
   if (testFiles.length === 0) {
