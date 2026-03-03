@@ -13,3 +13,6 @@ package-lock.json
 
 # Environment
 .env*
+
+# Sandbox fixtures (contain intentional syntax errors)
+src/lib/sandboxes/__fixtures__
