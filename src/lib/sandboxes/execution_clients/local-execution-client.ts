@@ -17,7 +17,7 @@
 
 import { execFile } from 'child_process';
 import { mkdirSync, writeFileSync, rmSync, mkdtempSync } from 'fs';
-import { join, dirname } from 'path';
+import { join, dirname, resolve, sep } from 'path';
 import { tmpdir } from 'os';
 import type {
   ExecutionClient,
@@ -134,12 +134,14 @@ export class LocalExecutionClient implements ExecutionClient {
   }
 
   private writeFiles(dir: string, files: SandboxFile[]): void {
+    const resolvedDir = resolve(dir);
     for (const file of files) {
-      const filePath = join(dir, file.filePath);
-      // Ensure subdirectories exist
-      const fileDir = dirname(filePath);
-      mkdirSync(fileDir, { recursive: true });
-      writeFileSync(filePath, file.content, 'utf-8');
+      const resolvedPath = resolve(dir, file.filePath);
+      if (!resolvedPath.startsWith(resolvedDir + sep) && resolvedPath !== resolvedDir) {
+        throw new Error(`Path traversal detected: ${file.filePath}`);
+      }
+      mkdirSync(dirname(resolvedPath), { recursive: true });
+      writeFileSync(resolvedPath, file.content, 'utf-8');
     }
   }
 
