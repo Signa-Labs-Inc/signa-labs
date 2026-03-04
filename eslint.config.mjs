@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     'out/**',
     'build/**',
     'next-env.d.ts',
+    // Sandbox fixtures contain intentional errors for testing:
+    'src/lib/sandboxes/__fixtures__/**',
   ]),
 ]);
 
