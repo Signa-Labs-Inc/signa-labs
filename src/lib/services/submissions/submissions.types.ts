@@ -150,6 +150,7 @@ export type SubmissionErrorCode =
   | 'TOO_MANY_FILES'
   | 'FILE_TOO_LARGE'
   | 'INVALID_FILE_PATH'
+  | 'DUPLICATE_FILE_PATH'
   | 'RATE_LIMITED';
 
 const SUBMISSION_ERROR_STATUS: Record<SubmissionErrorCode, number> = {
@@ -161,6 +162,7 @@ const SUBMISSION_ERROR_STATUS: Record<SubmissionErrorCode, number> = {
   TOO_MANY_FILES: 400,
   FILE_TOO_LARGE: 400,
   INVALID_FILE_PATH: 400,
+  DUPLICATE_FILE_PATH: 400,
   RATE_LIMITED: 429,
 };
 

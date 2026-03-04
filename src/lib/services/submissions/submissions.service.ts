@@ -56,11 +56,18 @@ export class SubmissionService {
       throw new SubmissionError('ENVIRONMENT_NOT_FOUND', 'Exercise environment not configured');
     }
 
-    // 3. Validate file constraints
+    // 3. Validate file constraints and language support
     this.validateFiles(files, {
       maxFiles: environment.maxFiles,
       maxFileSizeBytes: environment.maxFileSizeBytes,
     });
+
+    if (!SUPPORTED_LANGUAGES.includes(exercise.language as SupportedLanguage)) {
+      throw new SubmissionError(
+        'ENVIRONMENT_NOT_FOUND',
+        `Unsupported language: ${exercise.language}`
+      );
+    }
 
     // 4. Create submission record + persist files
     const submission = await writer.createSubmission({ attemptId, userId });
@@ -77,13 +84,6 @@ export class SubmissionService {
     const supportFiles = await reader.getExerciseFilesByType(exercise.id, 'support');
 
     // 7. Execute in sandbox
-    if (!SUPPORTED_LANGUAGES.includes(exercise.language as SupportedLanguage)) {
-      throw new SubmissionError(
-        'ENVIRONMENT_NOT_FOUND',
-        `Unsupported language: ${exercise.language}`
-      );
-    }
-
     const response = await this.executionClient.executeSubmission({
       image: environment.baseImage,
       language: exercise.language as SupportedLanguage,
@@ -145,15 +145,17 @@ export class SubmissionService {
 
       // 11. If passing for the first time, complete the attempt and update stats
       if (isPassing && attempt.status === 'in_progress') {
-        await writer.markAttemptCompleted(attemptId, tx);
-        await writer.emitExerciseEvent(
-          attemptId,
-          userId,
-          'attempt_completed',
-          { submissionId: submission.id },
-          tx
-        );
-        await writer.updateLearningStatsOnCompletion(userId, tx);
+        const transitioned = await writer.markAttemptCompleted(attemptId, tx);
+        if (transitioned) {
+          await writer.emitExerciseEvent(
+            attemptId,
+            userId,
+            'attempt_completed',
+            { submissionId: submission.id },
+            tx
+          );
+          await writer.updateLearningStatsOnCompletion(userId, tx);
+        }
       }
     });
 
@@ -201,7 +203,13 @@ export class SubmissionService {
       );
     }
 
+    const seenPaths = new Set<string>();
     for (const file of files) {
+      if (seenPaths.has(file.filePath)) {
+        throw new SubmissionError('DUPLICATE_FILE_PATH', `Duplicate file path: "${file.filePath}"`);
+      }
+      seenPaths.add(file.filePath);
+
       const sizeBytes = Buffer.byteLength(file.content, 'utf-8');
       if (sizeBytes > limits.maxFileSizeBytes) {
         throw new SubmissionError(

@@ -5,7 +5,7 @@
  * and learning stats updates.
  */
 
-import { eq, sql } from 'drizzle-orm';
+import { eq, ne, and, sql } from 'drizzle-orm';
 import { db } from '@/index';
 import { exerciseSubmissions } from '@/db/schema/tables/exercise_submissions';
 import { submissionFiles } from '@/db/schema/tables/submission_files';
@@ -96,14 +96,20 @@ export async function emitExerciseEvent(
 // Attempt writes
 // ============================================================
 
-export async function markAttemptCompleted(attemptId: string, txOrDb: DbOrTx = db): Promise<void> {
-  await txOrDb
+export async function markAttemptCompleted(
+  attemptId: string,
+  txOrDb: DbOrTx = db
+): Promise<boolean> {
+  const result = await txOrDb
     .update(exerciseAttempts)
     .set({
       status: 'completed',
       completedAt: new Date(),
     })
-    .where(eq(exerciseAttempts.id, attemptId));
+    .where(and(eq(exerciseAttempts.id, attemptId), ne(exerciseAttempts.status, 'completed')))
+    .returning({ id: exerciseAttempts.id });
+
+  return result.length > 0;
 }
 
 // ============================================================
