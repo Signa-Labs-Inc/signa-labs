@@ -1,7 +1,7 @@
 FROM node:20-slim
 
 # Install vitest and common testing utilities globally
-RUN npm install -g vitest@^3.0.0
+RUN npm install -g vitest@3.2.4
 
 # Create workspace directories
 RUN mkdir -p /workspace/submission /workspace/tests /workspace/support

@@ -91,15 +91,17 @@ run_test() {
   fi
 }
 
-# Build images first
-echo "Building sandbox images..."
-"$SCRIPT_DIR/build-sandboxes.sh" > /dev/null 2>&1
-echo "Images built."
-
 LANGUAGES=("python" "javascript" "typescript")
 if [ $# -gt 0 ]; then
   LANGUAGES=("$1")
 fi
+
+# Build images first (only the selected languages)
+echo "Building sandbox images..."
+for lang in "${LANGUAGES[@]}"; do
+  "$SCRIPT_DIR/build-sandboxes.sh" "$lang"
+done
+echo "Images built."
 
 for lang in "${LANGUAGES[@]}"; do
   echo ""

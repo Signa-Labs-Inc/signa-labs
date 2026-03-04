@@ -89,12 +89,16 @@ function runTests() {
         timeout: (MAX_EXECUTION_SECONDS + 5) * 1000,
         encoding: 'utf-8',
         stdio: ['pipe', 'pipe', 'pipe'],
-        env: { ...process.env, NODE_PATH: '/usr/local/lib/node_modules' },
+        env: {
+          NODE_PATH: '/usr/local/lib/node_modules',
+          PATH: process.env.PATH,
+          HOME: process.env.HOME,
+        },
       }
     );
   } catch (err) {
     stdout = err.stdout ?? '';
-    stderr = err.stderr ?? '';
+    stderr = err.stderr ?? err.message ?? String(err);
   }
 
   // Parse the JSON report if it exists
