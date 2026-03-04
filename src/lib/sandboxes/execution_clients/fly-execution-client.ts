@@ -87,6 +87,24 @@ export class FlyExecutionClient implements ExecutionClient {
     } catch (err) {
       const error = err instanceof Error ? err.message : String(err);
 
+      if (error.includes('timed out') || error.includes('TIMEOUT')) {
+        return {
+          success: true,
+          result: {
+            status: 'error',
+            error_type: 'timeout',
+            error_message: `Execution exceeded ${request.timeoutSeconds}s time limit`,
+            tests_passed: 0,
+            tests_failed: 0,
+            tests_total: 0,
+            execution_time_ms: Date.now() - startTime,
+            results: [],
+          },
+          error: null,
+          totalDurationMs: Date.now() - startTime,
+        };
+      }
+
       return {
         success: false,
         result: null,
