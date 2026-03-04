@@ -132,9 +132,14 @@ export async function getSubmissionByIdAndUser(
 
   if (!submission) return null;
 
-  const parsedOutput = submission.testOutput
-    ? (JSON.parse(submission.testOutput) as SandboxResult)
-    : null;
+  let parsedOutput: SandboxResult | null = null;
+  if (submission.testOutput) {
+    try {
+      parsedOutput = JSON.parse(submission.testOutput) as SandboxResult;
+    } catch {
+      console.error(`Failed to parse testOutput for submission ${submission.id}`);
+    }
+  }
 
   return {
     id: submission.id,

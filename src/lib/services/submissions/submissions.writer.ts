@@ -19,14 +19,19 @@ import type {
   UpdateSubmissionResultsInput,
 } from './submissions.types';
 
+/** Transaction-compatible db handle. Accepts either the global db or a transaction. */
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+type DbOrTx = typeof db | Tx;
+
 // ============================================================
 // Submission writes
 // ============================================================
 
 export async function createSubmission(
-  data: CreateSubmissionInput
+  data: CreateSubmissionInput,
+  txOrDb: DbOrTx = db
 ): Promise<CreateSubmissionResult> {
-  const [submission] = await db
+  const [submission] = await txOrDb
     .insert(exerciseSubmissions)
     .values({
       attemptId: data.attemptId,
@@ -43,11 +48,12 @@ export async function createSubmission(
 
 export async function createSubmissionFiles(
   submissionId: string,
-  files: SubmissionFileInput[]
+  files: SubmissionFileInput[],
+  txOrDb: DbOrTx = db
 ): Promise<void> {
   if (files.length === 0) return;
 
-  await db.insert(submissionFiles).values(
+  await txOrDb.insert(submissionFiles).values(
     files.map((f) => ({
       submissionId,
       filePath: f.filePath,
@@ -58,9 +64,13 @@ export async function createSubmissionFiles(
 
 export async function updateSubmissionResults(
   submissionId: string,
-  data: UpdateSubmissionResultsInput
+  data: UpdateSubmissionResultsInput,
+  txOrDb: DbOrTx = db
 ): Promise<void> {
-  await db.update(exerciseSubmissions).set(data).where(eq(exerciseSubmissions.id, submissionId));
+  await txOrDb
+    .update(exerciseSubmissions)
+    .set(data)
+    .where(eq(exerciseSubmissions.id, submissionId));
 }
 
 // ============================================================
@@ -71,9 +81,10 @@ export async function emitExerciseEvent(
   attemptId: string,
   userId: string,
   eventType: string,
-  payload: Record<string, unknown> = {}
+  payload: Record<string, unknown> = {},
+  txOrDb: DbOrTx = db
 ): Promise<void> {
-  await db.insert(exerciseEvents).values({
+  await txOrDb.insert(exerciseEvents).values({
     attemptId,
     userId,
     eventType,
@@ -85,8 +96,8 @@ export async function emitExerciseEvent(
 // Attempt writes
 // ============================================================
 
-export async function markAttemptCompleted(attemptId: string): Promise<void> {
-  await db
+export async function markAttemptCompleted(attemptId: string, txOrDb: DbOrTx = db): Promise<void> {
+  await txOrDb
     .update(exerciseAttempts)
     .set({
       status: 'completed',
@@ -103,11 +114,14 @@ export async function markAttemptCompleted(attemptId: string): Promise<void> {
  * Increment completion stats and update streak.
  * Uses upsert so it works even if the user doesn't have a stats row yet.
  */
-export async function updateLearningStatsOnCompletion(userId: string): Promise<void> {
+export async function updateLearningStatsOnCompletion(
+  userId: string,
+  txOrDb: DbOrTx = db
+): Promise<void> {
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-  await db
+  await txOrDb
     .insert(userLearningStats)
     .values({
       userId,
@@ -151,8 +165,11 @@ export async function updateLearningStatsOnCompletion(userId: string): Promise<v
 /**
  * Increment attempt count when a user starts a new exercise attempt.
  */
-export async function updateLearningStatsOnAttemptStart(userId: string): Promise<void> {
-  await db
+export async function updateLearningStatsOnAttemptStart(
+  userId: string,
+  txOrDb: DbOrTx = db
+): Promise<void> {
+  await txOrDb
     .insert(userLearningStats)
     .values({
       userId,

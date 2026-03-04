@@ -5,6 +5,7 @@
  */
 
 import type { SandboxResult } from '@/lib/sandboxes/types';
+import { AppError } from '@/lib/utils/errors';
 
 // ============================================================
 // Constants
@@ -151,31 +152,21 @@ export type SubmissionErrorCode =
   | 'INVALID_FILE_PATH'
   | 'RATE_LIMITED';
 
-export class SubmissionError extends Error {
-  code: SubmissionErrorCode;
+const SUBMISSION_ERROR_STATUS: Record<SubmissionErrorCode, number> = {
+  ATTEMPT_NOT_FOUND: 404,
+  EXERCISE_NOT_FOUND: 404,
+  ENVIRONMENT_NOT_FOUND: 404,
+  ATTEMPT_ABANDONED: 400,
+  NO_FILES: 400,
+  TOO_MANY_FILES: 400,
+  FILE_TOO_LARGE: 400,
+  INVALID_FILE_PATH: 400,
+  RATE_LIMITED: 429,
+};
 
+export class SubmissionError extends AppError {
   constructor(code: SubmissionErrorCode, message: string) {
-    super(message);
+    super(message, code, SUBMISSION_ERROR_STATUS[code] ?? 500);
     this.name = 'SubmissionError';
-    this.code = code;
-  }
-
-  get httpStatus(): number {
-    switch (this.code) {
-      case 'ATTEMPT_NOT_FOUND':
-      case 'EXERCISE_NOT_FOUND':
-      case 'ENVIRONMENT_NOT_FOUND':
-        return 404;
-      case 'ATTEMPT_ABANDONED':
-      case 'NO_FILES':
-      case 'TOO_MANY_FILES':
-      case 'FILE_TOO_LARGE':
-      case 'INVALID_FILE_PATH':
-        return 400;
-      case 'RATE_LIMITED':
-        return 429;
-      default:
-        return 500;
-    }
   }
 }

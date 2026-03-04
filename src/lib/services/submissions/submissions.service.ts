@@ -115,15 +115,19 @@ export class SubmissionService {
     const isPassing =
       result.status === 'completed' && result.tests_failed === 0 && result.tests_total > 0;
 
-    await db.transaction(async () => {
-      await writer.updateSubmissionResults(submission.id, {
-        testsPassed: result.tests_passed,
-        testsFailed: result.tests_failed,
-        testsTotal: result.tests_total,
-        testOutput: JSON.stringify(result),
-        executionTimeMs: result.execution_time_ms,
-        isPassing,
-      });
+    await db.transaction(async (tx) => {
+      await writer.updateSubmissionResults(
+        submission.id,
+        {
+          testsPassed: result.tests_passed,
+          testsFailed: result.tests_failed,
+          testsTotal: result.tests_total,
+          testOutput: JSON.stringify(result),
+          executionTimeMs: result.execution_time_ms,
+          isPassing,
+        },
+        tx
+      );
 
       // 10. Emit test result event
       await writer.emitExerciseEvent(
@@ -135,16 +139,21 @@ export class SubmissionService {
           testsPassed: result.tests_passed,
           testsFailed: result.tests_failed,
           testsTotal: result.tests_total,
-        }
+        },
+        tx
       );
 
       // 11. If passing for the first time, complete the attempt and update stats
       if (isPassing && attempt.status === 'in_progress') {
-        await writer.markAttemptCompleted(attemptId);
-        await writer.emitExerciseEvent(attemptId, userId, 'attempt_completed', {
-          submissionId: submission.id,
-        });
-        await writer.updateLearningStatsOnCompletion(userId);
+        await writer.markAttemptCompleted(attemptId, tx);
+        await writer.emitExerciseEvent(
+          attemptId,
+          userId,
+          'attempt_completed',
+          { submissionId: submission.id },
+          tx
+        );
+        await writer.updateLearningStatsOnCompletion(userId, tx);
       }
     });
 
