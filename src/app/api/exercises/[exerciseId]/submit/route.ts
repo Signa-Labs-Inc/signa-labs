@@ -25,6 +25,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Invalid JSON in request body' }, { status: 400 });
     }
 
+    if (typeof body !== 'object' || body === null) {
+      return NextResponse.json({ error: 'Request body must be a JSON object' }, { status: 400 });
+    }
+
     if (!body.attemptId || typeof body.attemptId !== 'string') {
       return NextResponse.json({ error: 'attemptId is required' }, { status: 400 });
     }
