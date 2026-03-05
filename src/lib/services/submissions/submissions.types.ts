@@ -20,6 +20,7 @@ export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 
 export interface SubmitSolutionInput {
   userId: string;
+  exerciseId: string;
   attemptId: string;
   files: SubmissionFileInput[];
 }
@@ -171,4 +172,8 @@ export class SubmissionError extends AppError {
     super(message, code, SUBMISSION_ERROR_STATUS[code] ?? 500);
     this.name = 'SubmissionError';
   }
+}
+
+export interface CreateAttemptResult {
+  id: string;
 }

@@ -1,15 +1,20 @@
-// src/components/workspace/exercise-workspace.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { InstructionsPanel } from './instructions-panel';
 import { CodeEditor } from './code-editor';
 import { HintPanel } from './hint-panel';
+import { ResultsPanel } from './results-panel';
 import type { ExerciseDetail } from '@/lib/services/exercises/exercises.types';
+import type { SandboxResult } from '@/lib/sandboxes/types';
+
+// ============================================================
+// Constants
+// ============================================================
 
 const DIFFICULTY_COLORS: Record<string, string> = {
   beginner:
@@ -31,11 +36,32 @@ const LANGUAGE_LABELS: Record<string, string> = {
   sql: 'SQL',
 };
 
+// ============================================================
+// Types
+// ============================================================
+
 type ExerciseWorkspaceProps = {
   exercise: ExerciseDetail;
+  attemptId: string;
 };
 
-export function ExerciseWorkspace({ exercise }: ExerciseWorkspaceProps) {
+type SubmitResponse = {
+  submissionId: string;
+  isPassing: boolean;
+  testsPassed: number;
+  testsFailed: number;
+  testsTotal: number;
+  testOutput: string | null;
+  executionTimeMs: number;
+  results: SandboxResult['results'];
+  error: string | null;
+};
+
+// ============================================================
+// Component
+// ============================================================
+
+export function ExerciseWorkspace({ exercise, attemptId }: ExerciseWorkspaceProps) {
   const allFiles = [...exercise.starterFiles, ...exercise.supportFiles];
 
   const [activeFileId, setActiveFileId] = useState<string>(allFiles[0]?.id ?? '');
@@ -49,12 +75,66 @@ export function ExerciseWorkspace({ exercise }: ExerciseWorkspaceProps) {
     return initial;
   });
 
+  // Submission state
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [result, setResult] = useState<SandboxResult | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
   const activeFile = allFiles.find((f) => f.id === activeFileId) ?? allFiles[0];
 
-  function handleCodeChange(value: string) {
+  function handleCodeChange(value: string): void {
     if (!activeFile?.isEditable) return;
     setFileContents((prev) => ({ ...prev, [activeFile.id]: value }));
   }
+
+  const handleSubmit = useCallback(async (): Promise<void> => {
+    setIsSubmitting(true);
+    setResult(null);
+    setSubmitError(null);
+
+    try {
+      // Collect editable files with their current content
+      const editableFiles = allFiles
+        .filter((f) => f.isEditable)
+        .map((f) => ({
+          filePath: f.filePath,
+          content: fileContents[f.id] ?? f.content,
+        }));
+
+      const response = await fetch(`/api/exercises/${exercise.id}/submit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          attemptId,
+          files: editableFiles,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorBody = (await response.json().catch(() => null)) as { error?: string } | null;
+        setSubmitError(errorBody?.error ?? `Submission failed (${response.status})`);
+        return;
+      }
+
+      const data = (await response.json()) as SubmitResponse;
+
+      const sandboxResult: SandboxResult = {
+        status: data.error ? 'error' : 'completed',
+        error_message: data.error ?? undefined,
+        tests_passed: data.testsPassed,
+        tests_failed: data.testsFailed,
+        tests_total: data.testsTotal,
+        execution_time_ms: data.executionTimeMs,
+        results: data.results,
+      };
+
+      setResult(sandboxResult);
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : 'Network error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [allFiles, fileContents, exercise.id, attemptId]);
 
   return (
     <div className="flex h-[calc(100vh-64px)] flex-col">
@@ -74,6 +154,12 @@ export function ExerciseWorkspace({ exercise }: ExerciseWorkspaceProps) {
             {LANGUAGE_LABELS[exercise.language] ?? exercise.language}
           </span>
         </div>
+
+        {/* Submit button in top bar */}
+        <Button onClick={handleSubmit} disabled={isSubmitting} size="sm" className="gap-2">
+          <Play className="h-4 w-4" />
+          {isSubmitting ? 'Running...' : 'Run Tests'}
+        </Button>
       </div>
 
       {/* Main workspace area */}
@@ -84,7 +170,7 @@ export function ExerciseWorkspace({ exercise }: ExerciseWorkspaceProps) {
           <HintPanel exerciseId={exercise.id} hintCount={exercise.hintCount} />
         </div>
 
-        {/* Right panel: File tabs + Editor */}
+        {/* Right panel: File tabs + Editor + Results */}
         <div className="flex flex-1 flex-col overflow-hidden">
           {/* File tabs */}
           <div className="bg-muted/30 flex items-center gap-0 border-b px-2">
@@ -116,6 +202,9 @@ export function ExerciseWorkspace({ exercise }: ExerciseWorkspaceProps) {
               />
             )}
           </div>
+
+          {/* Results panel */}
+          <ResultsPanel result={result} isSubmitting={isSubmitting} error={submitError} />
         </div>
       </div>
     </div>

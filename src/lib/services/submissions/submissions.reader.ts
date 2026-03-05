@@ -229,3 +229,39 @@ export async function getCompletedExerciseIds(
 
   return new Set(completed.map((r) => r.exerciseId));
 }
+
+/**
+ * Find the user's active (in_progress) attempt for an exercise.
+ * Returns null if no active attempt exists.
+ */
+export async function getActiveAttemptForExercise(
+  userId: string,
+  exerciseId: string
+): Promise<AttemptRecord | null> {
+  const [attempt] = await db
+    .select({
+      id: exerciseAttempts.id,
+      userId: exerciseAttempts.userId,
+      exerciseId: exerciseAttempts.exerciseId,
+      status: exerciseAttempts.status,
+      hintsRevealed: exerciseAttempts.hintsRevealed,
+      solutionViewed: exerciseAttempts.solutionViewed,
+      startedAt: exerciseAttempts.startedAt,
+      completedAt: exerciseAttempts.completedAt,
+      timeSpentSeconds: exerciseAttempts.timeSpentSeconds,
+      createdAt: exerciseAttempts.createdAt,
+      updatedAt: exerciseAttempts.updatedAt,
+    })
+    .from(exerciseAttempts)
+    .where(
+      and(
+        eq(exerciseAttempts.userId, userId),
+        eq(exerciseAttempts.exerciseId, exerciseId),
+        eq(exerciseAttempts.status, 'in_progress')
+      )
+    )
+    .orderBy(sql`${exerciseAttempts.createdAt} DESC`)
+    .limit(1);
+
+  return attempt ?? null;
+}

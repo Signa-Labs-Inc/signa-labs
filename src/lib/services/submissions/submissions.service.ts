@@ -14,6 +14,7 @@ import * as reader from './submissions.reader';
 import * as writer from './submissions.writer';
 import { SubmissionError, SUPPORTED_LANGUAGES } from './submissions.types';
 import type {
+  AttemptRecord,
   SubmitSolutionInput,
   SubmitSolutionResult,
   SubmissionDetail,
@@ -34,11 +35,14 @@ export class SubmissionService {
    * Main entry point called by the API route.
    */
   async submitSolution(input: SubmitSolutionInput): Promise<SubmitSolutionResult> {
-    const { userId, attemptId, files } = input;
+    const { userId, exerciseId, attemptId, files } = input;
 
-    // 1. Validate attempt ownership and status
+    // 1. Validate attempt ownership, status, and exercise scoping
     const attempt = await reader.getAttemptByIdAndUser(attemptId, userId);
     if (!attempt) {
+      throw new SubmissionError('ATTEMPT_NOT_FOUND', 'Exercise attempt not found');
+    }
+    if (attempt.exerciseId !== exerciseId) {
       throw new SubmissionError('ATTEMPT_NOT_FOUND', 'Exercise attempt not found');
     }
     if (attempt.status === 'abandoned') {
@@ -172,6 +176,10 @@ export class SubmissionService {
     };
   }
 
+  async getAttempt(attemptId: string, userId: string): Promise<AttemptRecord | null> {
+    return reader.getAttemptByIdAndUser(attemptId, userId);
+  }
+
   async getSubmission(submissionId: string, userId: string): Promise<SubmissionDetail | null> {
     return reader.getSubmissionByIdAndUser(submissionId, userId);
   }
@@ -222,5 +230,42 @@ export class SubmissionService {
         throw new SubmissionError('INVALID_FILE_PATH', `Invalid file path: "${file.filePath}"`);
       }
     }
+  }
+
+  /**
+   * Get or create an active attempt for an exercise.
+   * If the user has an in_progress attempt, return it.
+   * Otherwise, create a new one and update learning stats.
+   */
+  async getOrCreateAttempt(
+    userId: string,
+    exerciseId: string
+  ): Promise<{ attemptId: string; isNew: boolean }> {
+    // Check for existing active attempt
+    const existing = await reader.getActiveAttemptForExercise(userId, exerciseId);
+    if (existing) {
+      return { attemptId: existing.id, isNew: false };
+    }
+
+    // Create new attempt with event + stats in a single transaction
+    const attempt = await db.transaction(async (tx) => {
+      const created = await writer.createAttempt(userId, exerciseId, tx);
+
+      await writer.emitExerciseEvent(
+        created.id,
+        userId,
+        'attempt_started',
+        {
+          exerciseId,
+        },
+        tx
+      );
+
+      await writer.updateLearningStatsOnAttemptStart(userId, tx);
+
+      return created;
+    });
+
+    return { attemptId: attempt.id, isNew: true };
   }
 }

@@ -13,6 +13,7 @@ import { exerciseAttempts } from '@/db/schema/tables/exercise_attempts';
 import { exerciseEvents } from '@/db/schema/tables/exercise_events';
 import { userLearningStats } from '@/db/schema/tables/user_learning_stats';
 import type {
+  CreateAttemptResult,
   CreateSubmissionInput,
   CreateSubmissionResult,
   SubmissionFileInput,
@@ -193,4 +194,24 @@ export async function updateLearningStatsOnAttemptStart(
         lastActivityAt: new Date(),
       },
     });
+}
+
+/**
+ * Create a new exercise attempt for a user.
+ */
+export async function createAttempt(
+  userId: string,
+  exerciseId: string,
+  txOrDb: DbOrTx = db
+): Promise<CreateAttemptResult> {
+  const [attempt] = await txOrDb
+    .insert(exerciseAttempts)
+    .values({
+      userId,
+      exerciseId,
+      status: 'in_progress',
+    })
+    .returning({ id: exerciseAttempts.id });
+
+  return attempt;
 }
