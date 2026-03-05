@@ -172,3 +172,7 @@ export class SubmissionError extends AppError {
     this.name = 'SubmissionError';
   }
 }
+
+export interface CreateAttemptResult {
+  id: string;
+}

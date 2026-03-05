@@ -223,4 +223,41 @@ export class SubmissionService {
       }
     }
   }
+
+  /**
+   * Get or create an active attempt for an exercise.
+   * If the user has an in_progress attempt, return it.
+   * Otherwise, create a new one and update learning stats.
+   */
+  async getOrCreateAttempt(
+    userId: string,
+    exerciseId: string
+  ): Promise<{ attemptId: string; isNew: boolean }> {
+    // Check for existing active attempt
+    const existing = await reader.getActiveAttemptForExercise(userId, exerciseId);
+    if (existing) {
+      return { attemptId: existing.id, isNew: false };
+    }
+
+    // Create new attempt with event + stats in a single transaction
+    const attempt = await db.transaction(async (tx) => {
+      const created = await writer.createAttempt(userId, exerciseId, tx);
+
+      await writer.emitExerciseEvent(
+        created.id,
+        userId,
+        'attempt_started',
+        {
+          exerciseId,
+        },
+        tx
+      );
+
+      await writer.updateLearningStatsOnAttemptStart(userId, tx);
+
+      return created;
+    });
+
+    return { attemptId: attempt.id, isNew: true };
+  }
 }
