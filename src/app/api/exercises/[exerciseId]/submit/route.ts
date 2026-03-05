@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireCurrentUser } from '@/lib/services/auth/auth.service';
-import { SubmissionError } from '@/lib/services/submissions/submissions.types';
+import { handleError } from '@/lib/utils/api.handler-errors';
 import { SubmissionService } from '@/lib/services/submissions/submissions.service';
-import type { SubmitSolutionResult } from '@/lib/services/submissions/submissions.types';
 
 interface RouteParams {
   params: Promise<{ exerciseId: string }>;
@@ -13,16 +12,18 @@ interface SubmitRequestBody {
   files: { filePath: string; content: string }[];
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: RouteParams
-): Promise<NextResponse<SubmitSolutionResult | { error: string; code?: string }>> {
+export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
     const user = await requireCurrentUser();
-    await params; // validate route params are resolved
+    const { exerciseId } = await params;
 
     // Parse and validate request body
-    const body = (await request.json()) as SubmitRequestBody;
+    let body: SubmitRequestBody;
+    try {
+      body = (await request.json()) as SubmitRequestBody;
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON in request body' }, { status: 400 });
+    }
 
     if (!body.attemptId || typeof body.attemptId !== 'string') {
       return NextResponse.json({ error: 'attemptId is required' }, { status: 400 });
@@ -49,22 +50,15 @@ export async function POST(
 
     // Submit solution
     const service = new SubmissionService();
-    const result: SubmitSolutionResult = await service.submitSolution({
+    const result = await service.submitSolution({
       userId: user.id,
+      exerciseId,
       attemptId: body.attemptId,
       files: body.files,
     });
 
     return NextResponse.json(result);
   } catch (error) {
-    if (error instanceof SubmissionError) {
-      return NextResponse.json(
-        { error: error.message, code: error.code },
-        { status: error.statusCode }
-      );
-    }
-
-    console.error('[POST /api/exercises/[exerciseId]/submit]', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return handleError(error);
   }
 }

@@ -14,6 +14,7 @@ import * as reader from './submissions.reader';
 import * as writer from './submissions.writer';
 import { SubmissionError, SUPPORTED_LANGUAGES } from './submissions.types';
 import type {
+  AttemptRecord,
   SubmitSolutionInput,
   SubmitSolutionResult,
   SubmissionDetail,
@@ -34,11 +35,14 @@ export class SubmissionService {
    * Main entry point called by the API route.
    */
   async submitSolution(input: SubmitSolutionInput): Promise<SubmitSolutionResult> {
-    const { userId, attemptId, files } = input;
+    const { userId, exerciseId, attemptId, files } = input;
 
-    // 1. Validate attempt ownership and status
+    // 1. Validate attempt ownership, status, and exercise scoping
     const attempt = await reader.getAttemptByIdAndUser(attemptId, userId);
     if (!attempt) {
+      throw new SubmissionError('ATTEMPT_NOT_FOUND', 'Exercise attempt not found');
+    }
+    if (attempt.exerciseId !== exerciseId) {
       throw new SubmissionError('ATTEMPT_NOT_FOUND', 'Exercise attempt not found');
     }
     if (attempt.status === 'abandoned') {
@@ -170,6 +174,10 @@ export class SubmissionService {
       results: result.results,
       error: result.status === 'error' ? (result.error_message ?? null) : null,
     };
+  }
+
+  async getAttempt(attemptId: string, userId: string): Promise<AttemptRecord | null> {
+    return reader.getAttemptByIdAndUser(attemptId, userId);
   }
 
   async getSubmission(submissionId: string, userId: string): Promise<SubmissionDetail | null> {

@@ -20,6 +20,7 @@ export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 
 export interface SubmitSolutionInput {
   userId: string;
+  exerciseId: string;
   attemptId: string;
   files: SubmissionFileInput[];
 }
