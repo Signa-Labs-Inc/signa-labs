@@ -14,6 +14,56 @@ function handleBeforeMount(monaco: Monaco) {
     noEmit: true,
   });
 
+  // Add React type declarations so Monaco knows about JSX intrinsic elements
+  monaco.languages.typescript.typescriptDefaults.addExtraLib(
+    `
+    declare module 'react' {
+      export = React;
+      export as namespace React;
+      namespace React {
+        type FC<P = {}> = (props: P) => ReactElement | null;
+        type ReactElement = any;
+        type ReactNode = any;
+        type KeyboardEvent<T = Element> = any;
+        type MouseEvent<T = Element> = any;
+        type ChangeEvent<T = Element> = any;
+        type FormEvent<T = Element> = any;
+        type CSSProperties = Record<string, string | number>;
+        type PropsWithChildren<P = {}> = P & { children?: ReactNode };
+        type Dispatch<A> = (value: A) => void;
+        type SetStateAction<S> = S | ((prevState: S) => S);
+        function useState<T>(initial: T | (() => T)): [T, Dispatch<SetStateAction<T>>];
+        function useEffect(effect: () => void | (() => void), deps?: any[]): void;
+        function useCallback<T extends (...args: any[]) => any>(callback: T, deps: any[]): T;
+        function useMemo<T>(factory: () => T, deps: any[]): T;
+        function useRef<T>(initial: T): { current: T };
+        function useContext<T>(context: any): T;
+        function useReducer<S, A>(reducer: (state: S, action: A) => S, initial: S): [S, Dispatch<A>];
+        function memo<P>(component: FC<P>): FC<P>;
+        function createElement(type: any, props?: any, ...children: any[]): ReactElement;
+        function Fragment(props: { children?: ReactNode }): ReactElement;
+      }
+    }
+    declare namespace JSX {
+      interface IntrinsicElements {
+        [elemName: string]: any;
+      }
+      type Element = any;
+    }
+
+    declare module 'react/jsx-runtime' {
+  export const jsx: any;
+  export const jsxs: any;
+  export const Fragment: any;
+}
+declare module 'react/jsx-dev-runtime' {
+  export const jsxDEV: any;
+  export const Fragment: any;
+}
+    `,
+    'react.d.ts'
+  );
+
   monaco.editor.defineTheme('dark-modern', {
     base: 'vs-dark',
     inherit: true,

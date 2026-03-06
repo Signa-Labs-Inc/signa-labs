@@ -18,7 +18,7 @@ import { AppError } from '@/lib/utils/errors';
 export interface GenerateExerciseInput {
   userId: string;
   userPrompt: string;
-  language: 'python' | 'javascript' | 'typescript';
+  language: 'python' | 'javascript' | 'typescript' | 'sql' | 'go';
   difficulty?: 'beginner' | 'easy' | 'medium' | 'hard' | 'expert';
   exerciseType?:
     | 'algorithm'
