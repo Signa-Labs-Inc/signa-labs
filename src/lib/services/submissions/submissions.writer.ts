@@ -198,20 +198,22 @@ export async function updateLearningStatsOnAttemptStart(
 
 /**
  * Create a new exercise attempt for a user.
+ * Returns null if a unique constraint conflict occurs (e.g. concurrent duplicate).
  */
 export async function createAttempt(
   userId: string,
   exerciseId: string,
   txOrDb: DbOrTx = db
-): Promise<CreateAttemptResult> {
-  const [attempt] = await txOrDb
+): Promise<CreateAttemptResult | null> {
+  const result = await txOrDb
     .insert(exerciseAttempts)
     .values({
       userId,
       exerciseId,
       status: 'in_progress',
     })
+    .onConflictDoNothing()
     .returning({ id: exerciseAttempts.id });
 
-  return attempt;
+  return result[0] ?? null;
 }

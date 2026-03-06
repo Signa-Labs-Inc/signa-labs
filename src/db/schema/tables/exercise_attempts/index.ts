@@ -47,8 +47,8 @@ export const exerciseAttempts = pgTable(
     ),
     index('idx_attempts_user').on(table.userId),
     index('idx_attempts_exercise').on(table.exerciseId),
-    index('idx_attempts_active')
-      .on(table.userId)
+    uniqueIndex('idx_attempts_one_active_per_exercise')
+      .on(table.userId, table.exerciseId)
       .where(sql`${table.status} = 'in_progress'`),
     index('idx_attempts_user_exercise').on(table.userId, table.exerciseId),
     uniqueIndex('idx_attempts_id_user').on(table.id, table.userId),

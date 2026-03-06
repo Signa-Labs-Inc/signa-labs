@@ -247,9 +247,13 @@ export class SubmissionService {
       return { attemptId: existing.id, isNew: false };
     }
 
-    // Create new attempt with event + stats in a single transaction
+    // Create new attempt with event + stats in a single transaction.
+    // The unique partial index on (userId, exerciseId) WHERE status='in_progress'
+    // prevents duplicates. createAttempt uses onConflictDoNothing and returns
+    // null if a concurrent request already created the attempt.
     const attempt = await db.transaction(async (tx) => {
       const created = await writer.createAttempt(userId, exerciseId, tx);
+      if (!created) return null;
 
       await writer.emitExerciseEvent(
         created.id,
@@ -265,6 +269,15 @@ export class SubmissionService {
 
       return created;
     });
+
+    if (!attempt) {
+      // Conflict — a concurrent request created the attempt; re-read it
+      const raced = await reader.getActiveAttemptForExercise(userId, exerciseId);
+      if (raced) {
+        return { attemptId: raced.id, isNew: false };
+      }
+      throw new SubmissionError('ATTEMPT_NOT_FOUND', 'Failed to create or find active attempt');
+    }
 
     return { attemptId: attempt.id, isNew: true };
   }
