@@ -1,4 +1,4 @@
-FROM node:20-slim
+FROM node:24.14.0-slim
 
 # Create workspace directories
 RUN mkdir -p /workspace/submission /workspace/tests /workspace/support
