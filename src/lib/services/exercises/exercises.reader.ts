@@ -148,3 +148,59 @@ export async function getAvailableTags(): Promise<string[]> {
 
   return availableTags.map((row) => row.tags);
 }
+
+// --- User Exercises ----------------------------------------------------------
+
+/** Get exercises created by a specific user */
+export async function getUserExercises(userId: string): Promise<Exercise[]> {
+  const userExercises = await db
+    .select({
+      id: exercises.id,
+      title: exercises.title,
+      origin: exercises.origin,
+      description: exercises.description,
+      difficulty: exercises.difficulty,
+      language: exercises.language,
+      tags: exercises.tags,
+      environmentName: exerciseEnvironments.displayName,
+      environment: {
+        id: exerciseEnvironments.id,
+        name: exerciseEnvironments.name,
+        displayName: exerciseEnvironments.displayName,
+        baseImage: exerciseEnvironments.baseImage,
+        maxExecutionSeconds: exerciseEnvironments.maxExecutionSeconds,
+        maxFiles: exerciseEnvironments.maxFiles,
+        maxFileSizeBytes: exerciseEnvironments.maxFileSizeBytes,
+      },
+    })
+    .from(exercises)
+    .innerJoin(exerciseEnvironments, eq(exercises.environmentId, exerciseEnvironments.id))
+    .where(
+      and(
+        eq(exercises.origin, 'user'),
+        eq(exercises.createdBy, userId),
+        isNull(exercises.deletedAt)
+      )
+    )
+    .orderBy(sql`${exercises.createdAt} DESC`);
+
+  return userExercises;
+}
+
+/** Soft delete a user's exercise */
+export async function softDeleteUserExercise(exerciseId: string, userId: string): Promise<boolean> {
+  const result = await db
+    .update(exercises)
+    .set({ deletedAt: new Date() })
+    .where(
+      and(
+        eq(exercises.id, exerciseId),
+        eq(exercises.createdBy, userId),
+        eq(exercises.origin, 'user'),
+        isNull(exercises.deletedAt)
+      )
+    )
+    .returning({ id: exercises.id });
+
+  return result.length > 0;
+}
