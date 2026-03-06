@@ -4,15 +4,28 @@ set -euo pipefail
 # Build all CodeForge sandbox images locally
 # Usage: ./scripts/build-sandboxes.sh [language]
 # Examples:
-#   ./scripts/build-sandboxes.sh          # Build all
-#   ./scripts/build-sandboxes.sh python   # Build only Python
+#   ./scripts/build-sandboxes.sh              # Build all
+#   ./scripts/build-sandboxes.sh python       # Build only Python
+#   ./scripts/build-sandboxes.sh typescript-react  # Build only TS React
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SANDBOXES_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 IMAGE_PREFIX="signa-labs-sandbox"
 
-LANGUAGES=("python" "javascript" "typescript")
+LANGUAGES=(
+  "python"
+  "javascript"
+  "typescript"
+  "sql"
+  "go"
+  "javascript-react"
+  "typescript-react"
+  "typescript-express"
+  "python-web"
+  "python-data-science"
+  "python-bio"
+)
 
 # If a specific language is provided, only build that one
 if [ $# -gt 0 ]; then

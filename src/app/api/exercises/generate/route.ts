@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const validLanguages = ['python', 'javascript', 'typescript'];
+    const validLanguages = ['python', 'javascript', 'typescript', 'sql', 'go'];
     if (!body.language || !validLanguages.includes(body.language)) {
       return NextResponse.json(
         { error: `language must be one of: ${validLanguages.join(', ')}` },
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
     const result = await service.generateExercise({
       userId: user.id,
       userPrompt: body.prompt,
-      language: body.language as 'python' | 'javascript' | 'typescript',
+      language: body.language as GenerateExerciseInput['language'],
       difficulty:
         (body.difficulty as 'beginner' | 'easy' | 'medium' | 'hard' | 'expert') ?? undefined,
       exerciseType: body.exerciseType as GenerateExerciseInput['exerciseType'],

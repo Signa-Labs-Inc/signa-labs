@@ -61,7 +61,7 @@ function runTests() {
   }
 
   const testFiles = readdirSync(TESTS_DIR).filter((f) =>
-    f.match(/\.(test|spec)\.(js|mjs|cjs|ts|mts)$/)
+    f.match(/\.(test|spec)\.(js|mjs|cjs|ts|mts|tsx|jsx)$/)
   );
 
   if (testFiles.length === 0) {
