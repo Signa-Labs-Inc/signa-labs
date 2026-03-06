@@ -44,10 +44,11 @@ if [ -z "$TEST_FILES" ]; then
 fi
 
 # Run go test with JSON output
-TEST_OUTPUT=$(timeout "${MAX_EXECUTION_SECONDS}s" go test -v -json -timeout "${MAX_EXECUTION_SECONDS}s" ./... 2>&1) || true
+TEST_OUTPUT=$(timeout "${MAX_EXECUTION_SECONDS}s" go test -v -json -timeout "${MAX_EXECUTION_SECONDS}s" ./... 2>&1)
+TEST_EXIT_CODE=$?
 
 # Check for timeout
-if [ $? -eq 124 ]; then
+if [ $TEST_EXIT_CODE -eq 124 ]; then
   output_json "{\"status\":\"error\",\"error_type\":\"timeout\",\"error_message\":\"Execution exceeded ${MAX_EXECUTION_SECONDS}s time limit\",\"tests_passed\":0,\"tests_failed\":0,\"tests_total\":0,\"execution_time_ms\":$(elapsed_ms),\"results\":[]}"
 fi
 
@@ -61,11 +62,11 @@ if ! echo "$TEST_OUTPUT" | head -1 | python3 -c "import sys,json; json.load(sys.
 fi
 
 # Parse go test -json output into CodeForge format
-python3 -c "
-import json
-import sys
+ELAPSED_MS=$(elapsed_ms) printf '%s' "$TEST_OUTPUT" | python3 -c "
+import json, sys, os
 
-lines = '''${TEST_OUTPUT}'''.strip().split('\n')
+lines = sys.stdin.read().strip().split('\n')
+elapsed_ms = int(os.environ.get('ELAPSED_MS', '0'))
 
 tests = {}
 passed = 0
@@ -82,7 +83,7 @@ for line in lines:
 
     action = event.get('Action', '')
     test_name = event.get('Test', '')
-    
+
     if not test_name:
         continue
 
@@ -117,7 +118,7 @@ output = {
     'tests_passed': passed,
     'tests_failed': failed,
     'tests_total': total,
-    'execution_time_ms': $(elapsed_ms),
+    'execution_time_ms': elapsed_ms,
     'results': results,
 }
 

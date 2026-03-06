@@ -1,5 +1,9 @@
 FROM golang:1.23-bookworm
 
+# Install python3 for JSON parsing in test runner
+RUN apt-get update && apt-get install -y --no-install-recommends python3 \
+    && rm -rf /var/lib/apt/lists/*
+
 # Create workspace directories
 RUN mkdir -p /workspace/submission /workspace/tests /workspace/support
 

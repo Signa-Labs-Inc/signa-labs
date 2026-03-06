@@ -3,20 +3,22 @@
 import Editor, { type Monaco } from '@monaco-editor/react';
 
 function handleBeforeMount(monaco: Monaco) {
-  monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
+  const compilerOptions = {
     target: monaco.languages.typescript.ScriptTarget.ESNext,
     module: monaco.languages.typescript.ModuleKind.ESNext,
     moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
-    jsx: monaco.languages.typescript.JsxEmit.React,
+    jsx: monaco.languages.typescript.JsxEmit.ReactJSX,
     strict: true,
     esModuleInterop: true,
     allowJs: true,
     noEmit: true,
-  });
+  };
+
+  monaco.languages.typescript.typescriptDefaults.setCompilerOptions(compilerOptions);
+  monaco.languages.typescript.javascriptDefaults.setCompilerOptions(compilerOptions);
 
   // Add React type declarations so Monaco knows about JSX intrinsic elements
-  monaco.languages.typescript.typescriptDefaults.addExtraLib(
-    `
+  const reactTypes = `
     declare module 'react' {
       export = React;
       export as namespace React;
@@ -44,13 +46,6 @@ function handleBeforeMount(monaco: Monaco) {
         function Fragment(props: { children?: ReactNode }): ReactElement;
       }
     }
-    declare namespace JSX {
-      interface IntrinsicElements {
-        [elemName: string]: any;
-      }
-      type Element = any;
-    }
-
     declare module 'react/jsx-runtime' {
   export const jsx: any;
   export const jsxs: any;
@@ -60,9 +55,10 @@ declare module 'react/jsx-dev-runtime' {
   export const jsxDEV: any;
   export const Fragment: any;
 }
-    `,
-    'react.d.ts'
-  );
+    `;
+
+  monaco.languages.typescript.typescriptDefaults.addExtraLib(reactTypes, 'react.d.ts');
+  monaco.languages.typescript.javascriptDefaults.addExtraLib(reactTypes, 'react.d.ts');
 
   monaco.editor.defineTheme('dark-modern', {
     base: 'vs-dark',

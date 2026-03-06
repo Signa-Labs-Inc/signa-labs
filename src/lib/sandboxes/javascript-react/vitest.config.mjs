@@ -9,6 +9,7 @@ export default defineConfig({
     outputFile: '/workspace/.report.json',
     environment: 'jsdom',
     globals: true,
+    setupFiles: ['@testing-library/jest-dom/vitest'],
   },
   esbuild: {
     jsx: 'automatic',

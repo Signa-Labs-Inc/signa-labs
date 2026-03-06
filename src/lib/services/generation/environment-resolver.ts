@@ -31,8 +31,12 @@ interface FrameworkPattern {
   environmentName: string;
   /** Framework identifier for prompt builder */
   framework: string;
-  /** Keywords in the user prompt that suggest this framework */
-  promptKeywords: string[];
+  /** High-confidence keywords — any single match is sufficient */
+  strongKeywords: string[];
+  /** Lower-confidence keywords — require minWeakMatches hits to trigger */
+  weakKeywords: string[];
+  /** Minimum weak keyword matches needed (default 2) */
+  minWeakMatches: number;
   /** Languages this framework applies to */
   languages: string[];
 }
@@ -45,7 +49,7 @@ const FRAMEWORK_PATTERNS: FrameworkPattern[] = [
   {
     environmentName: 'typescript-react',
     framework: 'react',
-    promptKeywords: [
+    strongKeywords: [
       'react',
       'jsx',
       'tsx',
@@ -63,12 +67,14 @@ const FRAMEWORK_PATTERNS: FrameworkPattern[] = [
       'react hook',
       'custom hook',
     ],
+    weakKeywords: [],
+    minWeakMatches: 2,
     languages: ['typescript'],
   },
   {
     environmentName: 'javascript-react',
     framework: 'react',
-    promptKeywords: [
+    strongKeywords: [
       'react',
       'jsx',
       'usestate',
@@ -85,15 +91,23 @@ const FRAMEWORK_PATTERNS: FrameworkPattern[] = [
       'react hook',
       'custom hook',
     ],
+    weakKeywords: [],
+    minWeakMatches: 2,
     languages: ['javascript'],
   },
   {
     environmentName: 'typescript-express',
     framework: 'express',
-    promptKeywords: [
+    strongKeywords: [
       'express',
       'express middleware',
       'express router',
+      'express app',
+      'app.get(',
+      'app.post(',
+      'app.use(',
+    ],
+    weakKeywords: [
       'api route',
       'rest api',
       'api endpoint',
@@ -106,14 +120,22 @@ const FRAMEWORK_PATTERNS: FrameworkPattern[] = [
       'node server',
       'node api',
     ],
+    minWeakMatches: 2,
     languages: ['typescript', 'javascript'],
   },
   {
     environmentName: 'python-web',
     framework: 'flask,fastapi',
-    promptKeywords: [
+    strongKeywords: [
       'flask',
       'fastapi',
+      'flask app',
+      'fastapi app',
+      '@app.route',
+      '@app.get',
+      '@app.post',
+    ],
+    weakKeywords: [
       'api route',
       'rest api',
       'api endpoint',
@@ -126,12 +148,13 @@ const FRAMEWORK_PATTERNS: FrameworkPattern[] = [
       'backend api',
       'web endpoint',
     ],
+    minWeakMatches: 2,
     languages: ['python'],
   },
   {
     environmentName: 'sql-sqlite',
     framework: 'sql',
-    promptKeywords: [
+    strongKeywords: [
       'sql query',
       'sql join',
       'sql select',
@@ -154,12 +177,14 @@ const FRAMEWORK_PATTERNS: FrameworkPattern[] = [
       'right join',
       'cross join',
     ],
+    weakKeywords: [],
+    minWeakMatches: 2,
     languages: ['sql'],
   },
   {
     environmentName: 'go-1.23',
     framework: 'go',
-    promptKeywords: [
+    strongKeywords: [
       'goroutine',
       'go channel',
       'go routine',
@@ -175,6 +200,8 @@ const FRAMEWORK_PATTERNS: FrameworkPattern[] = [
       'go panic',
       'go recover',
     ],
+    weakKeywords: [],
+    minWeakMatches: 2,
     languages: ['go'],
   },
 ];
@@ -201,9 +228,17 @@ export async function resolveEnvironment(
   for (const pattern of FRAMEWORK_PATTERNS) {
     if (!pattern.languages.includes(language)) continue;
 
-    const matched = pattern.promptKeywords.some((keyword) =>
+    // Strong keywords: any single match is sufficient
+    const hasStrongMatch = pattern.strongKeywords.some((keyword) =>
       promptLower.includes(keyword.toLowerCase())
     );
+
+    // Weak keywords: require minWeakMatches hits
+    const weakMatchCount = pattern.weakKeywords.filter((keyword) =>
+      promptLower.includes(keyword.toLowerCase())
+    ).length;
+
+    const matched = hasStrongMatch || weakMatchCount >= pattern.minWeakMatches;
 
     if (matched) {
       // Try to find the framework environment in the DB

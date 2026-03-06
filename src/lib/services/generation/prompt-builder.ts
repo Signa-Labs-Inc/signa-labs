@@ -82,7 +82,7 @@ const LANGUAGE_CONFIGS: Record<string, LanguageConfig> = {
     starterFileName: 'solution.sql',
     solutionFileName: 'solution.sql',
     testFileName: 'test_solution.py',
-    importStyle: 'open("../submission/solution.sql").read()',
+    importStyle: 'open("/workspace/submission/solution.sql").read()',
   },
   go: {
     displayName: 'Go',
