@@ -54,19 +54,13 @@ export default async function ExercisesPage({ searchParams }: { searchParams: Se
 
       <ExerciseFilters tags={tags} activeFilters={filters} />
 
-      {/* User's generated exercises */}
+      {/* User's generated exercises — headings managed by client component */}
       {user && userExercises.length > 0 && (
-        <div className="mb-10">
-          <h2 className="mb-4 text-lg font-semibold">My Exercises</h2>
-          <UserExercises exercises={userExercises} />
-        </div>
+        <UserExercises exercises={userExercises} showPracticeLibraryHeading />
       )}
 
       {/* Platform exercises */}
       <div>
-        {user && userExercises.length > 0 && (
-          <h2 className="mb-4 text-lg font-semibold">Practice Library</h2>
-        )}
         <ExerciseGrid exercises={exercises} />
       </div>
     </div>

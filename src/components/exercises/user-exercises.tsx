@@ -31,6 +31,7 @@ type UserExercise = {
 
 type UserExercisesProps = {
   exercises: UserExercise[];
+  showPracticeLibraryHeading?: boolean;
 };
 
 // ============================================================
@@ -61,7 +62,7 @@ const LANGUAGE_LABELS: Record<string, string> = {
 // Component
 // ============================================================
 
-export function UserExercises({ exercises }: UserExercisesProps) {
+export function UserExercises({ exercises, showPracticeLibraryHeading }: UserExercisesProps) {
   const [localExercises, setLocalExercises] = useState<UserExercise[]>(exercises);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
@@ -86,43 +87,53 @@ export function UserExercises({ exercises }: UserExercisesProps) {
     }
   }, [deleteTarget]);
 
-  if (localExercises.length === 0) return null;
+  if (localExercises.length === 0) {
+    return null;
+  }
 
   return (
     <>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {localExercises.map((exercise) => (
-          <div
-            key={exercise.id}
-            className="group bg-card hover:border-foreground/20 relative rounded-lg border p-4 transition-colors"
-          >
-            <Link href={`/exercises/${exercise.id}`} className="block">
-              <h3 className="text-foreground truncate font-medium">{exercise.title}</h3>
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                <Badge variant="outline" className={DIFFICULTY_COLORS[exercise.difficulty] ?? ''}>
-                  {exercise.difficulty}
-                </Badge>
-                <Badge variant="secondary" className="text-xs">
-                  {LANGUAGE_LABELS[exercise.language] ?? exercise.language}
-                </Badge>
-              </div>
-            </Link>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-muted-foreground hover:text-destructive absolute top-3 right-3 h-7 w-7 opacity-0 transition-opacity group-hover:opacity-100"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setDeleteTarget(exercise.id);
-              }}
+      <div className="mb-10">
+        <h2 className="mb-4 text-lg font-semibold">My Exercises</h2>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {localExercises.map((exercise) => (
+            <div
+              key={exercise.id}
+              className="group bg-card hover:border-foreground/20 relative rounded-lg border p-4 transition-colors"
             >
-              <Trash2 className="h-3.5 w-3.5" />
-            </Button>
-          </div>
-        ))}
+              <Link href={`/exercises/${exercise.id}`} className="block">
+                <h3 className="text-foreground truncate font-medium">{exercise.title}</h3>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <Badge variant="outline" className={DIFFICULTY_COLORS[exercise.difficulty] ?? ''}>
+                    {exercise.difficulty}
+                  </Badge>
+                  <Badge variant="secondary" className="text-xs">
+                    {LANGUAGE_LABELS[exercise.language] ?? exercise.language}
+                  </Badge>
+                </div>
+              </Link>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Delete exercise"
+                className="text-muted-foreground hover:text-destructive absolute top-3 right-3 h-7 w-7 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setDeleteTarget(exercise.id);
+                }}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          ))}
+        </div>
       </div>
+
+      {showPracticeLibraryHeading && (
+        <h2 className="mb-4 text-lg font-semibold">Practice Library</h2>
+      )}
 
       <AlertDialog
         open={deleteTarget !== null}

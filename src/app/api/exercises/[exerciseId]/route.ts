@@ -1,15 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireCurrentUser } from '@/lib/services/auth/auth.service';
+import { handleError } from '@/lib/utils/api.handler-errors';
 import { softDeleteUserExercise } from '@/lib/services/exercises/exercises.reader';
 
 interface RouteParams {
   params: Promise<{ exerciseId: string }>;
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: RouteParams
-): Promise<NextResponse<{ success: boolean } | { error: string }>> {
+export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const user = await requireCurrentUser();
     const { exerciseId } = await params;
@@ -25,7 +23,6 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('[DELETE /api/exercises/[exerciseId]]', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return handleError(error);
   }
 }
