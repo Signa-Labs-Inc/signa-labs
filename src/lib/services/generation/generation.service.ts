@@ -32,7 +32,7 @@ import type {
 // Constants
 // ============================================================
 
-const LLM_MODEL = 'claude-sonnet-4-20250514';
+const LLM_MODEL = process.env.GENERATION_LLM_MODEL ?? 'claude-sonnet-4-20250514';
 const MAX_RETRIES = 2;
 const MAX_GENERATIONS_PER_HOUR = 10;
 const MIN_PROMPT_LENGTH = 10;
@@ -163,7 +163,7 @@ export class ExerciseGenerationService {
         hints: exerciseOutput.hints,
         tags: exerciseOutput.tags,
         llmModel: LLM_MODEL,
-        llmParameters: { temperature: 1, max_tokens: 8096 },
+        llmParameters: { temperature: 1, max_tokens: 8192 },
         generationTimeMs,
         isValidated: true,
         validationOutput: validationResult,
@@ -196,7 +196,7 @@ export class ExerciseGenerationService {
     try {
       response = await this.anthropic.messages.create({
         model: LLM_MODEL,
-        max_tokens: 8096,
+        max_tokens: 8192,
         temperature: 1,
         messages: [{ role: 'user', content: prompt }],
       });
@@ -329,7 +329,6 @@ export class ExerciseGenerationService {
     for (let i = 0; i < output.starterFiles.length; i++) {
       const f = output.starterFiles[i];
       files.push({
-        exerciseId: '', // Set by writer in transaction
         fileType: 'starter',
         filePath: f.filePath,
         fileName: f.fileName,
@@ -342,7 +341,6 @@ export class ExerciseGenerationService {
     for (let i = 0; i < output.solutionFiles.length; i++) {
       const f = output.solutionFiles[i];
       files.push({
-        exerciseId: '',
         fileType: 'solution',
         filePath: f.filePath,
         fileName: f.fileName,
@@ -355,7 +353,6 @@ export class ExerciseGenerationService {
     for (let i = 0; i < output.testFiles.length; i++) {
       const f = output.testFiles[i];
       files.push({
-        exerciseId: '',
         fileType: 'test',
         filePath: f.filePath,
         fileName: f.fileName,
@@ -368,7 +365,6 @@ export class ExerciseGenerationService {
     for (let i = 0; i < (output.supportFiles ?? []).length; i++) {
       const f = output.supportFiles![i];
       files.push({
-        exerciseId: '',
         fileType: 'support',
         filePath: f.filePath,
         fileName: f.fileName,

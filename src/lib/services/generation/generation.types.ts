@@ -69,7 +69,6 @@ export interface LLMFileOutput {
 // ============================================================
 
 export interface ExerciseFileInsert {
-  exerciseId: string;
   fileType: 'starter' | 'solution' | 'test' | 'support';
   filePath: string;
   fileName: string;

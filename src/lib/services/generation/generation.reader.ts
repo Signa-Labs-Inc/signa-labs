@@ -10,22 +10,19 @@ import { exercises } from '@/db/schema/tables/exercises';
 import { exerciseEnvironments } from '@/db/schema/tables/exercise_environments';
 import { promptTemplates } from '@/db/schema/tables/prompt_templates';
 import type { PromptTemplateRecord } from './generation.types';
+import { ExerciseEnvironment } from '../exercises/exercises.types';
 
 // ============================================================
 // Environment reads
 // ============================================================
 
-export async function getActiveEnvironmentByLanguage(language: string): Promise<{
-  id: string;
-  name: string;
-  baseImage: string;
-  maxExecutionSeconds: number;
-  maxFiles: number;
-  maxFileSizeBytes: number;
-} | null> {
+export async function getActiveEnvironmentByLanguage(
+  language: string
+): Promise<ExerciseEnvironment | null> {
   const [environment] = await db
     .select({
       id: exerciseEnvironments.id,
+      displayName: exerciseEnvironments.displayName,
       name: exerciseEnvironments.name,
       baseImage: exerciseEnvironments.baseImage,
       maxExecutionSeconds: exerciseEnvironments.maxExecutionSeconds,

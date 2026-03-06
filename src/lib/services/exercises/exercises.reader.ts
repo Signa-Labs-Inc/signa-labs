@@ -118,6 +118,10 @@ export async function listPlatformExercises(
         id: exerciseEnvironments.id,
         name: exerciseEnvironments.name,
         displayName: exerciseEnvironments.displayName,
+        baseImage: exerciseEnvironments.baseImage,
+        maxExecutionSeconds: exerciseEnvironments.maxExecutionSeconds,
+        maxFiles: exerciseEnvironments.maxFiles,
+        maxFileSizeBytes: exerciseEnvironments.maxFileSizeBytes,
       },
     })
     .from(exercises)

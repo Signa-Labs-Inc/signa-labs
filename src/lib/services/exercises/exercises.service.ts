@@ -20,7 +20,7 @@ export async function listPlatformExercises(
     difficulty: exercise.difficulty,
     language: exercise.language,
     tags: exercise.tags ?? [],
-    environmentName: exercise.environment?.displayName ?? '',
+    environmentName: exercise.environment?.name ?? '',
   }));
 }
 
@@ -38,11 +38,7 @@ export async function getExerciseDetail(exerciseId: string): Promise<ExerciseDet
   return {
     ...exercise,
     tags: exercise.tags ?? [],
-    environment: {
-      id: exercise.environment.id,
-      name: exercise.environment.name,
-      displayName: exercise.environment.displayName,
-    },
+    environment: exercise.environment,
     hintCount: exercise.hints?.length ?? 0,
     starterFiles,
     supportFiles,

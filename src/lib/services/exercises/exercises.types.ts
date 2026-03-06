@@ -66,4 +66,8 @@ export type ExerciseEnvironment = {
   id: string;
   name: string;
   displayName: string;
+  baseImage: string;
+  maxExecutionSeconds: number;
+  maxFiles: number;
+  maxFileSizeBytes: number;
 };
