@@ -3,16 +3,62 @@
 import Editor, { type Monaco } from '@monaco-editor/react';
 
 function handleBeforeMount(monaco: Monaco) {
-  monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
+  const compilerOptions = {
     target: monaco.languages.typescript.ScriptTarget.ESNext,
     module: monaco.languages.typescript.ModuleKind.ESNext,
     moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
-    jsx: monaco.languages.typescript.JsxEmit.React,
+    jsx: monaco.languages.typescript.JsxEmit.ReactJSX,
     strict: true,
     esModuleInterop: true,
     allowJs: true,
     noEmit: true,
-  });
+  };
+
+  monaco.languages.typescript.typescriptDefaults.setCompilerOptions(compilerOptions);
+  monaco.languages.typescript.javascriptDefaults.setCompilerOptions(compilerOptions);
+
+  // Add React type declarations so Monaco knows about JSX intrinsic elements
+  const reactTypes = `
+    declare module 'react' {
+      export = React;
+      export as namespace React;
+      namespace React {
+        type FC<P = {}> = (props: P) => ReactElement | null;
+        type ReactElement = any;
+        type ReactNode = any;
+        type KeyboardEvent<T = Element> = any;
+        type MouseEvent<T = Element> = any;
+        type ChangeEvent<T = Element> = any;
+        type FormEvent<T = Element> = any;
+        type CSSProperties = Record<string, string | number>;
+        type PropsWithChildren<P = {}> = P & { children?: ReactNode };
+        type Dispatch<A> = (value: A) => void;
+        type SetStateAction<S> = S | ((prevState: S) => S);
+        function useState<T>(initial: T | (() => T)): [T, Dispatch<SetStateAction<T>>];
+        function useEffect(effect: () => void | (() => void), deps?: any[]): void;
+        function useCallback<T extends (...args: any[]) => any>(callback: T, deps: any[]): T;
+        function useMemo<T>(factory: () => T, deps: any[]): T;
+        function useRef<T>(initial: T): { current: T };
+        function useContext<T>(context: any): T;
+        function useReducer<S, A>(reducer: (state: S, action: A) => S, initial: S): [S, Dispatch<A>];
+        function memo<P>(component: FC<P>): FC<P>;
+        function createElement(type: any, props?: any, ...children: any[]): ReactElement;
+        function Fragment(props: { children?: ReactNode }): ReactElement;
+      }
+    }
+    declare module 'react/jsx-runtime' {
+  export const jsx: any;
+  export const jsxs: any;
+  export const Fragment: any;
+}
+declare module 'react/jsx-dev-runtime' {
+  export const jsxDEV: any;
+  export const Fragment: any;
+}
+    `;
+
+  monaco.languages.typescript.typescriptDefaults.addExtraLib(reactTypes, 'react.d.ts');
+  monaco.languages.typescript.javascriptDefaults.addExtraLib(reactTypes, 'react.d.ts');
 
   monaco.editor.defineTheme('dark-modern', {
     base: 'vs-dark',

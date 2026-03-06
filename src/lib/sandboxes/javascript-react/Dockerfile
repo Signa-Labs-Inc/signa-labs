@@ -6,15 +6,21 @@ RUN mkdir -p /workspace/submission /workspace/tests /workspace/support
 WORKDIR /workspace
 
 # Install dependencies locally so Vite/ESM resolution works correctly
-RUN npm init -y && npm install --save-dev vitest@^3.0.0 tsx
+RUN npm init -y && npm install --save-dev \
+  vitest@^3.0.0 \
+  react@^19.0.0 \
+  react-dom@^19.0.0 \
+  @testing-library/react@^16.0.0 \
+  @testing-library/jest-dom@^6.0.0 \
+  @testing-library/user-event@^14.0.0 \
+  jsdom@^25.0.0
 
-# Copy the test runner entrypoint and vitest config
+# Copy the test runner and vitest config
 COPY run_tests.mjs /usr/local/bin/run_tests.mjs
 COPY vitest.config.mjs /workspace/vitest.config.mjs
 
 RUN chmod +x /usr/local/bin/run_tests.mjs
 
-# Run as non-root for security
 RUN useradd --create-home --shell /bin/bash runner && \
     chown -R runner:runner /workspace
 USER runner

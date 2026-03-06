@@ -83,14 +83,13 @@ function runTests() {
 
   try {
     stdout = execSync(
-      `vitest run --config ${WORKSPACE}/vitest.config.mjs --reporter=json --outputFile=${REPORT_PATH}`,
+      `npx vitest run --config ${WORKSPACE}/vitest.config.mjs --reporter=json --outputFile=${REPORT_PATH}`,
       {
         cwd: WORKSPACE,
         timeout: (MAX_EXECUTION_SECONDS + 5) * 1000,
         encoding: 'utf-8',
         stdio: ['pipe', 'pipe', 'pipe'],
         env: {
-          NODE_PATH: '/usr/local/lib/node_modules',
           PATH: process.env.PATH,
           HOME: process.env.HOME,
         },

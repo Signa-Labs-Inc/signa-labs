@@ -20,6 +20,7 @@ import { SubmissionService } from '@/lib/services/submissions/submissions.servic
 import * as reader from './generation.reader';
 import * as writer from './generation.writer';
 import { buildGenerationPrompt } from './prompt-builder';
+import { resolveEnvironment } from './environment-resolver';
 import { GenerationError } from './generation.types';
 import type {
   GenerateExerciseInput,
@@ -37,6 +38,7 @@ const MAX_RETRIES = 2;
 const MAX_GENERATIONS_PER_HOUR = 10;
 const MIN_PROMPT_LENGTH = 10;
 const MAX_PROMPT_LENGTH = 2000;
+const OVERALL_TIMEOUT_MS = 180_000; // 75 seconds — fail gracefully before client times out
 
 // ============================================================
 // Service
@@ -66,14 +68,18 @@ export class ExerciseGenerationService {
     // 2. Rate limit check
     await this.checkRateLimit(input.userId);
 
-    // 3. Resolve environment for the language
-    const environment = await reader.getActiveEnvironmentByLanguage(input.language);
-    if (!environment) {
+    // 3. Resolve environment — detects frameworks from the prompt
+    let resolvedEnv;
+    try {
+      resolvedEnv = await resolveEnvironment(input.userPrompt, input.language);
+    } catch (err) {
+      const detail = err instanceof Error ? err.message : String(err);
       throw new GenerationError(
         'ENVIRONMENT_NOT_FOUND',
-        `No active sandbox environment found for ${input.language}`
+        `No active sandbox environment found for ${input.language}: ${detail}`
       );
     }
+    const environment = resolvedEnv;
 
     // 4. Resolve prompt template (optional)
     let template = null;
@@ -94,12 +100,16 @@ export class ExerciseGenerationService {
     let validationResult: SandboxResult | null = null;
 
     for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+      // Check overall timeout before each attempt
+      this.checkTimeout(startTime);
+
       // Build prompt
       const prompt = buildGenerationPrompt({
         userPrompt: input.userPrompt,
         language: input.language,
         difficulty,
         exerciseType: input.exerciseType,
+        detectedFramework: resolvedEnv.detectedFramework,
         template,
         retryContext:
           attempt > 0
@@ -108,10 +118,49 @@ export class ExerciseGenerationService {
       });
 
       // Call Claude
-      exerciseOutput = await this.callLLM(prompt);
+      exerciseOutput = await this.callLLM(prompt, startTime);
+      // Temporarily add after line: exerciseOutput = await this.callLLM(prompt, startTime);
+      console.log(
+        '[Generation] Test files:',
+        exerciseOutput.testFiles.map((f) => f.filePath)
+      );
+      console.log(
+        '[Generation] Solution files:',
+        exerciseOutput.solutionFiles.map((f) => f.filePath)
+      );
+      console.log(
+        '[Generation] Starter files:',
+        exerciseOutput.starterFiles.map((f) => f.filePath)
+      );
+      console.log(
+        '[Generation] Environment:',
+        environment.name,
+        'Framework:',
+        resolvedEnv.detectedFramework
+      );
 
       // Validate in sandbox
+      this.checkTimeout(startTime);
       validationResult = await this.validateInSandbox(exerciseOutput, input.language, environment);
+
+      console.log(
+        '[Generation] Validation result:',
+        JSON.stringify(
+          {
+            status: validationResult.status,
+            passed: validationResult.tests_passed,
+            failed: validationResult.tests_failed,
+            total: validationResult.tests_total,
+            results: validationResult.results.map((r) => ({
+              name: r.name,
+              passed: r.passed,
+              error: r.error?.slice(0, 200),
+            })),
+          },
+          null,
+          2
+        )
+      );
 
       if (
         validationResult.status === 'completed' &&
@@ -187,21 +236,60 @@ export class ExerciseGenerationService {
   }
 
   // ============================================================
+  // Private: Timeout
+  // ============================================================
+
+  private checkTimeout(startTime: number): void {
+    if (Date.now() - startTime > OVERALL_TIMEOUT_MS) {
+      throw new GenerationError(
+        'GENERATION_FAILED',
+        'Exercise generation timed out. Try a simpler or more specific prompt.'
+      );
+    }
+  }
+
+  // ============================================================
   // Private: LLM interaction
   // ============================================================
 
-  private async callLLM(prompt: string): Promise<LLMExerciseOutput> {
+  private async callLLM(prompt: string, startTime: number): Promise<LLMExerciseOutput> {
+    // Calculate remaining time for this LLM call
+    const elapsed = Date.now() - startTime;
+    const remainingMs = OVERALL_TIMEOUT_MS - elapsed;
+
+    if (remainingMs < 5000) {
+      throw new GenerationError(
+        'GENERATION_FAILED',
+        'Not enough time remaining for generation. Try a simpler prompt.'
+      );
+    }
+
     let response: Anthropic.Message;
 
     try {
-      response = await this.anthropic.messages.create({
+      // Race the API call against our timeout
+      const apiCall = this.anthropic.messages.create({
         model: LLM_MODEL,
         max_tokens: 8192,
         temperature: 1,
         messages: [{ role: 'user', content: prompt }],
       });
+
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('LLM_TIMEOUT')), remainingMs);
+      });
+
+      response = await Promise.race([apiCall, timeoutPromise]);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown LLM error';
+
+      if (message === 'LLM_TIMEOUT') {
+        throw new GenerationError(
+          'GENERATION_FAILED',
+          'The AI took too long to respond. Try a simpler or more specific prompt.'
+        );
+      }
+
       throw new GenerationError('GENERATION_FAILED', `Claude API call failed: ${message}`);
     }
 
@@ -211,18 +299,29 @@ export class ExerciseGenerationService {
       throw new GenerationError('INVALID_LLM_RESPONSE', 'Claude returned no text content');
     }
 
-    // Parse JSON
+    // Parse JSON — handle various formatting Claude might use
     const rawText = textBlock.text.trim();
-    // Strip markdown fences if Claude added them despite instructions
-    const jsonText = rawText.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '');
+
+    // Strip markdown fences if present
+    let jsonText = rawText.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '');
+
+    // If the text doesn't start with {, try to find the JSON object
+    if (!jsonText.trimStart().startsWith('{')) {
+      const firstBrace = jsonText.indexOf('{');
+      const lastBrace = jsonText.lastIndexOf('}');
+      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        jsonText = jsonText.slice(firstBrace, lastBrace + 1);
+      }
+    }
 
     let parsed: LLMExerciseOutput;
     try {
+      console.log('[Generation] Raw LLM output (first 500 chars):', rawText.slice(0, 500));
       parsed = JSON.parse(jsonText) as LLMExerciseOutput;
     } catch {
       throw new GenerationError(
         'INVALID_LLM_RESPONSE',
-        `Failed to parse Claude's response as JSON. Raw output starts with: "${rawText.slice(0, 200)}"`
+        `Failed to parse Claude's response as JSON. The AI may have generated an unsupported exercise format. Try rephrasing your prompt.`
       );
     }
 
@@ -286,7 +385,7 @@ export class ExerciseGenerationService {
   ): Promise<SandboxResult> {
     const response = await this.executionClient.executeSubmission({
       image: environment.baseImage,
-      language: language as 'python' | 'javascript' | 'typescript',
+      language: language as 'python' | 'javascript' | 'typescript' | 'sql' | 'go',
       // Use solution files as the submission (validating that the solution passes)
       submissionFiles: output.solutionFiles.map((f) => ({
         filePath: f.filePath,

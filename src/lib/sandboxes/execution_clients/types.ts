@@ -28,7 +28,7 @@ export interface ExecutionRequest {
   image: string;
 
   /** Language identifier for selecting the correct local image in dev mode */
-  language: 'python' | 'javascript' | 'typescript';
+  language: 'python' | 'javascript' | 'typescript' | 'go' | 'sql';
 
   /** Files to inject into /workspace/submission/ */
   submissionFiles: SandboxFile[];

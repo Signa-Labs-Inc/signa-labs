@@ -91,7 +91,20 @@ run_test() {
   fi
 }
 
-LANGUAGES=("python" "javascript" "typescript")
+LANGUAGES=(
+  "python"
+  "javascript"
+  "typescript"
+  "sql"
+  "go"
+  "javascript-react"
+  "typescript-react"
+  "typescript-express"
+  "python-web"
+  "python-data-science"
+  "python-bio"
+)
+
 if [ $# -gt 0 ]; then
   LANGUAGES=("$1")
 fi

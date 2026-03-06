@@ -32,6 +32,14 @@ const LOCAL_IMAGE_MAP: Record<string, string> = {
   python: 'signa-labs-sandbox-python:latest',
   javascript: 'signa-labs-sandbox-javascript:latest',
   typescript: 'signa-labs-sandbox-typescript:latest',
+  sql: 'signa-labs-sandbox-sql:latest',
+  go: 'signa-labs-sandbox-go:latest',
+  'javascript-react': 'signa-labs-sandbox-javascript-react:latest',
+  'typescript-react': 'signa-labs-sandbox-typescript-react:latest',
+  'typescript-express': 'signa-labs-sandbox-typescript-express:latest',
+  'python-web': 'signa-labs-sandbox-python-web:latest',
+  'python-data-science': 'signa-labs-sandbox-python-data-science:latest',
+  'python-bio': 'signa-labs-sandbox-python-bio:latest',
 };
 
 export class LocalExecutionClient implements ExecutionClient {
@@ -56,7 +64,7 @@ export class LocalExecutionClient implements ExecutionClient {
       }
 
       // Resolve the Docker image
-      const image = LOCAL_IMAGE_MAP[request.language] || request.image;
+      const image = this.resolveLocalImage(request.image, request.language);
 
       // Build docker run command
       const memoryMb = request.memoryMb || 256;
@@ -167,6 +175,21 @@ export class LocalExecutionClient implements ExecutionClient {
         }
       );
     });
+  }
+
+  private resolveLocalImage(registryImage: string, language: string): string {
+    // Extract sandbox name from the Fly registry image path
+    // e.g. "registry.fly.io/codeforge-sandboxes:sandbox-typescript-react" -> "typescript-react"
+    const tagMatch = registryImage.match(/:sandbox-(.+)$/);
+    if (tagMatch) {
+      const sandboxName = tagMatch[1];
+      if (LOCAL_IMAGE_MAP[sandboxName]) {
+        return LOCAL_IMAGE_MAP[sandboxName];
+      }
+    }
+
+    // Fall back to language-based lookup
+    return LOCAL_IMAGE_MAP[language] || registryImage;
   }
 
   private parseOutput(output: string): SandboxResult {

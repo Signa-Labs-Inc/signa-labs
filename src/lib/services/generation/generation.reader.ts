@@ -119,3 +119,27 @@ export async function getUserGenerationCountLastHour(userId: string): Promise<nu
 
   return result?.total ?? 0;
 }
+
+export async function getEnvironmentByName(name: string): Promise<{
+  id: string;
+  name: string;
+  baseImage: string;
+  maxExecutionSeconds: number;
+  maxFiles: number;
+  maxFileSizeBytes: number;
+} | null> {
+  const [environment] = await db
+    .select({
+      id: exerciseEnvironments.id,
+      name: exerciseEnvironments.name,
+      baseImage: exerciseEnvironments.baseImage,
+      maxExecutionSeconds: exerciseEnvironments.maxExecutionSeconds,
+      maxFiles: exerciseEnvironments.maxFiles,
+      maxFileSizeBytes: exerciseEnvironments.maxFileSizeBytes,
+    })
+    .from(exerciseEnvironments)
+    .where(and(eq(exerciseEnvironments.name, name), eq(exerciseEnvironments.isActive, true)))
+    .limit(1);
+
+  return environment ?? null;
+}
