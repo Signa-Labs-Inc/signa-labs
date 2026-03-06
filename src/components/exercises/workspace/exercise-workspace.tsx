@@ -2,13 +2,14 @@
 
 import { useState, useCallback } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Play } from 'lucide-react';
+import { ArrowLeft, Play, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { InstructionsPanel } from './instructions-panel';
 import { CodeEditor } from './code-editor';
 import { HintPanel } from './hint-panel';
 import { ResultsPanel } from './results-panel';
+import { LivePreview } from './live-preview';
 import type { ExerciseDetail } from '@/lib/services/exercises/exercises.types';
 import type { SandboxResult } from '@/lib/sandboxes/types';
 
@@ -65,6 +66,7 @@ export function ExerciseWorkspace({ exercise, attemptId }: ExerciseWorkspaceProp
   const allFiles = [...exercise.starterFiles, ...exercise.supportFiles];
 
   const [activeFileId, setActiveFileId] = useState<string>(allFiles[0]?.id ?? '');
+  const [showPreview, setShowPreview] = useState<boolean>(false);
 
   // Track user's code edits per file (keyed by file ID)
   const [fileContents, setFileContents] = useState<Record<string, string>>(() => {
@@ -170,36 +172,65 @@ export function ExerciseWorkspace({ exercise, attemptId }: ExerciseWorkspaceProp
           <HintPanel exerciseId={exercise.id} hintCount={exercise.hintCount} />
         </div>
 
-        {/* Right panel: File tabs + Editor + Results */}
+        {/* Right panel: File tabs + Editor/Preview + Results */}
         <div className="flex flex-1 flex-col overflow-hidden">
           {/* File tabs */}
-          <div className="bg-muted/30 flex items-center gap-0 border-b px-2">
-            {allFiles.map((file) => (
+          <div className="bg-muted/30 flex items-center border-b px-2">
+            <div className="flex flex-1 items-center gap-0 overflow-x-auto">
+              {allFiles.map((file) => (
+                <button
+                  key={file.id}
+                  onClick={() => {
+                    setActiveFileId(file.id);
+                    setShowPreview(false);
+                  }}
+                  className={`px-3 py-2 text-sm transition-colors ${
+                    file.id === activeFileId && !showPreview
+                      ? 'border-foreground text-foreground border-b-2 font-medium'
+                      : 'text-muted-foreground hover:text-foreground'
+                  } ${!file.isEditable ? 'italic opacity-70' : ''}`}
+                >
+                  {file.fileName}
+                  {!file.isEditable && <span className="ml-1 text-xs">(read-only)</span>}
+                </button>
+              ))}
+
+              {/* Preview tab */}
               <button
-                key={file.id}
-                onClick={() => setActiveFileId(file.id)}
-                className={`px-3 py-2 text-sm transition-colors ${
-                  file.id === activeFileId
+                onClick={() => setShowPreview(true)}
+                className={`flex items-center gap-1.5 px-3 py-2 text-sm transition-colors ${
+                  showPreview
                     ? 'border-foreground text-foreground border-b-2 font-medium'
                     : 'text-muted-foreground hover:text-foreground'
-                } ${!file.isEditable ? 'italic opacity-70' : ''}`}
+                }`}
               >
-                {file.fileName}
-                {!file.isEditable && <span className="ml-1 text-xs">(read-only)</span>}
+                <Eye className="h-3.5 w-3.5" />
+                Preview
               </button>
-            ))}
+            </div>
           </div>
 
-          {/* Code editor */}
+          {/* Code editor OR Preview */}
           <div className="flex-1 overflow-hidden">
-            {activeFile && (
-              <CodeEditor
-                value={fileContents[activeFile.id] ?? activeFile.content}
+            {showPreview ? (
+              <LivePreview
+                files={allFiles.map((f) => ({
+                  filePath: f.filePath,
+                  content: fileContents[f.id] ?? f.content,
+                  isEditable: f.isEditable,
+                }))}
                 language={exercise.language}
-                readOnly={!activeFile.isEditable}
-                onChange={handleCodeChange}
-                filePath={activeFile.filePath}
               />
+            ) : (
+              activeFile && (
+                <CodeEditor
+                  value={fileContents[activeFile.id] ?? activeFile.content}
+                  language={exercise.language}
+                  readOnly={!activeFile.isEditable}
+                  onChange={handleCodeChange}
+                  filePath={activeFile.filePath}
+                />
+              )
             )}
           </div>
 
