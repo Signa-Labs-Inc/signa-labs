@@ -29,8 +29,7 @@ type GenerateResponse = {
 };
 
 type ErrorResponse = {
-  error: string;
-  code?: string;
+  error: string | { code?: string; message?: string };
 };
 
 type GenerationStatus = 'idle' | 'generating' | 'success' | 'error';
@@ -108,8 +107,13 @@ export default function GenerateExercisePage() {
 
       if (!response.ok) {
         const errorBody = (await response.json().catch(() => null)) as ErrorResponse | null;
+        const rawError = errorBody?.error;
+        const message =
+          typeof rawError === 'string'
+            ? rawError
+            : (rawError?.message ?? rawError?.code ?? `Generation failed (${response.status})`);
         setStatus('error');
-        setErrorMessage(errorBody?.error ?? `Generation failed (${response.status})`);
+        setErrorMessage(message);
         return;
       }
 
