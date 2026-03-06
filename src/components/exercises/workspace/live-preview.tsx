@@ -318,7 +318,7 @@ export function LivePreview({ files, language, className }: LivePreviewProps) {
     <iframe
       ref={iframeRef}
       srcDoc={srcdoc}
-      sandbox="allow-scripts allow-same-origin"
+      sandbox="allow-scripts"
       className={className}
       style={{
         width: '100%',
