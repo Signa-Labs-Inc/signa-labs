@@ -1,4 +1,4 @@
-FROM golang:1.23-bookworm
+FROM golang:1.26-bookworm
 
 # Install python3 for JSON parsing in test runner
 RUN apt-get update && apt-get install -y --no-install-recommends python3 \

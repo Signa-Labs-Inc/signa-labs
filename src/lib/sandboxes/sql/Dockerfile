@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.14-slim
 
 # SQLite comes bundled with Python's standard library.
 # We use pytest to run tests that execute SQL against an in-memory SQLite database.
