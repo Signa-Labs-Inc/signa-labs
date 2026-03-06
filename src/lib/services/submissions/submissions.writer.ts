@@ -185,13 +185,11 @@ export async function updateLearningStatsOnAttemptStart(
       totalTimeSpentSeconds: 0,
       currentStreakDays: 0,
       longestStreakDays: 0,
-      lastActivityAt: new Date(),
     })
     .onConflictDoUpdate({
       target: userLearningStats.userId,
       set: {
         totalExercisesAttempted: sql`${userLearningStats.totalExercisesAttempted} + 1`,
-        lastActivityAt: new Date(),
       },
     });
 }
@@ -222,11 +220,11 @@ export async function createAttempt(
  * Update streak tracking on any submission (pass or fail).
  * Rewards practice, not just completion.
  */
-export async function updateStreakOnSubmission(userId: string): Promise<void> {
+export async function updateStreakOnSubmission(userId: string, txOrDb: DbOrTx = db): Promise<void> {
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-  await db
+  await txOrDb
     .insert(userLearningStats)
     .values({
       userId,

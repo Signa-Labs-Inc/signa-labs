@@ -11,7 +11,13 @@ import { exerciseSubmissions } from '@/db/schema/tables/exercise_submissions';
 import { exerciseAttempts } from '@/db/schema/tables/exercise_attempts';
 import { exerciseEvents } from '@/db/schema/tables/exercise_events';
 import { exercises } from '@/db/schema/tables/exercises';
-import type { DashboardStats, HeatmapDay, LanguageStat, ActivityItem } from './dashboard.types';
+import type {
+  DashboardStats,
+  HeatmapDay,
+  LanguageStat,
+  DifficultyBucket,
+  ActivityItem,
+} from './dashboard.types';
 
 // ============================================================
 // Stats overview
@@ -104,6 +110,28 @@ export async function getLanguageBreakdown(userId: string): Promise<LanguageStat
     .where(eq(exerciseAttempts.userId, userId))
     .groupBy(exercises.language)
     .orderBy(sql`count(*) FILTER (WHERE ${exerciseAttempts.status} = 'completed') DESC`);
+
+  return result;
+}
+
+// ============================================================
+// Difficulty distribution
+// ============================================================
+
+/**
+ * Get attempt counts grouped by exercise difficulty.
+ */
+export async function getDifficultyDistribution(userId: string): Promise<DifficultyBucket[]> {
+  const result = await db
+    .select({
+      difficulty: exercises.difficulty,
+      count: sql<number>`count(*)::int`,
+    })
+    .from(exerciseAttempts)
+    .innerJoin(exercises, eq(exerciseAttempts.exerciseId, exercises.id))
+    .where(eq(exerciseAttempts.userId, userId))
+    .groupBy(exercises.difficulty)
+    .orderBy(sql`count(*) DESC`);
 
   return result;
 }

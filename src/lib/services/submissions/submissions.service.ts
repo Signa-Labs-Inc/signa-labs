@@ -148,7 +148,7 @@ export class SubmissionService {
       );
 
       // Update streak on every submission (rewards practice, not just completion)
-      await writer.updateStreakOnSubmission(userId);
+      await writer.updateStreakOnSubmission(userId, tx);
 
       // 11. If passing for the first time, complete the attempt and update stats
       if (isPassing && attempt.status === 'in_progress') {

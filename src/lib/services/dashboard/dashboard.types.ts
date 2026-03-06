@@ -37,6 +37,15 @@ export interface LanguageStat {
 }
 
 // ============================================================
+// Difficulty distribution
+// ============================================================
+
+export interface DifficultyBucket {
+  difficulty: string;
+  count: number;
+}
+
+// ============================================================
 // Recent activity feed
 // ============================================================
 
