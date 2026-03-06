@@ -249,36 +249,36 @@ export class SubmissionService {
 
     // Create new attempt with event + stats in a single transaction.
     // The unique partial index on (userId, exerciseId) WHERE status='in_progress'
-    // prevents duplicates if two requests race past the read above.
-    try {
-      const attempt = await db.transaction(async (tx) => {
-        const created = await writer.createAttempt(userId, exerciseId, tx);
+    // prevents duplicates. createAttempt uses onConflictDoNothing and returns
+    // null if a concurrent request already created the attempt.
+    const attempt = await db.transaction(async (tx) => {
+      const created = await writer.createAttempt(userId, exerciseId, tx);
+      if (!created) return null;
 
-        await writer.emitExerciseEvent(
-          created.id,
-          userId,
-          'attempt_started',
-          {
-            exerciseId,
-          },
-          tx
-        );
+      await writer.emitExerciseEvent(
+        created.id,
+        userId,
+        'attempt_started',
+        {
+          exerciseId,
+        },
+        tx
+      );
 
-        await writer.updateLearningStatsOnAttemptStart(userId, tx);
+      await writer.updateLearningStatsOnAttemptStart(userId, tx);
 
-        return created;
-      });
+      return created;
+    });
 
-      return { attemptId: attempt.id, isNew: true };
-    } catch (error) {
-      // Unique constraint violation — a concurrent request created the attempt first
-      if (error instanceof Error && error.message.includes('unique')) {
-        const existing = await reader.getActiveAttemptForExercise(userId, exerciseId);
-        if (existing) {
-          return { attemptId: existing.id, isNew: false };
-        }
+    if (!attempt) {
+      // Conflict — a concurrent request created the attempt; re-read it
+      const raced = await reader.getActiveAttemptForExercise(userId, exerciseId);
+      if (raced) {
+        return { attemptId: raced.id, isNew: false };
       }
-      throw error;
+      throw new SubmissionError('ATTEMPT_NOT_FOUND', 'Failed to create or find active attempt');
     }
+
+    return { attemptId: attempt.id, isNew: true };
   }
 }

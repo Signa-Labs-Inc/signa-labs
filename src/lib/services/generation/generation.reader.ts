@@ -74,7 +74,7 @@ export async function getDefaultPromptTemplate(
     conditions.push(eq(promptTemplates.exerciseType, exerciseType));
   }
 
-  const templates = await db
+  const [template] = await db
     .select({
       id: promptTemplates.id,
       name: promptTemplates.name,
@@ -85,15 +85,13 @@ export async function getDefaultPromptTemplate(
     })
     .from(promptTemplates)
     .where(and(...conditions))
-    .orderBy(desc(promptTemplates.version))
-    .limit(10);
+    .orderBy(
+      sql`CASE WHEN ${language} = ANY(${promptTemplates.supportedLanguages}) THEN 0 ELSE 1 END`,
+      desc(promptTemplates.version)
+    )
+    .limit(1);
 
-  // Prefer templates that explicitly support this language
-  const languageMatch = templates.find(
-    (t) => t.supportedLanguages && t.supportedLanguages.includes(language)
-  );
-
-  return languageMatch ?? templates[0] ?? null;
+  return template ?? null;
 }
 
 // ============================================================

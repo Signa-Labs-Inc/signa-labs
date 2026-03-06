@@ -20,7 +20,7 @@ export async function listPlatformExercises(
     difficulty: exercise.difficulty,
     language: exercise.language,
     tags: exercise.tags ?? [],
-    environmentName: exercise.environment?.name ?? '',
+    environmentName: exercise.environment?.displayName ?? '',
   }));
 }
 
