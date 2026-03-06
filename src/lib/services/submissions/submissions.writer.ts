@@ -185,13 +185,11 @@ export async function updateLearningStatsOnAttemptStart(
       totalTimeSpentSeconds: 0,
       currentStreakDays: 0,
       longestStreakDays: 0,
-      lastActivityAt: new Date(),
     })
     .onConflictDoUpdate({
       target: userLearningStats.userId,
       set: {
         totalExercisesAttempted: sql`${userLearningStats.totalExercisesAttempted} + 1`,
-        lastActivityAt: new Date(),
       },
     });
 }
@@ -216,4 +214,52 @@ export async function createAttempt(
     .returning({ id: exerciseAttempts.id });
 
   return result[0] ?? null;
+}
+
+/**
+ * Update streak tracking on any submission (pass or fail).
+ * Rewards practice, not just completion.
+ */
+export async function updateStreakOnSubmission(userId: string, txOrDb: DbOrTx = db): Promise<void> {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  await txOrDb
+    .insert(userLearningStats)
+    .values({
+      userId,
+      totalExercisesCompleted: 0,
+      totalExercisesAttempted: 0,
+      totalTimeSpentSeconds: 0,
+      currentStreakDays: 1,
+      longestStreakDays: 1,
+      lastActivityAt: now,
+    })
+    .onConflictDoUpdate({
+      target: userLearningStats.userId,
+      set: {
+        lastActivityAt: now,
+        currentStreakDays: sql`
+          CASE
+            WHEN ${userLearningStats.lastActivityAt}::date = ${today.toISOString()}::date
+              THEN ${userLearningStats.currentStreakDays}
+            WHEN ${userLearningStats.lastActivityAt}::date = (${today.toISOString()}::date - INTERVAL '1 day')::date
+              THEN ${userLearningStats.currentStreakDays} + 1
+            ELSE 1
+          END
+        `,
+        longestStreakDays: sql`
+          GREATEST(
+            ${userLearningStats.longestStreakDays},
+            CASE
+              WHEN ${userLearningStats.lastActivityAt}::date = ${today.toISOString()}::date
+                THEN ${userLearningStats.currentStreakDays}
+              WHEN ${userLearningStats.lastActivityAt}::date = (${today.toISOString()}::date - INTERVAL '1 day')::date
+                THEN ${userLearningStats.currentStreakDays} + 1
+              ELSE 1
+            END
+          )
+        `,
+      },
+    });
 }
