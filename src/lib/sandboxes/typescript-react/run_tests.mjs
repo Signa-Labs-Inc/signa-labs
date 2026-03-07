@@ -83,7 +83,7 @@ function runTests() {
 
   try {
     stdout = execSync(
-      `npx vitest run --config ${WORKSPACE}/vitest.config.mjs --reporter=json --outputFile=${REPORT_PATH}`,
+      `npx vitest run --config /opt/sandbox/vitest.config.mjs --reporter=json --outputFile=${REPORT_PATH}`,
       {
         cwd: WORKSPACE,
         timeout: (MAX_EXECUTION_SECONDS + 5) * 1000,
@@ -92,6 +92,7 @@ function runTests() {
         env: {
           PATH: process.env.PATH,
           HOME: process.env.HOME,
+          NODE_PATH: process.env.NODE_PATH || '',
         },
       }
     );
@@ -132,7 +133,21 @@ function parseVitestReport(report, start) {
   let failed = 0;
 
   for (const suite of testResults) {
-    for (const test of suite.assertionResults ?? []) {
+    const assertions = suite.assertionResults ?? [];
+
+    // Handle suite-level failures (e.g., import errors that prevent test collection)
+    if (assertions.length === 0 && suite.message) {
+      failed++;
+      results.push({
+        name: sanitizeOutput(suite.name ?? 'unknown suite'),
+        passed: false,
+        time_ms: 0,
+        error: sanitizeOutput(suite.message),
+      });
+      continue;
+    }
+
+    for (const test of assertions) {
       const isPassed = test.status === 'passed';
       if (isPassed) passed++;
       else failed++;

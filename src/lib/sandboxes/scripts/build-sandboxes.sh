@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-# Build all CodeForge sandbox images locally
+# Build all sandbox images locally
 # Usage: ./scripts/build-sandboxes.sh [language]
 # Examples:
 #   ./scripts/build-sandboxes.sh              # Build all
@@ -27,9 +27,9 @@ LANGUAGES=(
   "python-bio"
 )
 
-# If a specific language is provided, only build that one
+# If specific languages are provided, only build those
 if [ $# -gt 0 ]; then
-  LANGUAGES=("$1")
+  LANGUAGES=("$@")
 fi
 
 for lang in "${LANGUAGES[@]}"; do
@@ -49,7 +49,7 @@ for lang in "${LANGUAGES[@]}"; do
   docker build \
     -t "$image_name:latest" \
     -f "$dockerfile" \
-    "$SANDBOXES_DIR/$lang"
+    "$SANDBOXES_DIR"
 
   echo "✓ Built $image_name:latest"
 done

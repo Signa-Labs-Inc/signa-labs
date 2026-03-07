@@ -42,7 +42,7 @@ export interface ExecutionRequest {
   /** Max execution time in seconds (from exercise_environments.max_execution_seconds) */
   timeoutSeconds: number;
 
-  /** Memory limit in MB (default 256) */
+  /** Memory limit in MB (default 512) */
   memoryMb?: number;
 }
 

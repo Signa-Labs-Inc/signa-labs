@@ -30,5 +30,22 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules", "src/lib/sandboxes/__fixtures__", "tmp"]
+  "exclude": [
+    "node_modules",
+    "src/lib/sandboxes/__fixtures__",
+    "src/lib/sandboxes/shared",
+    "src/lib/sandboxes/python",
+    "src/lib/sandboxes/python-web",
+    "src/lib/sandboxes/python-data-science",
+    "src/lib/sandboxes/python-bio",
+    "src/lib/sandboxes/sql",
+    "src/lib/sandboxes/go",
+    "src/lib/sandboxes/javascript",
+    "src/lib/sandboxes/javascript-react",
+    "src/lib/sandboxes/typescript",
+    "src/lib/sandboxes/typescript-react",
+    "src/lib/sandboxes/typescript-express",
+    "src/lib/sandboxes/scripts",
+    "tmp"
+  ]
 }

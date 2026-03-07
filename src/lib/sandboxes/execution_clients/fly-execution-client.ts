@@ -3,22 +3,24 @@
  *
  * Creates ephemeral Fly Machines to execute user code in production.
  * Each submission gets its own Firecracker microVM that boots, runs tests,
- * and auto-destroys.
+ * and serves results via HTTP.
  *
  * Flow:
  *   1. Encode all files as base64
- *   2. POST to Fly Machines API to create a machine with files + auto_destroy
- *   3. Poll the machine's status until it reaches "stopped" or "destroyed"
- *   4. Fetch machine logs to get the JSON output
- *   5. Parse and return structured results
+ *   2. POST to Fly Machines API to create a machine with files + HTTP service
+ *   3. Wait for the machine to reach "started" state
+ *   4. Poll GET /health until the test runner finishes
+ *   5. GET /results to fetch the JSON output
+ *   6. Delete the machine
  */
 
+import path from 'node:path';
 import type { ExecutionClient, ExecutionRequest, ExecutionResponse, SandboxResult } from './types';
 
 interface FlyExecutionConfig {
   apiToken: string;
   apiHostname: string; // https://api.machines.dev
-  appName: string; // codeforge-sandboxes
+  appName: string; // signa-labs-sandboxes
   region: string; // ewr
 }
 
@@ -27,6 +29,11 @@ interface FlyMachineResponse {
   state: string;
   instance_id: string;
 }
+
+const WRAPPER_PORT = 8080;
+const HEALTH_POLL_INTERVAL_MS = 500;
+const MACHINE_STARTUP_TIMEOUT_S = 30;
+const RESULT_FETCH_BUFFER_S = 30;
 
 export class FlyExecutionClient implements ExecutionClient {
   private config: FlyExecutionConfig;
@@ -46,7 +53,7 @@ export class FlyExecutionClient implements ExecutionClient {
     return new FlyExecutionClient({
       apiToken,
       apiHostname: process.env.FLY_API_HOSTNAME || 'https://api.machines.dev',
-      appName: process.env.FLY_SANDBOX_APP || 'codeforge-sandboxes',
+      appName: process.env.FLY_SANDBOX_APP || 'signa-labs-sandboxes',
       region: process.env.FLY_SANDBOX_REGION || 'ewr',
     });
   }
@@ -56,26 +63,31 @@ export class FlyExecutionClient implements ExecutionClient {
     let machineId: string | null = null;
 
     try {
-      // Build the files array for the Fly Machines API
       const files = this.buildFilesPayload(request);
 
-      // Create and start the machine
+      // Create machine with HTTP service
+      // CMD is baked into the Docker image — no need to override via init.cmd.
+      // The image CMD points to /opt/sandbox/http-wrapper.{py,cjs}.
       const machine = await this.createMachine({
         image: request.image,
         files,
         timeoutSeconds: request.timeoutSeconds,
-        memoryMb: request.memoryMb || 256,
+        memoryMb: request.memoryMb || 512,
       });
 
       machineId = machine.id;
 
-      // Wait for the machine to finish executing
-      await this.waitForMachine(machineId, request.timeoutSeconds + 15);
+      // Wait for machine to be started (HTTP service ready)
+      await this.waitForMachine(
+        machineId,
+        machine.instance_id,
+        'started',
+        MACHINE_STARTUP_TIMEOUT_S
+      );
 
-      // Fetch logs to get the JSON output
-      const output = await this.getMachineLogs(machineId);
+      // Poll /health until tests are done, then fetch results
+      const output = await this.fetchResults(machineId, request.timeoutSeconds);
 
-      // Parse the output
       const result = this.parseOutput(output);
 
       return {
@@ -86,6 +98,7 @@ export class FlyExecutionClient implements ExecutionClient {
       };
     } catch (err) {
       const error = err instanceof Error ? err.message : String(err);
+      console.error(`[Fly] executeSubmission error: ${error}`);
 
       if (error.includes('timed out') || error.includes('TIMEOUT')) {
         return {
@@ -112,52 +125,42 @@ export class FlyExecutionClient implements ExecutionClient {
         totalDurationMs: Date.now() - startTime,
       };
     } finally {
-      // Best-effort cleanup — auto_destroy should handle this,
-      // but force delete if the machine is still around
       if (machineId) {
         this.deleteMachine(machineId).catch(() => {});
       }
     }
   }
 
-  /**
-   * Convert submission/test/support files into Fly Machines API files format.
-   * Each file becomes { guest_path, raw_value } where raw_value is base64.
-   */
+  // ============================================================
+  // File encoding
+  // ============================================================
+
   private buildFilesPayload(
     request: ExecutionRequest
   ): { guest_path: string; raw_value: string }[] {
-    const files: { guest_path: string; raw_value: string }[] = [];
-
-    for (const file of request.submissionFiles) {
-      files.push({
-        guest_path: `/workspace/submission/${file.filePath}`,
-        raw_value: Buffer.from(file.content, 'utf-8').toString('base64'),
+    const encode = (dir: string, files: { filePath: string; content: string }[]) =>
+      files.map((f) => {
+        const normalized = path.posix.normalize(f.filePath);
+        if (normalized.startsWith('/') || normalized.startsWith('..')) {
+          throw new Error(`Invalid filePath: ${f.filePath}`);
+        }
+        return {
+          guest_path: `/workspace/${dir}/${normalized}`,
+          raw_value: Buffer.from(f.content, 'utf-8').toString('base64'),
+        };
       });
-    }
 
-    for (const file of request.testFiles) {
-      files.push({
-        guest_path: `/workspace/tests/${file.filePath}`,
-        raw_value: Buffer.from(file.content, 'utf-8').toString('base64'),
-      });
-    }
-
-    if (request.supportFiles) {
-      for (const file of request.supportFiles) {
-        files.push({
-          guest_path: `/workspace/support/${file.filePath}`,
-          raw_value: Buffer.from(file.content, 'utf-8').toString('base64'),
-        });
-      }
-    }
-
-    return files;
+    return [
+      ...encode('submission', request.submissionFiles),
+      ...encode('tests', request.testFiles),
+      ...encode('support', request.supportFiles ?? []),
+    ];
   }
 
-  /**
-   * Create an ephemeral Fly Machine with the sandbox image and injected files.
-   */
+  // ============================================================
+  // Machine lifecycle
+  // ============================================================
+
   private async createMachine(config: {
     image: string;
     files: { guest_path: string; raw_value: string }[];
@@ -170,7 +173,7 @@ export class FlyExecutionClient implements ExecutionClient {
       region: this.config.region,
       config: {
         image: config.image,
-        auto_destroy: true,
+        auto_destroy: false,
         restart: { policy: 'no' },
         guest: {
           cpu_kind: 'shared',
@@ -179,8 +182,27 @@ export class FlyExecutionClient implements ExecutionClient {
         },
         env: {
           MAX_EXECUTION_SECONDS: String(config.timeoutSeconds),
+          TEST_RUNNER: this.getTestRunnerPath(config.image),
         },
         files: config.files,
+        services: [
+          {
+            ports: [
+              {
+                port: 443,
+                handlers: ['tls', 'http'],
+              },
+              {
+                port: 80,
+                handlers: ['http'],
+              },
+            ],
+            protocol: 'tcp',
+            internal_port: WRAPPER_PORT,
+            autostop: 'off',
+            autostart: false,
+          },
+        ],
       },
     };
 
@@ -202,10 +224,34 @@ export class FlyExecutionClient implements ExecutionClient {
   }
 
   /**
-   * Poll the machine status until it reaches a terminal state.
+   * Resolve the test runner path based on the sandbox image.
+   * This is set as the TEST_RUNNER env var so the HTTP wrapper knows
+   * which script to execute.
    */
-  private async waitForMachine(machineId: string, maxWaitSeconds: number): Promise<void> {
-    const url = `${this.config.apiHostname}/v1/apps/${this.config.appName}/machines/${machineId}/wait?state=stopped&timeout=${maxWaitSeconds}`;
+  private getTestRunnerPath(image: string): string {
+    const imageLower = image.toLowerCase();
+
+    // Go sandbox uses a shell script
+    if (imageLower.includes('go')) {
+      return '/usr/local/bin/run_tests.sh';
+    }
+
+    // Python-based sandboxes
+    if (imageLower.includes('python') || imageLower.includes('sql')) {
+      return '/usr/local/bin/run_tests.py';
+    }
+
+    // Node-based sandboxes
+    return '/usr/local/bin/run_tests.mjs';
+  }
+
+  private async waitForMachine(
+    machineId: string,
+    instanceId: string,
+    targetState: 'started' | 'stopped',
+    maxWaitSeconds: number
+  ): Promise<void> {
+    const url = `${this.config.apiHostname}/v1/apps/${this.config.appName}/machines/${machineId}/wait?state=${targetState}&timeout=${maxWaitSeconds}&instance_id=${instanceId}`;
 
     const response = await fetch(url, {
       method: 'GET',
@@ -217,7 +263,6 @@ export class FlyExecutionClient implements ExecutionClient {
 
     if (!response.ok) {
       const errorBody = await response.text();
-      // 408 means the machine didn't reach the target state in time
       if (response.status === 408) {
         throw new Error('Machine execution timed out');
       }
@@ -225,63 +270,94 @@ export class FlyExecutionClient implements ExecutionClient {
     }
   }
 
+  private async deleteMachine(machineId: string): Promise<void> {
+    // Stop the machine first (it's still running the HTTP server)
+    const stopUrl = `${this.config.apiHostname}/v1/apps/${this.config.appName}/machines/${machineId}/stop`;
+    await fetch(stopUrl, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${this.config.apiToken}` },
+    }).catch(() => {});
+
+    // Then delete
+    const deleteUrl = `${this.config.apiHostname}/v1/apps/${this.config.appName}/machines/${machineId}?force=true`;
+    await fetch(deleteUrl, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${this.config.apiToken}` },
+    }).catch(() => {});
+  }
+
+  // ============================================================
+  // Results fetching via HTTP
+  // ============================================================
+
   /**
-   * Fetch stdout logs from the machine to get the JSON test results.
+   * Poll the machine's HTTP endpoint until tests complete, then fetch results.
+   * Uses Fly's proxy: https://{app_name}.fly.dev with fly-force-instance-id header.
    */
-  private async getMachineLogs(machineId: string): Promise<string> {
-    // Fly's nats-based log endpoint
-    const url = `${this.config.apiHostname}/v1/apps/${this.config.appName}/machines/${machineId}/logs?nats=true`;
+  private async fetchResults(machineId: string, timeoutSeconds: number): Promise<string> {
+    const baseUrl = `https://${this.config.appName}.fly.dev`;
+    const deadline = Date.now() + (timeoutSeconds + RESULT_FETCH_BUFFER_S) * 1000;
 
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${this.config.apiToken}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch machine logs: ${response.status}`);
-    }
-
-    const text = await response.text();
-
-    // Fly logs return NATS-formatted lines. Extract the message payloads.
-    // Each line is a JSON object with a "message" field containing the actual log line.
-    const lines = text.split('\n').filter((line) => line.trim());
-    const messages: string[] = [];
-
-    for (const line of lines) {
+    // Poll /health until ready
+    while (Date.now() < deadline) {
       try {
-        const logEntry = JSON.parse(line);
-        if (logEntry.message) {
-          messages.push(logEntry.message);
+        const healthResponse = await fetch(`${baseUrl}/health`, {
+          method: 'GET',
+          headers: {
+            'fly-force-instance-id': machineId,
+          },
+          signal: AbortSignal.timeout(5000),
+        });
+
+        if (healthResponse.ok) {
+          const health = (await healthResponse.json()) as { ready: boolean };
+          if (health.ready) {
+            break;
+          }
         }
       } catch {
-        // Some lines might not be JSON (headers, etc.)
-        messages.push(line);
+        // Transient network errors during polling are expected; retry on next iteration
       }
+
+      await new Promise((resolve) => setTimeout(resolve, HEALTH_POLL_INTERVAL_MS));
     }
 
-    return messages.join('\n');
-  }
+    if (Date.now() >= deadline) {
+      throw new Error('TIMEOUT: Test execution exceeded time limit');
+    }
 
-  /**
-   * Force-delete a machine. Best effort — auto_destroy handles most cases.
-   */
-  private async deleteMachine(machineId: string): Promise<void> {
-    const url = `${this.config.apiHostname}/v1/apps/${this.config.appName}/machines/${machineId}?force=true`;
-
-    await fetch(url, {
-      method: 'DELETE',
+    // Fetch results
+    const resultsResponse = await fetch(`${baseUrl}/results`, {
+      method: 'GET',
       headers: {
-        Authorization: `Bearer ${this.config.apiToken}`,
+        'fly-force-instance-id': machineId,
       },
+      signal: AbortSignal.timeout(10000),
     });
+
+    if (!resultsResponse.ok) {
+      throw new Error(`Failed to fetch results: ${resultsResponse.status}`);
+    }
+
+    return await resultsResponse.text();
   }
+
+  // ============================================================
+  // Output parsing
+  // ============================================================
 
   private parseOutput(output: string): SandboxResult {
-    const lines = output.split('\n');
+    // Try to parse the output directly as JSON first
+    try {
+      const parsed = JSON.parse(output.trim()) as SandboxResult;
+      if (parsed.status && typeof parsed.tests_passed === 'number') {
+        return parsed;
+      }
+    } catch {
+      // Not direct JSON — try line-by-line
+    }
 
+    const lines = output.split('\n');
     for (const line of lines) {
       const trimmed = line.trim();
       if (trimmed.startsWith('{')) {
@@ -299,7 +375,7 @@ export class FlyExecutionClient implements ExecutionClient {
     return {
       status: 'error',
       error_type: 'parse_error',
-      error_message: 'Could not parse test runner output from Fly Machine logs',
+      error_message: 'Could not parse test runner output',
       stderr: output.slice(0, 2000),
       tests_passed: 0,
       tests_failed: 0,
