@@ -61,9 +61,10 @@ const DIFFICULTY_OPTIONS: { value: Difficulty; label: string; description: strin
   { value: 'expert', label: 'Expert', description: 'Complex optimization and design' },
 ];
 
-const STATUS_MESSAGES: Record<string, string> = {
+const STATUS_MESSAGES = {
   generating: 'Generating your exercise...',
-  validating: 'Validating the solution...',
+  validating: 'Running tests to validate the solution...',
+  refining: 'Refining the exercise...',
   saving: 'Almost ready...',
 };
 
@@ -87,14 +88,18 @@ export default function GenerateExercisePage() {
     setErrorMessage('');
 
     try {
-      // Simulate progress messaging
+      // Progress messaging — timings reflect actual generation phases
       const progressTimer = setTimeout(() => {
         setStatusMessage(STATUS_MESSAGES.validating);
-      }, 3000);
+      }, 15000);
+
+      const refiningTimer = setTimeout(() => {
+        setStatusMessage(STATUS_MESSAGES.refining);
+      }, 40000);
 
       const savingTimer = setTimeout(() => {
         setStatusMessage(STATUS_MESSAGES.saving);
-      }, 8000);
+      }, 80000);
 
       const response = await fetch('/api/exercises/generate', {
         method: 'POST',
@@ -103,6 +108,7 @@ export default function GenerateExercisePage() {
       });
 
       clearTimeout(progressTimer);
+      clearTimeout(refiningTimer);
       clearTimeout(savingTimer);
 
       if (!response.ok) {

@@ -38,7 +38,7 @@ const MAX_RETRIES = 2;
 const MAX_GENERATIONS_PER_HOUR = 10;
 const MIN_PROMPT_LENGTH = 10;
 const MAX_PROMPT_LENGTH = 2000;
-const OVERALL_TIMEOUT_MS = 180_000; // 75 seconds — fail gracefully before client times out
+const OVERALL_TIMEOUT_MS = 300_000; // 5 minutes — hard/expert exercises need multiple LLM + sandbox rounds
 
 // ============================================================
 // Service
@@ -119,48 +119,10 @@ export class ExerciseGenerationService {
 
       // Call Claude
       exerciseOutput = await this.callLLM(prompt, startTime);
-      // Temporarily add after line: exerciseOutput = await this.callLLM(prompt, startTime);
-      console.log(
-        '[Generation] Test files:',
-        exerciseOutput.testFiles.map((f) => f.filePath)
-      );
-      console.log(
-        '[Generation] Solution files:',
-        exerciseOutput.solutionFiles.map((f) => f.filePath)
-      );
-      console.log(
-        '[Generation] Starter files:',
-        exerciseOutput.starterFiles.map((f) => f.filePath)
-      );
-      console.log(
-        '[Generation] Environment:',
-        environment.name,
-        'Framework:',
-        resolvedEnv.detectedFramework
-      );
 
       // Validate in sandbox
       this.checkTimeout(startTime);
       validationResult = await this.validateInSandbox(exerciseOutput, input.language, environment);
-
-      console.log(
-        '[Generation] Validation result:',
-        JSON.stringify(
-          {
-            status: validationResult.status,
-            passed: validationResult.tests_passed,
-            failed: validationResult.tests_failed,
-            total: validationResult.tests_total,
-            results: validationResult.results.map((r) => ({
-              name: r.name,
-              passed: r.passed,
-              error: r.error?.slice(0, 200),
-            })),
-          },
-          null,
-          2
-        )
-      );
 
       if (
         validationResult.status === 'completed' &&
@@ -270,7 +232,7 @@ export class ExerciseGenerationService {
       // Race the API call against our timeout
       const apiCall = this.anthropic.messages.create({
         model: LLM_MODEL,
-        max_tokens: 8192,
+        max_tokens: 16384,
         temperature: 1,
         messages: [{ role: 'user', content: prompt }],
       });
@@ -291,6 +253,14 @@ export class ExerciseGenerationService {
       }
 
       throw new GenerationError('GENERATION_FAILED', `Claude API call failed: ${message}`);
+    }
+
+    // Detect truncation before parsing
+    if (response.stop_reason === 'max_tokens') {
+      throw new GenerationError(
+        'INVALID_LLM_RESPONSE',
+        'Claude response was truncated (too long). Try a simpler prompt or lower difficulty.'
+      );
     }
 
     // Extract text content
@@ -316,7 +286,6 @@ export class ExerciseGenerationService {
 
     let parsed: LLMExerciseOutput;
     try {
-      console.log('[Generation] Raw LLM output (first 500 chars):', rawText.slice(0, 500));
       parsed = JSON.parse(jsonText) as LLMExerciseOutput;
     } catch {
       throw new GenerationError(

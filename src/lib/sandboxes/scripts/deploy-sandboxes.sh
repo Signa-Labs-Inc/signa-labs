@@ -1,29 +1,41 @@
 #!/bin/bash
 set -euo pipefail
 
-# Deploy CodeForge sandbox images to Fly.io registry
+# Deploy sandbox images to Fly.io registry
 # Prerequisites:
 #   - flyctl installed and authenticated
 #   - FLY_ORG set (or passed as argument)
-#   - A Fly app created for sandboxes (e.g. "codeforge-sandboxes")
+#   - A Fly app created for sandboxes (e.g. "signa-labs-sandboxes")
 #
-# Usage: ./scripts/deploy-sandboxes.sh [language]
+# Usage: ./scripts/deploy-sandboxes.sh [language...]
 # Examples:
-#   ./scripts/deploy-sandboxes.sh          # Deploy all
-#   ./scripts/deploy-sandboxes.sh python   # Deploy only Python
+#   ./scripts/deploy-sandboxes.sh                      # Deploy all (auto-discovered)
+#   ./scripts/deploy-sandboxes.sh python               # Deploy only Python
+#   ./scripts/deploy-sandboxes.sh python go sql        # Deploy specific sandboxes
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-SANDBOXES_DIR="$PROJECT_ROOT/sandboxes"
+SANDBOXES_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-FLY_APP="${FLY_SANDBOX_APP:-codeforge-sandboxes}"
+FLY_APP="${FLY_SANDBOX_APP:-signa-labs-sandboxes}"
 REGISTRY="registry.fly.io"
 
-LANGUAGES=("python" "javascript" "typescript")
-
+# Auto-discover all sandbox directories that contain a Dockerfile
 if [ $# -gt 0 ]; then
-  LANGUAGES=("$1")
+  LANGUAGES=("$@")
+else
+  LANGUAGES=()
+  for dir in "$SANDBOXES_DIR"/*/Dockerfile; do
+    lang="$(basename "$(dirname "$dir")")"
+    LANGUAGES+=("$lang")
+  done
 fi
+
+if [ ${#LANGUAGES[@]} -eq 0 ]; then
+  echo "ERROR: No sandbox directories with Dockerfiles found in $SANDBOXES_DIR"
+  exit 1
+fi
+
+echo "Sandboxes to deploy: ${LANGUAGES[*]}"
 
 # Ensure we're authenticated
 if ! fly auth whoami &>/dev/null; then
@@ -41,7 +53,7 @@ echo "Authenticating Docker with Fly.io registry..."
 fly auth docker
 
 for lang in "${LANGUAGES[@]}"; do
-  local_image="codeforge-sandbox-$lang:latest"
+  local_image="signa-labs-sandbox-$lang:latest"
   remote_image="$REGISTRY/$FLY_APP:sandbox-$lang"
 
   echo ""
@@ -54,7 +66,7 @@ for lang in "${LANGUAGES[@]}"; do
   docker build \
     -t "$local_image" \
     -f "$SANDBOXES_DIR/$lang/Dockerfile" \
-    "$SANDBOXES_DIR/$lang"
+    "$SANDBOXES_DIR"
 
   # Tag for Fly registry
   docker tag "$local_image" "$remote_image"
