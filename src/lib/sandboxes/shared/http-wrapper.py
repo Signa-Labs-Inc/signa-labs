@@ -130,7 +130,17 @@ class ResultsHandler(http.server.BaseHTTPRequestHandler):
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
                 self.end_headers()
-                self.wfile.write(results.encode() if results else b"{}")
+                body = results if results else json.dumps({
+                    "status": "error",
+                    "error_type": "runner_error",
+                    "error_message": "Test runner produced no results",
+                    "tests_passed": 0,
+                    "tests_failed": 0,
+                    "tests_total": 0,
+                    "execution_time_ms": 0,
+                    "results": [],
+                })
+                self.wfile.write(body.encode())
             return
 
         self.send_response(404)

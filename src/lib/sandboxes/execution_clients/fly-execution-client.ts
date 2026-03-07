@@ -14,6 +14,7 @@
  *   6. Delete the machine
  */
 
+import path from 'node:path';
 import type { ExecutionClient, ExecutionRequest, ExecutionResponse, SandboxResult } from './types';
 
 interface FlyExecutionConfig {
@@ -138,10 +139,16 @@ export class FlyExecutionClient implements ExecutionClient {
     request: ExecutionRequest
   ): { guest_path: string; raw_value: string }[] {
     const encode = (dir: string, files: { filePath: string; content: string }[]) =>
-      files.map((f) => ({
-        guest_path: `/workspace/${dir}/${f.filePath}`,
-        raw_value: Buffer.from(f.content, 'utf-8').toString('base64'),
-      }));
+      files.map((f) => {
+        const normalized = path.posix.normalize(f.filePath);
+        if (normalized.startsWith('/') || normalized.startsWith('..')) {
+          throw new Error(`Invalid filePath: ${f.filePath}`);
+        }
+        return {
+          guest_path: `/workspace/${dir}/${normalized}`,
+          raw_value: Buffer.from(f.content, 'utf-8').toString('base64'),
+        };
+      });
 
     return [
       ...encode('submission', request.submissionFiles),

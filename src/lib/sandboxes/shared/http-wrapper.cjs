@@ -93,7 +93,16 @@ const server = http.createServer((req, res) => {
     }
 
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(results);
+    res.end(results || JSON.stringify({
+      status: 'error',
+      error_type: 'runner_error',
+      error_message: 'Test runner produced no results',
+      tests_passed: 0,
+      tests_failed: 0,
+      tests_total: 0,
+      execution_time_ms: 0,
+      results: [],
+    }));
     return;
   }
 
