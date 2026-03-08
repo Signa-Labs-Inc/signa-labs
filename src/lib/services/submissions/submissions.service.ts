@@ -307,4 +307,17 @@ export class SubmissionService {
   ): Promise<boolean> {
     return writer.saveDraftCode(attemptId, userId, exerciseId, files);
   }
+
+  /**
+   * Add time spent on an attempt and update user totals.
+   */
+  async addTimeSpent(
+    userId: string,
+    exerciseId: string,
+    attemptId: string,
+    seconds: number
+  ): Promise<void> {
+    await writer.addAttemptTimeSpent(attemptId, userId, exerciseId, seconds);
+    await writer.addUserTotalTimeSpent(userId, seconds);
+  }
 }

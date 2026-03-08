@@ -288,3 +288,38 @@ export async function saveDraftCode(
 
   return result.length > 0;
 }
+
+/**
+ * Increment time spent on an attempt.
+ */
+export async function addAttemptTimeSpent(
+  attemptId: string,
+  userId: string,
+  exerciseId: string,
+  seconds: number
+): Promise<void> {
+  await db
+    .update(exerciseAttempts)
+    .set({
+      timeSpentSeconds: sql`${exerciseAttempts.timeSpentSeconds} + ${seconds}`,
+    })
+    .where(
+      and(
+        eq(exerciseAttempts.id, attemptId),
+        eq(exerciseAttempts.userId, userId),
+        eq(exerciseAttempts.exerciseId, exerciseId)
+      )
+    );
+}
+
+/**
+ * Increment total time spent in user learning stats.
+ */
+export async function addUserTotalTimeSpent(userId: string, seconds: number): Promise<void> {
+  await db
+    .update(userLearningStats)
+    .set({
+      totalTimeSpentSeconds: sql`${userLearningStats.totalTimeSpentSeconds} + ${seconds}`,
+    })
+    .where(eq(userLearningStats.userId, userId));
+}
