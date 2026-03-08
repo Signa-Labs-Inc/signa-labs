@@ -30,23 +30,28 @@ export function useAutoSave({
   const isSavingRef = useRef<boolean>(false);
 
   const currentSnapshot = JSON.stringify(fileContents);
+  const snapshotRef = useRef(currentSnapshot);
+  const contentsRef = useRef(fileContents);
+  snapshotRef.current = currentSnapshot;
+  contentsRef.current = fileContents;
 
   const saveDraft = useCallback(async () => {
-    if (currentSnapshot === lastSavedRef.current) return;
+    if (snapshotRef.current === lastSavedRef.current) return;
     if (isSavingRef.current) return;
 
     isSavingRef.current = true;
     setSaveStatus('saving');
+    const savingSnapshot = snapshotRef.current;
 
     try {
       const response = await fetch(`/api/exercises/${exerciseId}/draft`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ attemptId, files: fileContents }),
+        body: JSON.stringify({ attemptId, files: contentsRef.current }),
       });
 
       if (response.ok) {
-        lastSavedRef.current = currentSnapshot;
+        lastSavedRef.current = savingSnapshot;
         setSaveStatus('saved');
 
         // Reset to idle after 2 seconds
@@ -59,8 +64,12 @@ export function useAutoSave({
       setSaveStatus('error');
     } finally {
       isSavingRef.current = false;
+      // If edits happened while saving, trigger a follow-up save
+      if (snapshotRef.current !== lastSavedRef.current) {
+        saveDraft();
+      }
     }
-  }, [exerciseId, attemptId, fileContents, currentSnapshot]);
+  }, [exerciseId, attemptId]);
 
   // Debounced save on content change
   useEffect(() => {
@@ -96,19 +105,19 @@ export function useAutoSave({
     if (!enabled) return;
 
     const handleBeforeUnload = () => {
-      if (currentSnapshot === lastSavedRef.current) return;
+      if (snapshotRef.current === lastSavedRef.current) return;
 
       fetch(`/api/exercises/${exerciseId}/draft`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ attemptId, files: fileContents }),
+        body: JSON.stringify({ attemptId, files: contentsRef.current }),
         keepalive: true,
       });
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [enabled, exerciseId, attemptId, fileContents, currentSnapshot]);
+  }, [enabled, exerciseId, attemptId]);
 
   return { saveStatus };
 }

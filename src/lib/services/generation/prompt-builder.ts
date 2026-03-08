@@ -135,8 +135,8 @@ ${getFrameworkInstructions(input.detectedFramework, input.language)}
 
 - Write all code in ${config.displayName}
 - Test framework: ${config.testFramework}
-- Starter file name: \`${config.starterFileName}\`
-- Solution file name: \`${config.solutionFileName}\`
+- Primary starter file name: \`${config.starterFileName}\`
+- Primary solution file name: \`${config.solutionFileName}\`
 - Test file name: \`${config.testFileName}\`
 - In test files, import from the submission directory: \`${config.importStyle}\`
 - File extensions: \`${config.fileExtension}\`
@@ -158,7 +158,7 @@ Respond with ONLY a JSON object (no markdown fences, no preamble) matching this 
     {
       "filePath": "${config.starterFileName}",
       "fileName": "${config.starterFileName}",
-      "content": "# Starter code with function signature and docstring/comments\\n# The user fills in the implementation"
+      "content": "# Main starter file with function signatures and TODO comments"
     }
   ],
   "solutionFiles": [
@@ -177,6 +177,10 @@ Respond with ONLY a JSON object (no markdown fences, no preamble) matching this 
   ]
 }
 
+Note: starterFiles, solutionFiles, and testFiles are ARRAYS and may contain multiple entries for multi-file exercises. Each file needs a unique filePath and fileName. Starter and solution arrays must have matching file paths — every starter file must have a corresponding solution file with the same filePath.
+
+For multi-file exercises, additional files should use descriptive names (e.g. "utils${config.fileExtension}", "models${config.fileExtension}"). Tests import all files from the submission directory using relative paths like: ${config.importStyle.replace('solution', 'filename')}.
+
 ## Critical Rules
 
 1. The solution code MUST pass all tests. This will be validated automatically.
@@ -187,6 +191,7 @@ Respond with ONLY a JSON object (no markdown fences, no preamble) matching this 
 6. Do NOT include any text outside the JSON object.
 7. Do NOT use any packages or libraries beyond what is listed as available in the sandbox.
 8. All code must be testable with the specified test framework.
+9. For multi-file exercises, each starter file must have clear TODO comments and all files must work together with correct imports.
 ${input.retryContext ? getRetryInstructions(input.retryContext) : ''}`;
 
   return prompt;
@@ -250,6 +255,7 @@ Guidelines:
 - Do NOT use Next.js, Remix, or any meta-framework features
 - Do NOT use CSS-in-JS libraries (styled-components, emotion) — use inline styles or className strings
 - Do NOT import CSS files
+- For multi-file React exercises, each component should be in its own file (e.g. Button.tsx, Card.tsx) and the main file should compose them
 
 Example test structure:
 \`\`\`
@@ -282,6 +288,7 @@ Guidelines:
 - Test file: solution.test.ts
 - Do NOT start the server (no app.listen) — supertest handles that
 - Do NOT use database connections — mock data with in-memory objects
+- For multi-file Express exercises, split into routes.ts, middleware.ts, and app.ts
 
 Example test structure:
 \`\`\`
@@ -307,6 +314,20 @@ This exercise uses a Python web sandbox with the following packages available:
 - httpx (for async HTTP testing)
 - pytest
 
+ONLY these packages are available. Do NOT use:
+- No JWT libraries (pyjwt, python-jose)
+- No bcrypt, passlib, or authentication libraries
+- No SQLAlchemy, databases, or ORM libraries
+- No Redis, caching libraries
+- No external packages beyond what is listed above
+
+Keep exercises focused on core API concepts:
+- Route handling, request/response patterns
+- Query parameters, path parameters, request bodies
+- Status codes, error handling, middleware basics
+- Data validation with Pydantic (built into FastAPI)
+- Use simple in-memory data (lists, dicts) for storage
+
 Guidelines:
 - Create Flask or FastAPI route handlers and applications
 - For Flask: test with Flask's test client
@@ -314,6 +335,7 @@ Guidelines:
 - The starter file should define the app and routes
 - Do NOT start the server — tests create their own test client
 - Do NOT use database connections — mock data with in-memory structures
+- For multi-file exercises, split into routes.py, models.py, and app.py
 
 Example Flask test:
 \`\`\`python
@@ -358,6 +380,7 @@ Guidelines:
 - Use small inline datasets in tests (don't rely on external files or URLs)
 - Use numpy.testing.assert_array_almost_equal for floating point comparisons
 - Use pandas.testing.assert_frame_equal for DataFrame comparisons
+- For multi-file exercises, split into data_utils.py, models.py, and solution.py
 
 Example test patterns:
 \`\`\`python
@@ -495,6 +518,7 @@ Guidelines:
 - All files are placed in the same directory at runtime, so no imports between files needed
 - Do NOT use any external packages — standard library only
 - Use table-driven tests where appropriate (idiomatic Go)
+- For multi-file exercises, split into solution.go and helpers.go — all in the same package
 
 File naming:
 - Starter/solution file: solution.go
@@ -557,7 +581,20 @@ When generating an exercise:
 - Write thorough tests that cover normal cases, edge cases, and boundary conditions
 - Provide progressive hints that help without spoiling the answer
 - Choose appropriate tags for discoverability
-- Keep all code self-contained with no external dependencies beyond what the sandbox provides`;
+- Keep all code self-contained with no external dependencies beyond what the sandbox provides
+
+IMPORTANT: Match the exercise complexity to the user's prompt and selected difficulty level.
+- If the user says "I want to learn X", create a BEGINNER-FRIENDLY exercise that teaches the basics of X
+- Do NOT add advanced features (authentication, caching, rate limiting, etc.) unless the user specifically asks for them
+- Start simple. A user learning web APIs should start with basic CRUD routes, not JWT authentication
+- When in doubt, make the exercise simpler rather than more complex
+
+Multi-file exercises:
+- For beginner/easy exercises, use a SINGLE file unless the prompt specifically asks for multiple files
+- For medium exercises, use multiple files ONLY if the exercise naturally involves separate concerns (e.g. a utility module + main logic)
+- For hard/expert exercises, split code across multiple files when it teaches good architectural practices (separation of concerns, modules, composition)
+- Each starter file should have clear TODO comments explaining what to implement
+- All files must work together — imports between submission files should use relative paths`;
 }
 
 function getDifficultyGuidelines(difficulty: string): string {
@@ -567,27 +604,34 @@ function getDifficultyGuidelines(difficulty: string): string {
 - No complex data structures
 - 1-2 concepts tested
 - Detailed description with clear examples
-- 4-5 simple test cases`;
+- 4-5 simple test cases
+- Always use a SINGLE file`;
     case 'easy':
       return `- Single function, may require basic data structures (arrays, maps)
 - 1-2 concepts tested
 - Clear description with examples
-- 5-6 test cases including basic edge cases`;
+- 5-6 test cases including basic edge cases
+- Use a SINGLE file`;
     case 'medium':
       return `- May require multiple functions or moderate algorithmic thinking
 - 2-3 concepts tested
 - Description with examples but less hand-holding
-- 6-8 test cases including edge cases and performance considerations`;
+- 6-8 test cases including edge cases and performance considerations
+- May use 1-2 files if the exercise involves separate concerns`;
     case 'hard':
       return `- Requires solid algorithmic knowledge or complex data structures
 - Multiple concepts combined
 - Concise description, user must infer some requirements
-- 8-10 test cases including tricky edge cases`;
+- 8-10 test cases including tricky edge cases
+- IMPORTANT: Exercise must be complex in LOGIC, not in dependencies. Use only the packages available in the sandbox.
+- Use 2-3 files to teach separation of concerns and modular design`;
     case 'expert':
       return `- Advanced algorithms, optimization, or system design concepts
 - Requires deep understanding of the language
 - Minimal description, complex requirements
-- 10+ test cases including performance and stress tests`;
+- 10+ test cases including performance and stress tests
+- IMPORTANT: Exercise must be complex in LOGIC, not in dependencies. Use only the packages available in the sandbox.
+- Use 2-4 files with clear module boundaries and well-defined interfaces`;
     default:
       return `- Moderate complexity, 2-3 concepts
 - Clear description with examples
@@ -610,5 +654,6 @@ Please fix the issues. Make sure:
 - The test assertions match the solution's actual output
 - There are no import errors or syntax issues
 - Test imports use the correct path: import from the submission directory
-- No external packages or dependencies are used beyond what the sandbox provides`;
+- No external packages or dependencies are used beyond what the sandbox provides
+- For multi-file exercises, all imports between files are correct`;
 }
