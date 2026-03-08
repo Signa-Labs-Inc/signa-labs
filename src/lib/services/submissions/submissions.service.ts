@@ -284,4 +284,27 @@ export class SubmissionService {
 
     return { attemptId: attempt.id, isNew: true };
   }
+
+  /**
+   * Get the draft code for an attempt.
+   * Returns an empty object if no draft has been saved yet.
+   */
+  /**
+   * Get the saved draft code for the user's attempt.
+   */
+  async getDraftCode(userId: string, attemptId: string): Promise<Record<string, string> | null> {
+    return reader.getAttemptDraftCode(attemptId, userId);
+  }
+
+  /**
+   * Save draft code for the user's active attempt.
+   */
+  async saveDraftCode(
+    userId: string,
+    exerciseId: string,
+    attemptId: string,
+    files: Record<string, string>
+  ): Promise<boolean> {
+    return writer.saveDraftCode(attemptId, userId, exerciseId, files);
+  }
 }

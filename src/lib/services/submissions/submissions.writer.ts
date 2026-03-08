@@ -263,3 +263,28 @@ export async function updateStreakOnSubmission(userId: string, txOrDb: DbOrTx = 
       },
     });
 }
+
+/**
+ * Save draft code for an in-progress attempt.
+ */
+export async function saveDraftCode(
+  attemptId: string,
+  userId: string,
+  exerciseId: string,
+  draftCode: Record<string, string>
+): Promise<boolean> {
+  const result = await db
+    .update(exerciseAttempts)
+    .set({ draftCode })
+    .where(
+      and(
+        eq(exerciseAttempts.id, attemptId),
+        eq(exerciseAttempts.userId, userId),
+        eq(exerciseAttempts.exerciseId, exerciseId),
+        eq(exerciseAttempts.status, 'in_progress')
+      )
+    )
+    .returning({ id: exerciseAttempts.id });
+
+  return result.length > 0;
+}

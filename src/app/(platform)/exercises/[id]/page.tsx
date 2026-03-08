@@ -1,4 +1,3 @@
-// src/app/(platform)/exercises/[id]/page.tsx
 import { notFound } from 'next/navigation';
 import * as exerciseService from '@/lib/services/exercises/exercises.service';
 import { ExerciseWorkspace } from '@/components/exercises/workspace/exercise-workspace';
@@ -18,9 +17,9 @@ export default async function ExerciseWorkspacePage({ params }: { params: Params
     notFound();
   }
 
-  // Get or create an active attempt for this user + exercise
   const submissionService = new SubmissionService();
   const { attemptId } = await submissionService.getOrCreateAttempt(user.id, exercise.id);
+  const draftCode = await submissionService.getDraftCode(user.id, attemptId);
 
-  return <ExerciseWorkspace exercise={exercise} attemptId={attemptId} />;
+  return <ExerciseWorkspace exercise={exercise} attemptId={attemptId} draftCode={draftCode} />;
 }

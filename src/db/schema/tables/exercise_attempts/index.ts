@@ -8,6 +8,7 @@ import {
   index,
   boolean,
   uniqueIndex,
+  jsonb,
 } from 'drizzle-orm/pg-core';
 import { users } from '../users';
 import { exercises } from '../exercises';
@@ -28,6 +29,7 @@ export const exerciseAttempts = pgTable(
     startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
     completedAt: timestamp('completed_at', { withTimezone: true }),
     timeSpentSeconds: integer('time_spent_seconds').notNull().default(0),
+    draftCode: jsonb('draft_code').$type<Record<string, string>>(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .notNull()

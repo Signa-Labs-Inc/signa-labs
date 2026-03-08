@@ -265,3 +265,19 @@ export async function getActiveAttemptForExercise(
 
   return attempt ?? null;
 }
+
+/**
+ * Get the draft code for an attempt.
+ */
+export async function getAttemptDraftCode(
+  attemptId: string,
+  userId: string
+): Promise<Record<string, string> | null> {
+  const [attempt] = await db
+    .select({ draftCode: exerciseAttempts.draftCode })
+    .from(exerciseAttempts)
+    .where(and(eq(exerciseAttempts.id, attemptId), eq(exerciseAttempts.userId, userId)))
+    .limit(1);
+
+  return attempt?.draftCode ?? null;
+}

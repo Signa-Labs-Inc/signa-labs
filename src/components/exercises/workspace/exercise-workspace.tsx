@@ -10,6 +10,7 @@ import { CodeEditor } from './code-editor';
 import { HintPanel } from './hint-panel';
 import { ResultsPanel } from './results-panel';
 import { LivePreview } from './live-preview';
+import { useAutoSave } from '@/hooks/use-auto-save';
 import type { ExerciseDetail } from '@/lib/services/exercises/exercises.types';
 import type { SandboxResult } from '@/lib/sandboxes/types';
 
@@ -44,6 +45,7 @@ const LANGUAGE_LABELS: Record<string, string> = {
 type ExerciseWorkspaceProps = {
   exercise: ExerciseDetail;
   attemptId: string;
+  draftCode?: Record<string, string> | null;
 };
 
 type SubmitResponse = {
@@ -62,19 +64,39 @@ type SubmitResponse = {
 // Component
 // ============================================================
 
-export function ExerciseWorkspace({ exercise, attemptId }: ExerciseWorkspaceProps) {
+export function ExerciseWorkspace({ exercise, attemptId, draftCode }: ExerciseWorkspaceProps) {
   const allFiles = [...exercise.starterFiles, ...exercise.supportFiles];
 
   const [activeFileId, setActiveFileId] = useState<string>(allFiles[0]?.id ?? '');
   const [showPreview, setShowPreview] = useState<boolean>(false);
 
   // Track user's code edits per file (keyed by file ID)
+  // Prefer saved draft code over original starter content
   const [fileContents, setFileContents] = useState<Record<string, string>>(() => {
     const initial: Record<string, string> = {};
     for (const file of allFiles) {
-      initial[file.id] = file.content;
+      if (draftCode && file.filePath in draftCode) {
+        initial[file.id] = draftCode[file.filePath];
+      } else {
+        initial[file.id] = file.content;
+      }
     }
     return initial;
+  });
+
+  // Build a filePath -> content map for auto-save (only editable files)
+  const draftFiles: Record<string, string> = {};
+  for (const file of allFiles) {
+    if (file.isEditable) {
+      draftFiles[file.filePath] = fileContents[file.id] ?? file.content;
+    }
+  }
+
+  // Auto-save drafts on debounce + tab blur + page close
+  const { saveStatus } = useAutoSave({
+    exerciseId: exercise.id,
+    attemptId,
+    fileContents: draftFiles,
   });
 
   // Submission state
@@ -156,6 +178,13 @@ export function ExerciseWorkspace({ exercise, attemptId }: ExerciseWorkspaceProp
             {LANGUAGE_LABELS[exercise.language] ?? exercise.language}
           </span>
         </div>
+
+        {/* Save status indicator */}
+        {saveStatus === 'saving' && (
+          <span className="text-muted-foreground animate-pulse text-xs">Saving...</span>
+        )}
+        {saveStatus === 'saved' && <span className="text-muted-foreground text-xs">Saved</span>}
+        {saveStatus === 'error' && <span className="text-xs text-red-500">Save failed</span>}
 
         {/* Submit button in top bar */}
         <Button onClick={handleSubmit} disabled={isSubmitting} size="sm" className="gap-2">
