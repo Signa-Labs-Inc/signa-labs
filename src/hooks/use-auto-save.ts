@@ -14,6 +14,8 @@ type AutoSaveConfig = {
 
 type AutoSaveReturn = {
   saveStatus: SaveStatus;
+  /** Cancel pending saves and mark current state as saved. Call before resetting editor content. */
+  cancelPendingSaves: () => void;
 };
 
 export function useAutoSave({
@@ -35,10 +37,22 @@ export function useAutoSave({
   snapshotRef.current = currentSnapshot;
   contentsRef.current = fileContents;
 
+  const cancelledRef = useRef(false);
+
+  const cancelPendingSaves = useCallback(() => {
+    // Clear any pending debounce timer
+    if (timerRef.current) clearTimeout(timerRef.current);
+    // Mark cancelled so in-flight save's follow-up is suppressed
+    cancelledRef.current = true;
+    // Treat current snapshot as already saved so no stale save retriggers
+    lastSavedRef.current = snapshotRef.current;
+  }, []);
+
   const saveDraft = useCallback(async () => {
     if (snapshotRef.current === lastSavedRef.current) return;
     if (isSavingRef.current) return;
 
+    cancelledRef.current = false;
     isSavingRef.current = true;
     setSaveStatus('saving');
     const savingSnapshot = snapshotRef.current;
@@ -64,8 +78,8 @@ export function useAutoSave({
       setSaveStatus('error');
     } finally {
       isSavingRef.current = false;
-      // If edits happened while saving, trigger a follow-up save
-      if (snapshotRef.current !== lastSavedRef.current) {
+      // If edits happened while saving, trigger a follow-up save (unless cancelled by reset)
+      if (!cancelledRef.current && snapshotRef.current !== lastSavedRef.current) {
         saveDraft();
       }
     }
@@ -119,5 +133,5 @@ export function useAutoSave({
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [enabled, exerciseId, attemptId]);
 
-  return { saveStatus };
+  return { saveStatus, cancelPendingSaves };
 }

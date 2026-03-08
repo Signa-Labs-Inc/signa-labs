@@ -93,7 +93,7 @@ export function ExerciseWorkspace({ exercise, attemptId, draftCode }: ExerciseWo
   }
 
   // Auto-save drafts on debounce + tab blur + page close
-  const { saveStatus } = useAutoSave({
+  const { saveStatus, cancelPendingSaves } = useAutoSave({
     exerciseId: exercise.id,
     attemptId,
     fileContents: draftFiles,
@@ -112,13 +112,17 @@ export function ExerciseWorkspace({ exercise, attemptId, draftCode }: ExerciseWo
   }
 
   const handleReset = useCallback(async () => {
+    // Cancel any pending/in-flight auto-saves so they don't overwrite the reset
+    cancelPendingSaves();
+
     // Reset file contents to original starter code
     const initial: Record<string, string> = {};
     for (const file of allFiles) {
       initial[file.id] = file.content;
     }
     setFileContents(initial);
-    // Clear the saved draft
+
+    // Clear the saved draft on the server
     try {
       await fetch(`/api/exercises/${exercise.id}/draft`, {
         method: 'PUT',
@@ -128,7 +132,7 @@ export function ExerciseWorkspace({ exercise, attemptId, draftCode }: ExerciseWo
     } catch {
       // Best effort
     }
-  }, [allFiles, exercise.id, attemptId]);
+  }, [allFiles, exercise.id, attemptId, cancelPendingSaves]);
 
   const handleSubmit = useCallback(async (): Promise<void> => {
     setIsSubmitting(true);
