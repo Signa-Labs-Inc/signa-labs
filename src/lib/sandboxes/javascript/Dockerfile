@@ -1,4 +1,4 @@
-FROM node:20-slim
+FROM node:20.20.1-slim
 
 # Create workspace and sandbox directories
 RUN mkdir -p /workspace/submission /workspace/tests /workspace/support /opt/sandbox

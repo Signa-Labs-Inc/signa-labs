@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.14-slim
 
 # Install pytest + web frameworks + testing utilities
 RUN pip install --no-cache-dir \
