@@ -1,7 +1,7 @@
 /**
  * Exercise Adapter
  *
- * The adaptive intelligence layer. Builds enriched generation prompts
+ * Adaptive intelligence layer. Builds enriched generation prompts
  * based on the user's performance history within a learning path.
  *
  * Responsibilities:
