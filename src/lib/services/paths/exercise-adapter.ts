@@ -74,7 +74,8 @@ export async function analyzePerformance(
 
   // Determine next skill to teach — first undemonstrated skill
   const untaughtSkills = milestoneSkills.filter((s) => !demonstratedSkills.includes(s));
-  const nextSkillToTeach = untaughtSkills[0] ?? milestoneSkills[milestoneSkills.length - 1];
+  const nextSkillToTeach =
+    untaughtSkills[0] ?? milestoneSkills[milestoneSkills.length - 1] ?? 'general';
 
   // Weakest skill — lowest confidence among assessed skills
   let weakestSkill: string | null = null;
@@ -95,7 +96,7 @@ export async function analyzePerformance(
     testsTotal: e.pathExercise.testsTotal ?? 0,
     timeSpentSeconds: e.pathExercise.timeSpentSeconds ?? 0,
     hintsUsed: e.pathExercise.hintsUsed ?? 0,
-    failedTestConcepts: [], // Populated by skill assessments
+    failedTestConcepts: [],
   }));
 
   return {
