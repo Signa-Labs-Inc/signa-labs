@@ -11,6 +11,7 @@ import { HintPanel } from './hint-panel';
 import { ResultsPanel } from './results-panel';
 import { LivePreview } from './live-preview';
 import { useAutoSave } from '@/hooks/use-auto-save';
+import { useTimeTracking } from '@/hooks/use-time-tracking';
 import type { ExerciseDetail } from '@/lib/services/exercises/exercises.types';
 import type { SandboxResult } from '@/lib/sandboxes/types';
 
@@ -97,6 +98,11 @@ export function ExerciseWorkspace({ exercise, attemptId, draftCode }: ExerciseWo
     exerciseId: exercise.id,
     attemptId,
     fileContents: draftFiles,
+  });
+
+  useTimeTracking({
+    exerciseId: exercise.id,
+    attemptId,
   });
 
   // Submission state
