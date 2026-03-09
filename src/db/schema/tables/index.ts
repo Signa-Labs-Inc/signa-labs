@@ -18,3 +18,7 @@ export { userLearningStats } from './user_learning_stats';
 export { users } from './users';
 export { usersProfiles } from './users_profiles';
 export { contentRelations, billingRelations } from '../relations';
+export { learningPaths } from './learning_paths';
+export { pathMilestones } from './path_milestones';
+export { pathExercises } from './path_exercises';
+export { pathSkillAssessments } from './path_skill_assesments';
