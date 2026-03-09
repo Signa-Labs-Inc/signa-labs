@@ -290,15 +290,17 @@ export async function saveDraftCode(
 }
 
 /**
- * Increment time spent on an attempt.
+ * Increment time spent on an in-progress attempt.
+ * Returns the number of rows updated (0 if attempt is not in_progress or doesn't exist).
  */
 export async function addAttemptTimeSpent(
   attemptId: string,
   userId: string,
   exerciseId: string,
-  seconds: number
-): Promise<void> {
-  await db
+  seconds: number,
+  txOrDb: DbOrTx = db
+): Promise<number> {
+  const result = await txOrDb
     .update(exerciseAttempts)
     .set({
       timeSpentSeconds: sql`${exerciseAttempts.timeSpentSeconds} + ${seconds}`,
@@ -307,16 +309,24 @@ export async function addAttemptTimeSpent(
       and(
         eq(exerciseAttempts.id, attemptId),
         eq(exerciseAttempts.userId, userId),
-        eq(exerciseAttempts.exerciseId, exerciseId)
+        eq(exerciseAttempts.exerciseId, exerciseId),
+        eq(exerciseAttempts.status, 'in_progress')
       )
-    );
+    )
+    .returning({ id: exerciseAttempts.id });
+
+  return result.length;
 }
 
 /**
  * Increment total time spent in user learning stats.
  */
-export async function addUserTotalTimeSpent(userId: string, seconds: number): Promise<void> {
-  await db
+export async function addUserTotalTimeSpent(
+  userId: string,
+  seconds: number,
+  txOrDb: DbOrTx = db
+): Promise<void> {
+  await txOrDb
     .update(userLearningStats)
     .set({
       totalTimeSpentSeconds: sql`${userLearningStats.totalTimeSpentSeconds} + ${seconds}`,

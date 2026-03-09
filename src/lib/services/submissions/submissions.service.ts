@@ -317,7 +317,17 @@ export class SubmissionService {
     attemptId: string,
     seconds: number
   ): Promise<void> {
-    await writer.addAttemptTimeSpent(attemptId, userId, exerciseId, seconds);
-    await writer.addUserTotalTimeSpent(userId, seconds);
+    await db.transaction(async (tx) => {
+      const rowsUpdated = await writer.addAttemptTimeSpent(
+        attemptId,
+        userId,
+        exerciseId,
+        seconds,
+        tx
+      );
+      if (rowsUpdated > 0) {
+        await writer.addUserTotalTimeSpent(userId, seconds, tx);
+      }
+    });
   }
 }

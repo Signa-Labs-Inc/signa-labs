@@ -42,7 +42,8 @@ export function useTimeTracking({
     if (seconds === 0 || isSyncingRef.current) return;
 
     isSyncingRef.current = true;
-    const secondsToSync = seconds;
+    // Cap to match server-side max (300s) so we don't over-subtract
+    const secondsToSync = Math.min(seconds, 300);
 
     try {
       const response = await fetch(`/api/exercises/${exerciseId}/attempts/${attemptId}/time`, {
@@ -94,6 +95,8 @@ export function useTimeTracking({
     return () => {
       if (tickIntervalRef.current) clearInterval(tickIntervalRef.current);
       if (syncIntervalRef.current) clearInterval(syncIntervalRef.current);
+      // Flush remaining seconds on unmount (e.g. SPA navigation)
+      syncTime();
     };
   }, [enabled, syncIntervalMs, syncTime]);
 
@@ -134,23 +137,27 @@ export function useTimeTracking({
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [enabled, syncTime, resetIdleTimer]);
 
-  // Final sync on page unload
+  // Final sync on page unload / tab discard
   useEffect(() => {
     if (!enabled) return;
 
-    const handleBeforeUnload = () => {
+    const flushBeacon = () => {
       const seconds = accumulatedSecondsRef.current;
       if (seconds === 0) return;
 
       fetch(`/api/exercises/${exerciseId}/attempts/${attemptId}/time`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ seconds }),
+        body: JSON.stringify({ seconds: Math.min(seconds, 300) }),
         keepalive: true,
       });
     };
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('beforeunload', flushBeacon);
+    window.addEventListener('pagehide', flushBeacon);
+    return () => {
+      window.removeEventListener('beforeunload', flushBeacon);
+      window.removeEventListener('pagehide', flushBeacon);
+    };
   }, [enabled, exerciseId, attemptId]);
 }
