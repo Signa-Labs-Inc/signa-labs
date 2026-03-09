@@ -445,16 +445,6 @@ export class PathService {
       throw new PathError('PATH_NOT_FOUND', 'Path exercise not found');
     }
 
-    if (pathExercise.isCompleted) {
-      return {
-        milestoneAdvanced: false,
-        pathCompleted: false,
-        skillsAssessed: [],
-        nextAction: 'continue',
-        message: 'Exercise already completed',
-      };
-    }
-
     const milestone = await reader.getMilestoneById(pathExercise.milestoneId, input.pathId);
     if (!milestone) {
       throw new PathError('PATH_NOT_FOUND', 'Milestone not found');
@@ -464,6 +454,9 @@ export class PathService {
     if (!path) {
       throw new PathError('PATH_NOT_FOUND', 'Path not found');
     }
+
+    // Fetch the actual exercise for accurate metadata in assessment
+    const exercise = await reader.getExerciseById(input.exerciseId);
 
     // Assess skills (calls AI, so run outside the transaction)
     const milestoneSkills = (milestone.skills ?? []) as string[];
@@ -480,8 +473,8 @@ export class PathService {
           ];
 
     const skillAssessments = await assessSkills({
-      exerciseTitle: path.title,
-      exerciseDescription: milestone.description,
+      exerciseTitle: exercise?.title ?? milestone.title,
+      exerciseDescription: exercise?.description ?? milestone.description,
       milestoneSkills,
       testsPassed: input.testsPassed,
       testsTotal: input.testsTotal,
@@ -489,10 +482,11 @@ export class PathService {
       userSolutionCode: input.userSolutionCode,
     });
 
-    // Persist all writes atomically
-    await db.transaction(async (tx) => {
-      // 1. Mark the path exercise as completed
-      await writer.markPathExerciseCompleted(
+    // Persist all writes atomically — markPathExerciseCompleted uses
+    // WHERE is_completed = false to prevent double-completion races
+    const completed = await db.transaction(async (tx) => {
+      // 1. Atomically flip is_completed; returns 0 if already completed
+      const rowsUpdated = await writer.markPathExerciseCompleted(
         input.pathExerciseId,
         {
           testsPassed: input.testsPassed,
@@ -503,6 +497,8 @@ export class PathService {
         },
         tx
       );
+
+      if (rowsUpdated === 0) return false;
 
       // 2. Update milestone and path counters
       await writer.incrementMilestoneExercisesCompleted(milestone.id, tx);
@@ -525,7 +521,20 @@ export class PathService {
         })),
         tx
       );
+
+      return true;
     });
+
+    // Another request already completed this exercise
+    if (!completed) {
+      return {
+        milestoneAdvanced: false,
+        pathCompleted: false,
+        skillsAssessed: [],
+        nextAction: 'continue',
+        message: 'Exercise already completed',
+      };
+    }
 
     // 5. Check if milestone should advance
     const { advance, reasoning } = await this.shouldAdvanceMilestone(input.pathId, milestone.id);

@@ -4,7 +4,7 @@
  * All database writes for learning paths.
  */
 
-import { eq, sql } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import { db } from '@/index';
 import { learningPaths } from '@/db/schema/tables/learning_paths';
 import { pathMilestones } from '@/db/schema/tables/path_milestones';
@@ -184,6 +184,11 @@ export async function createPathExercise(input: {
   return { pathExerciseId: result.id };
 }
 
+/**
+ * Atomically mark a path exercise as completed.
+ * Only updates rows where is_completed = false to prevent double-completion.
+ * Returns the number of rows updated (0 if already completed).
+ */
 export async function markPathExerciseCompleted(
   pathExerciseId: string,
   results: {
@@ -194,8 +199,8 @@ export async function markPathExerciseCompleted(
     attemptsCount: number;
   },
   txOrDb: DbOrTx = db
-): Promise<void> {
-  await txOrDb
+): Promise<number> {
+  const updated = await txOrDb
     .update(pathExercises)
     .set({
       isCompleted: true,
@@ -206,7 +211,10 @@ export async function markPathExerciseCompleted(
       attemptsCount: results.attemptsCount,
       completedAt: new Date(),
     })
-    .where(eq(pathExercises.id, pathExerciseId));
+    .where(and(eq(pathExercises.id, pathExerciseId), eq(pathExercises.isCompleted, false)))
+    .returning({ id: pathExercises.id });
+
+  return updated.length;
 }
 
 // ============================================================

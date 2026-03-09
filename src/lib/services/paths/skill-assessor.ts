@@ -112,21 +112,44 @@ Respond with ONLY a JSON object:
       }
     }
 
-    const parsed = JSON.parse(jsonText) as {
-      assessments: SkillAssessment[];
-    };
+    const parsed = JSON.parse(jsonText) as { assessments: unknown[] };
 
     if (!Array.isArray(parsed.assessments)) {
       return fallbackAssessment(input.milestoneSkills, input.testsPassed, input.testsTotal);
     }
 
-    // Validate and normalize
-    return parsed.assessments.map((a) => ({
-      skill: a.skill,
-      demonstrated: Boolean(a.demonstrated),
-      confidence: Math.max(0, Math.min(1, a.confidence ?? 0)),
-      reasoning: a.reasoning ?? '',
-    }));
+    // Validate, filter to known skills, and normalize
+    const validSkills = new Set(input.milestoneSkills);
+    const assessmentMap = new Map<string, SkillAssessment>();
+
+    for (const raw of parsed.assessments) {
+      const a = raw as Record<string, unknown>;
+      if (typeof a.skill !== 'string' || !validSkills.has(a.skill)) continue;
+
+      const confidence = Number(a.confidence);
+      assessmentMap.set(a.skill, {
+        skill: a.skill,
+        demonstrated: Boolean(a.demonstrated),
+        confidence: Number.isFinite(confidence) ? Math.max(0, Math.min(1, confidence)) : 0,
+        reasoning: typeof a.reasoning === 'string' ? a.reasoning : '',
+      });
+    }
+
+    if (assessmentMap.size === 0) {
+      return fallbackAssessment(input.milestoneSkills, input.testsPassed, input.testsTotal);
+    }
+
+    // Ensure every milestone skill has an assessment (fill missing with fallback)
+    const passRate = input.testsTotal > 0 ? input.testsPassed / input.testsTotal : 0;
+    return input.milestoneSkills.map(
+      (skill) =>
+        assessmentMap.get(skill) ?? {
+          skill,
+          demonstrated: false,
+          confidence: Math.min(passRate, 0.69),
+          reasoning: `Not assessed by AI — requires AI confirmation (${Math.round(passRate * 100)}% pass rate)`,
+        }
+    );
   } catch (err) {
     // If AI assessment fails, fall back to heuristic
     console.error('[SkillAssessor] AI assessment failed, using heuristic:', err);
@@ -147,11 +170,8 @@ function fallbackAssessment(
 
   return skills.map((skill) => ({
     skill,
-    demonstrated: passRate >= 0.7,
-    confidence: passRate,
-    reasoning:
-      passRate >= 0.7
-        ? `${Math.round(passRate * 100)}% tests passed (heuristic assessment)`
-        : `Only ${Math.round(passRate * 100)}% tests passed (heuristic assessment)`,
+    demonstrated: false,
+    confidence: Math.min(passRate, 0.69),
+    reasoning: `AI assessment unavailable — requires AI confirmation (${Math.round(passRate * 100)}% pass rate)`,
   }));
 }
