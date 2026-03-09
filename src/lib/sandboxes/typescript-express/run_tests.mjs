@@ -12,9 +12,14 @@
 
 import { execSync } from 'node:child_process';
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
 
 const WORKSPACE = '/workspace';
+const SUBMISSION_DIR = `${WORKSPACE}/submission`;
 const TESTS_DIR = `${WORKSPACE}/tests`;
+const SUPPORT_DIR = `${WORKSPACE}/support`;
 const REPORT_PATH = `${WORKSPACE}/.report.json`;
 const MAX_EXECUTION_SECONDS = parseInt(process.env.MAX_EXECUTION_SECONDS || '30', 10);
 
@@ -43,6 +48,79 @@ function classifyError(output) {
   return 'runtime_error';
 }
 
+/**
+ * Check for package.json in submission, tests, or deps.json in workspace root.
+ * Install packages if found. Returns error message on failure, null on success.
+ */
+function installDependencies() {
+  const packagePaths = [
+    `${SUBMISSION_DIR}/package.json`,
+    `${TESTS_DIR}/package.json`,
+    `${SUPPORT_DIR}/deps.json`,
+    `${WORKSPACE}/deps.json`,
+  ];
+
+  let packageFile = null;
+  for (const path of packagePaths) {
+    if (existsSync(path)) {
+      try {
+        const content = readFileSync(path, 'utf-8').trim();
+        if (content.length > 2) {
+          packageFile = path;
+          break;
+        }
+      } catch {
+        continue;
+      }
+    }
+  }
+
+  if (!packageFile) return null;
+
+  try {
+    const pkg = JSON.parse(readFileSync(packageFile, 'utf-8'));
+    const deps = {
+      ...(pkg.dependencies ?? {}),
+      ...(pkg.devDependencies ?? {}),
+    };
+
+    const packages = Object.entries(deps)
+      .map(([name, version]) => `${name}@${version}`)
+      .filter((pkg) => {
+        const pkgName = pkg.split('@')[0];
+        try {
+          require.resolve(pkgName);
+          return false;
+        } catch {
+          return true;
+        }
+      });
+
+    if (packages.length === 0) return null;
+
+    // Install into /opt/sandbox (where node_modules lives) instead of /workspace.
+    // /workspace/node_modules is a symlink — npm destroys it if cwd is /workspace.
+    execSync(`npm install --no-save --no-audit --no-fund ${packages.join(' ')}`, {
+      cwd: '/opt/sandbox',
+      timeout: 60_000,
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+      env: {
+        ...process.env,
+        npm_config_loglevel: 'error',
+      },
+    });
+
+    return null;
+  } catch (err) {
+    if (err.killed) {
+      return 'Package installation timed out (60s limit)';
+    }
+    const stderr = err.stderr ?? err.message ?? String(err);
+    return `Package installation failed: ${stderr.slice(0, 500)}`;
+  }
+}
+
 function runTests() {
   const start = performance.now();
 
@@ -61,7 +139,7 @@ function runTests() {
   }
 
   const testFiles = readdirSync(TESTS_DIR).filter((f) =>
-    f.match(/\.(test|spec)\.(js|mjs|cjs|ts|mts)$/)
+    f.match(/\.(test|spec)\.(js|mjs|cjs|ts|mts|tsx|jsx)$/)
   );
 
   if (testFiles.length === 0) {
@@ -69,6 +147,21 @@ function runTests() {
       status: 'error',
       error_type: 'configuration_error',
       error_message: 'No test files found in /workspace/tests/',
+      tests_passed: 0,
+      tests_failed: 0,
+      tests_total: 0,
+      execution_time_ms: elapsedMs(start),
+      results: [],
+    };
+  }
+
+  // Install dependencies if package.json or deps.json exists
+  const installError = installDependencies();
+  if (installError) {
+    return {
+      status: 'error',
+      error_type: 'dependency_error',
+      error_message: installError,
       tests_passed: 0,
       tests_failed: 0,
       tests_total: 0,
@@ -135,7 +228,6 @@ function parseVitestReport(report, start) {
   for (const suite of testResults) {
     const assertions = suite.assertionResults ?? [];
 
-    // Handle suite-level failures (e.g., import errors that prevent test collection)
     if (assertions.length === 0 && suite.message) {
       failed++;
       results.push({

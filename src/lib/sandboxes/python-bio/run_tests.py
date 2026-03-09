@@ -25,6 +25,52 @@ REPORT_PATH = WORKSPACE / ".report.json"
 MAX_EXECUTION_SECONDS = int(os.environ.get("MAX_EXECUTION_SECONDS", "30"))
 
 
+def install_dependencies() -> str | None:
+    """
+    Check for requirements.txt in submission, tests, or workspace root.
+    Install packages if found. Returns error message on failure, None on success.
+    """
+    requirements_paths = [
+        SUBMISSION_DIR / "requirements.txt",
+        TESTS_DIR / "requirements.txt",
+        SUPPORT_DIR / "requirements.txt",
+        WORKSPACE / "requirements.txt",
+    ]
+
+    requirements_file = None
+    for path in requirements_paths:
+        if path.exists() and path.stat().st_size > 0:
+            requirements_file = path
+            break
+
+    if not requirements_file:
+        return None
+
+    try:
+        subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "pip",
+                "install",
+                "--quiet",
+                "--no-warn-script-location",
+                "--disable-pip-version-check",
+                "--break-system-packages",
+                "-r",
+                str(requirements_file),
+            ],
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+        return None
+    except subprocess.TimeoutExpired:
+        return "Package installation timed out (60s limit)"
+    except Exception as e:
+        return f"Package installation failed: {str(e)}"
+
+
 def run_tests() -> dict:
     """Run pytest and return structured results."""
     start_time = time.time()
@@ -32,6 +78,20 @@ def run_tests() -> dict:
     # Ensure all directories exist
     for d in [SUBMISSION_DIR, TESTS_DIR, SUPPORT_DIR]:
         d.mkdir(parents=True, exist_ok=True)
+
+    # Install dependencies if requirements.txt exists
+    install_error = install_dependencies()
+    if install_error:
+        return {
+            "status": "error",
+            "error_type": "dependency_error",
+            "error_message": install_error,
+            "tests_passed": 0,
+            "tests_failed": 0,
+            "tests_total": 0,
+            "execution_time_ms": _elapsed_ms(start_time),
+            "results": [],
+        }
 
     # Verify test files exist
     test_files = list(TESTS_DIR.glob("*.py"))
@@ -166,9 +226,7 @@ def _parse_pytest_report(report: dict, start_time: float) -> dict:
             longrepr = call_info.get("longrepr", "")
             crash = call_info.get("crash", {})
 
-            test_result["error"] = _sanitize_output(
-                crash.get("message", str(longrepr))
-            )
+            test_result["error"] = _sanitize_output(crash.get("message", str(longrepr)))
 
             # Try to extract expected/actual from assertion messages
             expected, actual = _extract_assertion_values(str(longrepr))
