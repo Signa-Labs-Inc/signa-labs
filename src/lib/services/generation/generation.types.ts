@@ -30,6 +30,7 @@ export interface GenerateExerciseInput {
     | 'data_pipeline'
     | 'config';
   templateId?: string;
+  pathContext?: string; // Injected by the adaptive paths system
 }
 
 // ============================================================

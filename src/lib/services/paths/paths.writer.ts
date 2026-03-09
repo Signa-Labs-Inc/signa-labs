@@ -4,13 +4,13 @@
  * All database writes for learning paths.
  */
 
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { db } from '@/index';
 import { learningPaths } from '@/db/schema/tables/learning_paths';
 import { pathMilestones } from '@/db/schema/tables/path_milestones';
 import { pathExercises } from '@/db/schema/tables/path_exercises';
 import { pathSkillAssessments } from '@/db/schema/tables/path_skill_assessments';
-import type { LearningPlan, ExerciseGenerationContext, SkillAssessment } from './paths.types';
+import type { LearningPlan, ExerciseGenerationContext } from './paths.types';
 
 /** Transaction-compatible db handle. */
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
@@ -115,8 +115,11 @@ export async function advancePathMilestone(
     .where(eq(learningPaths.id, pathId));
 }
 
-export async function incrementPathExercisesCompleted(pathId: string): Promise<void> {
-  await db
+export async function incrementPathExercisesCompleted(
+  pathId: string,
+  txOrDb: DbOrTx = db
+): Promise<void> {
+  await txOrDb
     .update(learningPaths)
     .set({
       totalExercisesCompleted: sql`${learningPaths.totalExercisesCompleted} + 1`,
@@ -144,8 +147,11 @@ export async function updateMilestoneStatus(
     .where(eq(pathMilestones.id, milestoneId));
 }
 
-export async function incrementMilestoneExercisesCompleted(milestoneId: string): Promise<void> {
-  await db
+export async function incrementMilestoneExercisesCompleted(
+  milestoneId: string,
+  txOrDb: DbOrTx = db
+): Promise<void> {
+  await txOrDb
     .update(pathMilestones)
     .set({
       exercisesCompleted: sql`${pathMilestones.exercisesCompleted} + 1`,
@@ -186,9 +192,10 @@ export async function markPathExerciseCompleted(
     timeSpentSeconds: number;
     hintsUsed: number;
     attemptsCount: number;
-  }
+  },
+  txOrDb: DbOrTx = db
 ): Promise<void> {
-  await db
+  await txOrDb
     .update(pathExercises)
     .set({
       isCompleted: true,
@@ -215,9 +222,10 @@ export async function createSkillAssessments(
     demonstrated: boolean;
     confidence: number;
     evidence: Record<string, unknown>;
-  }[]
+  }[],
+  txOrDb: DbOrTx = db
 ): Promise<void> {
   if (assessments.length === 0) return;
 
-  await db.insert(pathSkillAssessments).values(assessments);
+  await txOrDb.insert(pathSkillAssessments).values(assessments);
 }

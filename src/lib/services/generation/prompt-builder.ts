@@ -20,6 +20,7 @@ interface PromptBuilderInput {
   detectedFramework?: string | null;
   template?: PromptTemplateRecord | null;
   retryContext?: RetryContext;
+  pathContext?: string;
 }
 
 interface RetryContext {
@@ -144,6 +145,7 @@ ${getFrameworkInstructions(input.detectedFramework, input.language)}
 ## Difficulty Guidelines
 
 ${getDifficultyGuidelines(input.difficulty)}
+${input.pathContext ? `\n## Learning Path Context\n\n${input.pathContext}` : ''}
 
 ## Output Format
 

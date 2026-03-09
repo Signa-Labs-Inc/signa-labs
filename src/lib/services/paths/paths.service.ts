@@ -21,8 +21,21 @@ import type {
   MilestoneProgress,
   PathSummary,
   LearningPlan,
+  NextExerciseResult,
+  RecordCompletionInput,
+  RecordCompletionResult,
 } from './paths.types';
+import {
+  analyzePerformance,
+  getAdaptationStrategy,
+  buildPathContext,
+  buildGenerationContext,
+} from './exercise-adapter';
 import { PathError } from './paths.types';
+import { SubmissionService } from '../submissions/submissions.service';
+import { assessSkills } from './skill-assessor';
+import { ExerciseGenerationService } from '../generation/generation.service';
+import type { GenerateExerciseInput } from '../generation/generation.types';
 
 const LLM_MODEL = process.env.GENERATION_LLM_MODEL ?? 'claude-sonnet-4-20250514';
 
@@ -313,5 +326,262 @@ export class PathService {
     if (!path) throw new PathError('PATH_NOT_FOUND', 'Path not found');
 
     await writer.updatePathStatus(pathId, 'abandoned');
+  }
+
+  /**
+   * Generate and return the next exercise in the user's active milestone.
+   * The exercise is adaptively generated based on performance history.
+   */
+  async getNextExercise(pathId: string, userId: string): Promise<NextExerciseResult> {
+    const path = await reader.getPathByIdAndUser(pathId, userId);
+    if (!path) throw new PathError('PATH_NOT_FOUND', 'Path not found');
+    if (path.status !== 'active') {
+      throw new PathError('PATH_PAUSED', `Path is ${path.status}`);
+    }
+
+    // Get the active milestone
+    const milestone = await reader.getActiveMilestone(pathId);
+    if (!milestone) {
+      throw new PathError('PATH_COMPLETED', 'No active milestone — path may be completed');
+    }
+
+    // Check if there's an incomplete exercise already generated
+    const milestoneExercises = await reader.getMilestoneExercises(milestone.id);
+    const incompleteExercise = milestoneExercises.find((e) => !e.pathExercise.isCompleted);
+
+    if (incompleteExercise) {
+      // Return the existing incomplete exercise
+      const submissionService = new SubmissionService();
+      const { attemptId } = await submissionService.getOrCreateAttempt(
+        userId,
+        incompleteExercise.exercise.id
+      );
+
+      return {
+        exerciseId: incompleteExercise.exercise.id,
+        attemptId,
+        pathExerciseId: incompleteExercise.pathExercise.id,
+        milestoneTitle: milestone.title,
+        milestoneIndex: milestone.milestoneIndex,
+        exerciseIndex: incompleteExercise.pathExercise.exerciseIndex,
+        reasoning: 'Continuing incomplete exercise',
+      };
+    }
+
+    // Analyze performance and determine adaptation strategy
+    const performance = await analyzePerformance(pathId, milestone.id);
+    const strategy = getAdaptationStrategy(performance);
+
+    // Build the path context for the generation prompt
+    const plan = path.plan as LearningPlan;
+    const planMilestone = plan.milestones[milestone.milestoneIndex];
+
+    const pathContext = buildPathContext({
+      pathTitle: path.title,
+      milestoneTitle: milestone.title,
+      milestoneDescription: milestone.description,
+      milestoneSkills: (milestone.skills ?? []) as string[],
+      milestoneTopics: (milestone.topics ?? []) as string[],
+      exerciseIndex: milestoneExercises.length,
+      estimatedExercises: planMilestone?.estimatedExercises ?? 4,
+      performance,
+      adaptationInstructions: strategy.instructions,
+      targetSkills: strategy.targetSkills,
+      difficultyAdjustment: strategy.difficultyAdjustment,
+    });
+
+    // Determine effective difficulty
+    const baseDifficulty = milestone.targetDifficulty;
+    const effectiveDifficulty = this.adjustDifficulty(
+      baseDifficulty,
+      strategy.difficultyAdjustment
+    );
+
+    // Generate the exercise using the existing generation service
+    // We pass the path context as an additional prompt section
+    const generationService = new ExerciseGenerationService();
+    const result = await generationService.generateExercise({
+      userId,
+      userPrompt: this.buildExercisePrompt(milestone, strategy.targetSkills),
+      language: path.language as GenerateExerciseInput['language'],
+      difficulty: effectiveDifficulty as GenerateExerciseInput['difficulty'],
+      pathContext, // This gets injected into the generation prompt
+    });
+
+    // Record the path exercise
+    const exerciseIndex = milestoneExercises.length;
+    const generationContext = buildGenerationContext(
+      performance,
+      strategy,
+      performance.recentExercises[0] ?? null
+    );
+
+    const { pathExerciseId } = await writer.createPathExercise({
+      pathId,
+      milestoneId: milestone.id,
+      exerciseId: result.exerciseId,
+      exerciseIndex,
+      generationContext,
+    });
+
+    return {
+      exerciseId: result.exerciseId,
+      attemptId: result.attemptId,
+      pathExerciseId,
+      milestoneTitle: milestone.title,
+      milestoneIndex: milestone.milestoneIndex,
+      exerciseIndex,
+      reasoning: strategy.instructions.split('\n')[0],
+    };
+  }
+
+  /**
+   * Record that the user completed an exercise in a path.
+   * Assesses skills, updates progress, and potentially advances the milestone.
+   */
+  async recordExerciseCompletion(input: RecordCompletionInput): Promise<RecordCompletionResult> {
+    const pathExercise = await reader.getPathExerciseById(input.pathExerciseId);
+    if (!pathExercise) {
+      throw new PathError('PATH_NOT_FOUND', 'Path exercise not found');
+    }
+
+    if (pathExercise.isCompleted) {
+      return {
+        milestoneAdvanced: false,
+        pathCompleted: false,
+        skillsAssessed: [],
+        nextAction: 'continue',
+        message: 'Exercise already completed',
+      };
+    }
+
+    const milestone = await reader.getMilestoneById(pathExercise.milestoneId, input.pathId);
+    if (!milestone) {
+      throw new PathError('PATH_NOT_FOUND', 'Milestone not found');
+    }
+
+    const path = await reader.getPathById(input.pathId);
+    if (!path) {
+      throw new PathError('PATH_NOT_FOUND', 'Path not found');
+    }
+
+    // Assess skills (calls AI, so run outside the transaction)
+    const milestoneSkills = (milestone.skills ?? []) as string[];
+    const testResults =
+      input.testsPassed === input.testsTotal
+        ? [{ name: 'all_tests', passed: true }]
+        : [
+            { name: 'passed_tests', passed: true },
+            {
+              name: 'failed_tests',
+              passed: false,
+              error: `${input.testsTotal - input.testsPassed} tests failed`,
+            },
+          ];
+
+    const skillAssessments = await assessSkills({
+      exerciseTitle: path.title,
+      exerciseDescription: milestone.description,
+      milestoneSkills,
+      testsPassed: input.testsPassed,
+      testsTotal: input.testsTotal,
+      testResults,
+      userSolutionCode: input.userSolutionCode,
+    });
+
+    // Persist all writes atomically
+    await db.transaction(async (tx) => {
+      // 1. Mark the path exercise as completed
+      await writer.markPathExerciseCompleted(
+        input.pathExerciseId,
+        {
+          testsPassed: input.testsPassed,
+          testsTotal: input.testsTotal,
+          timeSpentSeconds: input.timeSpentSeconds,
+          hintsUsed: input.hintsUsed,
+          attemptsCount: 1,
+        },
+        tx
+      );
+
+      // 2. Update milestone and path counters
+      await writer.incrementMilestoneExercisesCompleted(milestone.id, tx);
+      await writer.incrementPathExercisesCompleted(input.pathId, tx);
+
+      // 3. Store skill assessments
+      await writer.createSkillAssessments(
+        skillAssessments.map((a) => ({
+          pathId: input.pathId,
+          milestoneId: milestone.id,
+          exerciseId: input.exerciseId,
+          skillName: a.skill,
+          demonstrated: a.demonstrated,
+          confidence: a.confidence,
+          evidence: {
+            reasoning: a.reasoning,
+            testsPassed: input.testsPassed,
+            testsTotal: input.testsTotal,
+          },
+        })),
+        tx
+      );
+    });
+
+    // 5. Check if milestone should advance
+    const { advance, reasoning } = await this.shouldAdvanceMilestone(input.pathId, milestone.id);
+
+    if (advance) {
+      const { pathCompleted } = await this.advanceMilestone(input.pathId);
+
+      if (pathCompleted) {
+        return {
+          milestoneAdvanced: true,
+          pathCompleted: true,
+          skillsAssessed: skillAssessments,
+          nextAction: 'path_complete',
+          message: `Congratulations! You've completed "${path.title}"!`,
+        };
+      }
+
+      return {
+        milestoneAdvanced: true,
+        pathCompleted: false,
+        skillsAssessed: skillAssessments,
+        nextAction: 'milestone_complete',
+        message: `Milestone "${milestone.title}" complete! ${reasoning}`,
+      };
+    }
+
+    return {
+      milestoneAdvanced: false,
+      pathCompleted: false,
+      skillsAssessed: skillAssessments,
+      nextAction: 'continue',
+      message: reasoning,
+    };
+  }
+
+  private adjustDifficulty(base: string, adjustment: 'easier' | 'same' | 'harder'): string {
+    const levels = ['beginner', 'easy', 'medium', 'hard', 'expert'];
+    const currentIndex = levels.indexOf(base);
+    if (currentIndex === -1) return base;
+
+    if (adjustment === 'easier') {
+      return levels[Math.max(0, currentIndex - 1)];
+    }
+    if (adjustment === 'harder') {
+      return levels[Math.min(levels.length - 1, currentIndex + 1)];
+    }
+    return base;
+  }
+
+  private buildExercisePrompt(
+    milestone: { title: string; description: string; topics: unknown },
+    targetSkills: string[]
+  ): string {
+    const topics = (milestone.topics ?? []) as string[];
+    const topicStr = topics.length > 0 ? topics.join(', ') : milestone.description;
+
+    return `Create an exercise for the "${milestone.title}" milestone. Focus on: ${targetSkills.join(', ')}. Topics: ${topicStr}`;
   }
 }
