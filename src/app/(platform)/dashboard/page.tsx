@@ -26,7 +26,7 @@ export default async function DashboardPage() {
     getActivityHeatmap(user.id, 365),
     getLanguageBreakdown(user.id),
     getRecentActivity(user.id, 20),
-    pathService.getUserPaths(user.id),
+    pathService.getUserPaths(user.id).catch(() => []),
   ]);
 
   const hasActivity = stats.totalExercisesAttempted > 0;

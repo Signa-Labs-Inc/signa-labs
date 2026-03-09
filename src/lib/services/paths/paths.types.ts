@@ -74,6 +74,7 @@ export interface ExerciseGenerationContext {
 // ============================================================
 
 export interface RecordCompletionInput {
+  userId: string;
   pathId: string;
   pathExerciseId: string;
   exerciseId: string;

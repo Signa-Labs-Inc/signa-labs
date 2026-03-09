@@ -81,8 +81,9 @@ export default function NewPathPage() {
       });
 
       if (!response.ok) {
-        const body = (await response.json()) as { error?: string };
-        setError(body.error ?? 'Failed to create learning path');
+        const body = await response.json().catch(() => null);
+        const errMsg = body?.error;
+        setError(typeof errMsg === 'string' ? errMsg : 'Failed to create learning path');
         return;
       }
 

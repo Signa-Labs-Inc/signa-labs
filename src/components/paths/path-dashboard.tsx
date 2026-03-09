@@ -66,8 +66,9 @@ export function PathDashboard({ progress }: PathDashboardProps) {
       });
 
       if (!response.ok) {
-        const body = (await response.json()) as { error?: string };
-        setError(body.error ?? 'Failed to generate exercise');
+        const body = await response.json().catch(() => null);
+        const errMsg = body?.error;
+        setError(typeof errMsg === 'string' ? errMsg : 'Failed to generate exercise');
         return;
       }
 
@@ -90,7 +91,13 @@ export function PathDashboard({ progress }: PathDashboardProps) {
     setIsUpdating(true);
     setError(null);
     try {
-      await fetch(`/api/paths/${progress.id}/pause`, { method: 'PUT' });
+      const res = await fetch(`/api/paths/${progress.id}/pause`, { method: 'PUT' });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        const msg = body?.error;
+        setError(typeof msg === 'string' ? msg : 'Failed to pause path — please try again');
+        return;
+      }
       router.refresh();
     } catch {
       setError('Failed to pause path — please try again');
@@ -103,7 +110,13 @@ export function PathDashboard({ progress }: PathDashboardProps) {
     setIsUpdating(true);
     setError(null);
     try {
-      await fetch(`/api/paths/${progress.id}/resume`, { method: 'PUT' });
+      const res = await fetch(`/api/paths/${progress.id}/resume`, { method: 'PUT' });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        const msg = body?.error;
+        setError(typeof msg === 'string' ? msg : 'Failed to resume path — please try again');
+        return;
+      }
       router.refresh();
     } catch {
       setError('Failed to resume path — please try again');

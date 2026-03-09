@@ -56,6 +56,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     const pathService = new PathService();
     const result = await pathService.recordExerciseCompletion({
+      userId: user.id,
       pathId,
       pathExerciseId: body.pathExerciseId,
       exerciseId: body.exerciseId,
