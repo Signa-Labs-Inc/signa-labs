@@ -10,7 +10,7 @@ import { learningPaths } from '@/db/schema/tables/learning_paths';
 import { pathMilestones } from '@/db/schema/tables/path_milestones';
 import { pathExercises } from '@/db/schema/tables/path_exercises';
 import { pathSkillAssessments } from '@/db/schema/tables/path_skill_assessments';
-import type { LearningPlan, ExerciseGenerationContext, SkillAssessment } from './paths.types';
+import type { LearningPlan, ExerciseGenerationContext } from './paths.types';
 
 /** Transaction-compatible db handle. */
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
@@ -115,8 +115,11 @@ export async function advancePathMilestone(
     .where(eq(learningPaths.id, pathId));
 }
 
-export async function incrementPathExercisesCompleted(pathId: string): Promise<void> {
-  await db
+export async function incrementPathExercisesCompleted(
+  pathId: string,
+  txOrDb: DbOrTx = db
+): Promise<void> {
+  await txOrDb
     .update(learningPaths)
     .set({
       totalExercisesCompleted: sql`${learningPaths.totalExercisesCompleted} + 1`,
@@ -144,8 +147,11 @@ export async function updateMilestoneStatus(
     .where(eq(pathMilestones.id, milestoneId));
 }
 
-export async function incrementMilestoneExercisesCompleted(milestoneId: string): Promise<void> {
-  await db
+export async function incrementMilestoneExercisesCompleted(
+  milestoneId: string,
+  txOrDb: DbOrTx = db
+): Promise<void> {
+  await txOrDb
     .update(pathMilestones)
     .set({
       exercisesCompleted: sql`${pathMilestones.exercisesCompleted} + 1`,
@@ -178,6 +184,11 @@ export async function createPathExercise(input: {
   return { pathExerciseId: result.id };
 }
 
+/**
+ * Atomically mark a path exercise as completed.
+ * Only updates rows where is_completed = false to prevent double-completion.
+ * Returns the number of rows updated (0 if already completed).
+ */
 export async function markPathExerciseCompleted(
   pathExerciseId: string,
   results: {
@@ -186,9 +197,10 @@ export async function markPathExerciseCompleted(
     timeSpentSeconds: number;
     hintsUsed: number;
     attemptsCount: number;
-  }
-): Promise<void> {
-  await db
+  },
+  txOrDb: DbOrTx = db
+): Promise<number> {
+  const updated = await txOrDb
     .update(pathExercises)
     .set({
       isCompleted: true,
@@ -199,7 +211,10 @@ export async function markPathExerciseCompleted(
       attemptsCount: results.attemptsCount,
       completedAt: new Date(),
     })
-    .where(eq(pathExercises.id, pathExerciseId));
+    .where(and(eq(pathExercises.id, pathExerciseId), eq(pathExercises.isCompleted, false)))
+    .returning({ id: pathExercises.id });
+
+  return updated.length;
 }
 
 // ============================================================
@@ -215,9 +230,10 @@ export async function createSkillAssessments(
     demonstrated: boolean;
     confidence: number;
     evidence: Record<string, unknown>;
-  }[]
+  }[],
+  txOrDb: DbOrTx = db
 ): Promise<void> {
   if (assessments.length === 0) return;
 
-  await db.insert(pathSkillAssessments).values(assessments);
+  await txOrDb.insert(pathSkillAssessments).values(assessments);
 }

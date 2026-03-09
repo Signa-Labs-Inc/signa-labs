@@ -109,6 +109,12 @@ export async function getPathExerciseById(pathExerciseId: string) {
   return result ?? null;
 }
 
+export async function getExerciseById(exerciseId: string) {
+  const [result] = await db.select().from(exercises).where(eq(exercises.id, exerciseId)).limit(1);
+
+  return result ?? null;
+}
+
 export async function getPathExerciseCount(milestoneId: string): Promise<number> {
   const [result] = await db
     .select({ count: sql<number>`count(*)::int` })

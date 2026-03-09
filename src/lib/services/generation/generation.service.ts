@@ -111,6 +111,7 @@ export class ExerciseGenerationService {
         exerciseType: input.exerciseType,
         detectedFramework: resolvedEnv.detectedFramework,
         template,
+        pathContext: input.pathContext,
         retryContext:
           attempt > 0
             ? { attempt, previousError: lastError, failedTests: lastFailedTests }
