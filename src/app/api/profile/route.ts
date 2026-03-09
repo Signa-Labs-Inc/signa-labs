@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireCurrentUser } from '@/lib/services/auth/auth.service';
 import { ProfileService, ProfileError } from '@/lib/services/users_profiles/users-profiles.service';
+import { handleError } from '@/lib/utils/api.handler-errors';
 import type { UpdateProfileInput } from '@/lib/services/users_profiles/users-profiles.types';
 
 const profileService = new ProfileService();
@@ -8,22 +9,21 @@ const profileService = new ProfileService();
 /**
  * GET /api/profile — get current user's profile
  */
-export async function GET(): Promise<NextResponse> {
+export async function GET() {
   try {
     const user = await requireCurrentUser();
     const profile = await profileService.getProfile(user.id);
 
     return NextResponse.json({ profile });
   } catch (error) {
-    console.error('[GET /api/profile]', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return handleError(error);
   }
 }
 
 /**
  * PUT /api/profile — update current user's profile
  */
-export async function PUT(request: NextRequest): Promise<NextResponse> {
+export async function PUT(request: NextRequest) {
   try {
     const user = await requireCurrentUser();
     const body = (await request.json()) as UpdateProfileInput;
@@ -39,7 +39,6 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    console.error('[PUT /api/profile]', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return handleError(error);
   }
 }

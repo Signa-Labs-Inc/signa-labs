@@ -2,10 +2,19 @@
  * Profile Writer
  */
 
-import { eq, sql } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 import { db } from '@/index';
 import { usersProfiles } from '@/db/schema/tables/users_profiles';
 import type { UpdateProfileInput, UserProfile } from './users-profiles.types';
+
+const DEFAULT_PREFERENCES: Record<string, unknown> = {
+  editor_theme: 'dark',
+  editor_font_size: 14,
+  preferred_coding_language: 'python',
+  daily_goal_minutes: 30,
+  email_notifications: true,
+  streak_reminders: true,
+};
 
 /**
  * Create or update a user's profile.
@@ -32,7 +41,8 @@ export async function upsertProfile(
     .values({
       userId,
       ...setFields,
-      preferences: input.preferences ? (input.preferences as Record<string, unknown>) : undefined,
+      // Merge input preferences with defaults so new rows preserve all default keys
+      preferences: input.preferences ? { ...DEFAULT_PREFERENCES, ...input.preferences } : undefined,
     })
     .onConflictDoUpdate({
       target: usersProfiles.userId,
