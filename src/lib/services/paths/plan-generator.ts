@@ -39,6 +39,13 @@ export async function generateLearningPlan(input: {
     throw new PathError('PLAN_GENERATION_FAILED', `Failed to generate learning plan: ${message}`);
   }
 
+  if (response.stop_reason === 'max_tokens') {
+    throw new PathError(
+      'PLAN_GENERATION_FAILED',
+      'Model output was truncated (hit max_tokens). Try a simpler or shorter goal.'
+    );
+  }
+
   const textBlock = response.content.find((block) => block.type === 'text');
   if (!textBlock || textBlock.type !== 'text') {
     throw new PathError('PLAN_GENERATION_FAILED', 'Claude returned no text content');
@@ -57,24 +64,9 @@ export async function generateLearningPlan(input: {
     }
   }
 
-  let parsed: {
-    title: string;
-    overview: string;
-    estimated_duration_hours: number;
-    milestones: {
-      index: number;
-      title: string;
-      description: string;
-      skills: string[];
-      skill_gates: string[];
-      topics: string[];
-      target_difficulty: string;
-      estimated_exercises: number;
-    }[];
-  };
-
+  let raw: unknown;
   try {
-    parsed = JSON.parse(cleanJson);
+    raw = JSON.parse(cleanJson);
   } catch {
     throw new PathError(
       'PLAN_GENERATION_FAILED',
@@ -82,11 +74,34 @@ export async function generateLearningPlan(input: {
     );
   }
 
-  // Validate structure
-  if (!parsed.title || !parsed.milestones || !Array.isArray(parsed.milestones)) {
+  const parsed = raw as Record<string, unknown>;
+
+  // Validate top-level fields
+  if (typeof parsed.title !== 'string' || !parsed.title.trim()) {
     throw new PathError(
       'PLAN_GENERATION_FAILED',
-      'Invalid plan structure — missing title or milestones'
+      'Invalid plan structure — missing or invalid title'
+    );
+  }
+  if (typeof parsed.overview !== 'string' || !parsed.overview.trim()) {
+    throw new PathError(
+      'PLAN_GENERATION_FAILED',
+      'Invalid plan structure — missing or invalid overview'
+    );
+  }
+  if (
+    typeof parsed.estimated_duration_hours !== 'number' ||
+    !Number.isFinite(parsed.estimated_duration_hours)
+  ) {
+    throw new PathError(
+      'PLAN_GENERATION_FAILED',
+      'Invalid plan structure — missing or invalid estimated_duration_hours'
+    );
+  }
+  if (!Array.isArray(parsed.milestones)) {
+    throw new PathError(
+      'PLAN_GENERATION_FAILED',
+      'Invalid plan structure — milestones is not an array'
     );
   }
 
@@ -97,41 +112,50 @@ export async function generateLearningPlan(input: {
     );
   }
 
-  // Normalize to our type structure
+  const asStringArray = (val: unknown): string[] =>
+    Array.isArray(val) ? val.filter((v): v is string => typeof v === 'string') : [];
+
+  // Validate and normalize milestones
   const plan: LearningPlan = {
     overview: parsed.overview,
     estimatedDurationHours: parsed.estimated_duration_hours,
-    milestones: parsed.milestones.map((m, i) => ({
-      index: i,
-      title: m.title,
-      description: m.description,
-      skills: m.skills ?? [],
-      skillGates: m.skill_gates ?? [],
-      topics: m.topics ?? [],
-      targetDifficulty: m.target_difficulty ?? 'medium',
-      estimatedExercises: m.estimated_exercises ?? 4,
-    })),
-  };
+    milestones: (parsed.milestones as Record<string, unknown>[]).map((m, i) => {
+      const title = typeof m.title === 'string' ? m.title.trim() : '';
+      const description = typeof m.description === 'string' ? m.description.trim() : '';
+      if (!title || !description) {
+        throw new PathError(
+          'PLAN_GENERATION_FAILED',
+          `Milestone ${i} is missing title or description`
+        );
+      }
 
-  // Validate each milestone
-  for (const milestone of plan.milestones) {
-    if (!milestone.title || !milestone.description) {
-      throw new PathError(
-        'PLAN_GENERATION_FAILED',
-        `Milestone ${milestone.index} is missing title or description`
-      );
-    }
-    if (milestone.skills.length === 0) {
-      throw new PathError(
-        'PLAN_GENERATION_FAILED',
-        `Milestone "${milestone.title}" has no skills defined`
-      );
-    }
-    if (milestone.skillGates.length === 0) {
-      // Default: use the first skill as the gate
-      milestone.skillGates = [milestone.skills[0]];
-    }
-  }
+      const skills = asStringArray(m.skills);
+      if (skills.length === 0) {
+        throw new PathError('PLAN_GENERATION_FAILED', `Milestone "${title}" has no skills defined`);
+      }
+
+      const skillSet = new Set(skills);
+      // Filter skill_gates to only include valid skills; default to first skill
+      let skillGates = asStringArray(m.skill_gates).filter((g) => skillSet.has(g));
+      if (skillGates.length === 0) {
+        skillGates = [skills[0]];
+      }
+
+      return {
+        index: i,
+        title,
+        description,
+        skills,
+        skillGates,
+        topics: asStringArray(m.topics),
+        targetDifficulty: typeof m.target_difficulty === 'string' ? m.target_difficulty : 'medium',
+        estimatedExercises:
+          typeof m.estimated_exercises === 'number' && Number.isFinite(m.estimated_exercises)
+            ? m.estimated_exercises
+            : 4,
+      };
+    }),
+  };
 
   return {
     plan,
