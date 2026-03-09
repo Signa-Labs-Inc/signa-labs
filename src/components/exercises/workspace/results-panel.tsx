@@ -58,7 +58,7 @@ export function ResultsPanel({ result, isSubmitting, error, className }: Results
       {isError && result.error_message && (
         <div className="border-b border-red-900/30 bg-red-950/20 px-4 py-3">
           <p className="font-mono text-sm whitespace-pre-wrap text-red-300/80">
-            {result.error_message}
+            {asString(result.error_message)}
           </p>
         </div>
       )}
@@ -125,6 +125,13 @@ function ResultsBanner({
   );
 }
 
+/** Safely convert a value to a renderable string. */
+function asString(value: unknown): string {
+  if (typeof value === 'string') return value;
+  if (value == null) return '';
+  return JSON.stringify(value, null, 2);
+}
+
 function TestResultRow({ test }: { test: SandboxTestResult }) {
   const [expanded, setExpanded] = useState<boolean>(!test.passed);
   const hasDetails = !test.passed && (test.error || test.expected || test.actual);
@@ -165,18 +172,18 @@ function TestResultRow({ test }: { test: SandboxTestResult }) {
           {test.expected && (
             <div className="flex gap-2 font-mono text-xs">
               <span className="text-muted-foreground shrink-0">Expected:</span>
-              <span className="text-emerald-400/80">{test.expected}</span>
+              <span className="text-emerald-400/80">{asString(test.expected)}</span>
             </div>
           )}
           {test.actual && (
             <div className="flex gap-2 font-mono text-xs">
               <span className="text-muted-foreground shrink-0">Received:</span>
-              <span className="text-red-400/80">{test.actual}</span>
+              <span className="text-red-400/80">{asString(test.actual)}</span>
             </div>
           )}
           {test.error && (
             <pre className="mt-1 rounded bg-red-950/10 p-2 font-mono text-xs whitespace-pre-wrap text-red-300/70">
-              {test.error}
+              {asString(test.error)}
             </pre>
           )}
         </div>

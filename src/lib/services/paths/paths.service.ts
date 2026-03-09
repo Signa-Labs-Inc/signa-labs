@@ -450,7 +450,7 @@ export class PathService {
       throw new PathError('PATH_NOT_FOUND', 'Milestone not found');
     }
 
-    const path = await reader.getPathById(input.pathId);
+    const path = await reader.getPathByIdAndUser(input.pathId, input.userId);
     if (!path) {
       throw new PathError('PATH_NOT_FOUND', 'Path not found');
     }

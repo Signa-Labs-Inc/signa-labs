@@ -5,9 +5,17 @@ import { SubmissionService } from '@/lib/services/submissions/submissions.servic
 import { requireCurrentUser } from '@/lib/services/auth/auth.service';
 
 type Params = Promise<{ id: string }>;
+type SearchParams = Promise<{ pathId?: string; pathExerciseId?: string }>;
 
-export default async function ExerciseWorkspacePage({ params }: { params: Params }) {
+export default async function ExerciseWorkspacePage({
+  params,
+  searchParams,
+}: {
+  params: Params;
+  searchParams: SearchParams;
+}) {
   const { id } = await params;
+  const { pathId, pathExerciseId } = await searchParams;
   const user = await requireCurrentUser();
 
   let exercise;
@@ -21,5 +29,13 @@ export default async function ExerciseWorkspacePage({ params }: { params: Params
   const { attemptId } = await submissionService.getOrCreateAttempt(user.id, exercise.id);
   const draftCode = await submissionService.getDraftCode(user.id, attemptId);
 
-  return <ExerciseWorkspace exercise={exercise} attemptId={attemptId} draftCode={draftCode} />;
+  return (
+    <ExerciseWorkspace
+      exercise={exercise}
+      attemptId={attemptId}
+      draftCode={draftCode}
+      pathId={pathId ?? null}
+      pathExerciseId={pathExerciseId ?? null}
+    />
+  );
 }
