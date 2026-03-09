@@ -12,6 +12,10 @@ import { pathExercises } from '@/db/schema/tables/path_exercises';
 import { pathSkillAssessments } from '@/db/schema/tables/path_skill_assessments';
 import type { LearningPlan, ExerciseGenerationContext, SkillAssessment } from './paths.types';
 
+/** Transaction-compatible db handle. */
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+type DbOrTx = typeof db | Tx;
+
 // ============================================================
 // Path creation
 // ============================================================
@@ -88,9 +92,10 @@ export async function createPathWithMilestones(input: {
 export async function updatePathStatus(
   pathId: string,
   status: string,
-  completedAt?: Date
+  completedAt?: Date,
+  txOrDb: DbOrTx = db
 ): Promise<void> {
-  await db
+  await txOrDb
     .update(learningPaths)
     .set({
       status,
@@ -101,9 +106,10 @@ export async function updatePathStatus(
 
 export async function advancePathMilestone(
   pathId: string,
-  newMilestoneIndex: number
+  newMilestoneIndex: number,
+  txOrDb: DbOrTx = db
 ): Promise<void> {
-  await db
+  await txOrDb
     .update(learningPaths)
     .set({ currentMilestoneIndex: newMilestoneIndex })
     .where(eq(learningPaths.id, pathId));
@@ -125,9 +131,10 @@ export async function incrementPathExercisesCompleted(pathId: string): Promise<v
 export async function updateMilestoneStatus(
   milestoneId: string,
   status: string,
-  timestamps?: { unlockedAt?: Date; completedAt?: Date }
+  timestamps?: { unlockedAt?: Date; completedAt?: Date },
+  txOrDb: DbOrTx = db
 ): Promise<void> {
-  await db
+  await txOrDb
     .update(pathMilestones)
     .set({
       status,

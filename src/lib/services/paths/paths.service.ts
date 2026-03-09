@@ -9,6 +9,7 @@
  *   - Track progress
  */
 
+import { db } from '@/index';
 import * as reader from './paths.reader';
 import * as writer from './paths.writer';
 import { generateLearningPlan } from './plan-generator';
@@ -36,13 +37,8 @@ export class PathService {
    */
   async createPath(input: CreatePathInput): Promise<CreatePathResult> {
     // Detect framework from the prompt
-    let detectedFramework: string | null = null;
-    try {
-      const env = await resolveEnvironment(input.prompt, input.language);
-      detectedFramework = env.detectedFramework;
-    } catch {
-      // No framework detected — that's fine
-    }
+    const env = await resolveEnvironment(input.prompt, input.language);
+    const detectedFramework = env.detectedFramework;
 
     // Generate the learning plan via AI
     const { plan, title, generationTimeMs } = await generateLearningPlan({
@@ -91,7 +87,7 @@ export class PathService {
     pathId: string,
     milestoneId: string
   ): Promise<{ advance: boolean; reasoning: string }> {
-    const milestone = await reader.getMilestoneById(milestoneId);
+    const milestone = await reader.getMilestoneById(milestoneId, pathId);
     if (!milestone) {
       return { advance: false, reasoning: 'Milestone not found' };
     }
@@ -150,28 +146,37 @@ export class PathService {
       throw new PathError('PATH_NOT_FOUND', 'Current milestone not found');
     }
 
-    // Complete current milestone
-    await writer.updateMilestoneStatus(currentMilestone.id, 'completed', {
-      completedAt: new Date(),
-    });
-
-    // Check if this was the last milestone
     const nextIndex = currentIndex + 1;
     const nextMilestone = milestones.find((m) => m.milestoneIndex === nextIndex);
 
-    if (!nextMilestone) {
-      // Path completed!
-      await writer.updatePathStatus(pathId, 'completed', new Date());
-      return { pathCompleted: true, nextMilestoneId: null };
-    }
+    const result = await db.transaction(async (tx) => {
+      // Complete current milestone
+      await writer.updateMilestoneStatus(
+        currentMilestone.id,
+        'completed',
+        { completedAt: new Date() },
+        tx
+      );
 
-    // Unlock next milestone
-    await writer.updateMilestoneStatus(nextMilestone.id, 'active', {
-      unlockedAt: new Date(),
+      if (!nextMilestone) {
+        // Path completed!
+        await writer.updatePathStatus(pathId, 'completed', new Date(), tx);
+        return { pathCompleted: true as const, nextMilestoneId: null };
+      }
+
+      // Unlock next milestone
+      await writer.updateMilestoneStatus(
+        nextMilestone.id,
+        'active',
+        { unlockedAt: new Date() },
+        tx
+      );
+      await writer.advancePathMilestone(pathId, nextIndex, tx);
+
+      return { pathCompleted: false as const, nextMilestoneId: nextMilestone.id };
     });
-    await writer.advancePathMilestone(pathId, nextIndex);
 
-    return { pathCompleted: false, nextMilestoneId: nextMilestone.id };
+    return result;
   }
 
   // ============================================================
@@ -186,16 +191,21 @@ export class PathService {
     if (!path) throw new PathError('PATH_NOT_FOUND', 'Path not found');
 
     const milestones = await reader.getMilestonesByPath(pathId);
-    const skillConfidence = await reader.getSkillConfidenceMap(pathId);
+    // Path-wide confidence is used for the overall skillsAcquired summary
+    const pathSkillConfidence = await reader.getSkillConfidenceMap(pathId);
 
     const milestoneProgress: MilestoneProgress[] = await Promise.all(
       milestones.map(async (m) => {
         const completedCount = await reader.getCompletedExerciseCount(m.id);
         const gateSkills = (m.skillGates ?? []) as string[];
 
-        const gatesPassed = gateSkills.filter((skill) => (skillConfidence.get(skill) ?? 0) >= 0.7);
+        // Use milestone-scoped confidence to match shouldAdvanceMilestone logic
+        const milestoneConfidence = await reader.getMilestoneSkillConfidenceMap(pathId, m.id);
+        const gatesPassed = gateSkills.filter(
+          (skill) => (milestoneConfidence.get(skill) ?? 0) >= 0.7
+        );
         const gatesRemaining = gateSkills.filter(
-          (skill) => (skillConfidence.get(skill) ?? 0) < 0.7
+          (skill) => (milestoneConfidence.get(skill) ?? 0) < 0.7
         );
 
         return {
@@ -221,7 +231,7 @@ export class PathService {
     const percentComplete =
       totalEstimated > 0 ? Math.round((totalCompleted / totalEstimated) * 100) : 0;
 
-    const skillsAcquired = Array.from(skillConfidence.entries())
+    const skillsAcquired = Array.from(pathSkillConfidence.entries())
       .map(([skill, confidence]) => ({ skill, confidence }))
       .sort((a, b) => b.confidence - a.confidence);
 
@@ -292,7 +302,7 @@ export class PathService {
     const path = await reader.getPathByIdAndUser(pathId, userId);
     if (!path) throw new PathError('PATH_NOT_FOUND', 'Path not found');
     if (path.status !== 'paused') {
-      throw new PathError('PATH_NOT_FOUND', 'Path is not paused');
+      throw new PathError('PATH_NOT_PAUSED', 'Path is not paused');
     }
 
     await writer.updatePathStatus(pathId, 'active');

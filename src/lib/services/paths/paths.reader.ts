@@ -60,11 +60,14 @@ export async function getMilestonesByPath(pathId: string) {
     .orderBy(pathMilestones.milestoneIndex);
 }
 
-export async function getMilestoneById(milestoneId: string) {
+export async function getMilestoneById(milestoneId: string, pathId?: string) {
+  const conditions = [eq(pathMilestones.id, milestoneId)];
+  if (pathId) conditions.push(eq(pathMilestones.pathId, pathId));
+
   const [milestone] = await db
     .select()
     .from(pathMilestones)
-    .where(eq(pathMilestones.id, milestoneId))
+    .where(and(...conditions))
     .limit(1);
 
   return milestone ?? null;
@@ -171,6 +174,35 @@ export async function getAllPathSkillAssessments(pathId: string) {
     .from(pathSkillAssessments)
     .where(eq(pathSkillAssessments.pathId, pathId))
     .orderBy(desc(pathSkillAssessments.assessedAt));
+}
+
+/**
+ * Get the highest-confidence assessment for each skill within a specific milestone.
+ */
+export async function getMilestoneSkillConfidenceMap(
+  pathId: string,
+  milestoneId: string
+): Promise<Map<string, number>> {
+  const assessments = await db
+    .select({
+      skillName: pathSkillAssessments.skillName,
+      maxConfidence: sql<number>`max(${pathSkillAssessments.confidence})`,
+    })
+    .from(pathSkillAssessments)
+    .where(
+      and(
+        eq(pathSkillAssessments.pathId, pathId),
+        eq(pathSkillAssessments.milestoneId, milestoneId),
+        eq(pathSkillAssessments.demonstrated, true)
+      )
+    )
+    .groupBy(pathSkillAssessments.skillName);
+
+  const map = new Map<string, number>();
+  for (const row of assessments) {
+    map.set(row.skillName, row.maxConfidence);
+  }
+  return map;
 }
 
 /**

@@ -197,6 +197,7 @@ export class PathError extends Error {
         return 404;
       case 'PATH_COMPLETED':
       case 'PATH_PAUSED':
+      case 'PATH_NOT_PAUSED':
       case 'MILESTONE_COMPLETED':
         return 400;
       case 'PLAN_GENERATION_FAILED':
