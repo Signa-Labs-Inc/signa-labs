@@ -221,16 +221,25 @@ export function ExerciseWorkspace({
       });
 
       if (!response.ok) {
-        const errorBody = (await response.json().catch(() => null)) as { error?: string } | null;
-        setSubmitError(errorBody?.error ?? `Submission failed (${response.status})`);
+        const errorBody = await response.json().catch(() => null);
+        const errMsg = errorBody?.error;
+        setSubmitError(
+          typeof errMsg === 'string' ? errMsg : `Submission failed (${response.status})`
+        );
         return;
       }
 
       const data = (await response.json()) as SubmitResponse;
+      const errorMessage =
+        typeof data.error === 'string'
+          ? data.error
+          : data.error
+            ? JSON.stringify(data.error)
+            : undefined;
 
       const sandboxResult: SandboxResult = {
         status: data.error ? 'error' : 'completed',
-        error_message: data.error ?? undefined,
+        error_message: errorMessage,
         tests_passed: data.testsPassed,
         tests_failed: data.testsFailed,
         tests_total: data.testsTotal,
