@@ -139,7 +139,7 @@ The sandbox does NOT have:
 
 However, if the exercise requires packages beyond what's pre-installed, you may include a dependency file in the supportFiles array:
 - Python: include a "requirements.txt" file with one package per line, version-pinned (e.g. requests==2.31.0)
-- Node.js: include a "deps.json" file with {"dependencies": {"package": "^version"}} format
+- Node.js: include a "deps.json" file with {"dependencies": {"package": "version"}} format (exact versions, no ^ or ~)
 These will be installed automatically before tests run (60-second timeout for installation). Only include packages that are truly needed — prefer using what's already available in the sandbox.
 ${getFrameworkInstructions(input.detectedFramework, input.language)}
 ## Language-Specific Requirements
@@ -205,7 +205,7 @@ ${
   config.depsFileName
     ? `
 If the exercise needs packages not already in the sandbox, include a "${config.depsFileName}" in the supportFiles array. Example:
-${config.depsFileName === 'requirements.txt' ? `{"filePath": "requirements.txt", "fileName": "requirements.txt", "content": "requests==2.31.0\\nbeautifulsoup4==4.12.3"}` : `{"filePath": "deps.json", "fileName": "deps.json", "content": "{\\"dependencies\\": {\\"lodash\\": \\"^4.17.21\\"}}"}`}`
+${config.depsFileName === 'requirements.txt' ? `{"filePath": "requirements.txt", "fileName": "requirements.txt", "content": "requests==2.31.0\\nbeautifulsoup4==4.12.3"}` : `{"filePath": "deps.json", "fileName": "deps.json", "content": "{\\"dependencies\\": {\\"lodash\\": \\"4.17.21\\"}}"}`}`
     : ''
 }
 
@@ -612,7 +612,7 @@ When generating an exercise:
 - Write thorough tests that cover normal cases, edge cases, and boundary conditions
 - Provide progressive hints that help without spoiling the answer
 - Choose appropriate tags for discoverability
-- Keep all code self-contained with no external dependencies beyond what the sandbox provides
+- Prefer using packages already in the sandbox, but if the exercise requires additional packages, include a dependency file (requirements.txt or deps.json) in supportFiles — they will be installed automatically
 
 IMPORTANT: Match the exercise complexity to the user's prompt and selected difficulty level.
 - If the user says "I want to learn X", create a BEGINNER-FRIENDLY exercise that teaches the basics of X

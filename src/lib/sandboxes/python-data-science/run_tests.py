@@ -47,7 +47,7 @@ def install_dependencies() -> str | None:
         return None
 
     try:
-        subprocess.run(
+        result = subprocess.run(
             [
                 sys.executable,
                 "-m",
@@ -64,6 +64,9 @@ def install_dependencies() -> str | None:
             text=True,
             timeout=60,
         )
+        if result.returncode != 0:
+            err = result.stderr.strip() or result.stdout.strip()
+            return f"Package installation failed: {err}"
         return None
     except subprocess.TimeoutExpired:
         return "Package installation timed out (60s limit)"

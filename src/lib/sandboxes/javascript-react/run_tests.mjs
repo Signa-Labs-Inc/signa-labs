@@ -85,16 +85,15 @@ function installDependencies() {
     };
 
     const packages = Object.entries(deps)
-      .map(([name, version]) => `${name}@${version}`)
-      .filter((pkg) => {
-        const pkgName = pkg.split('@')[0];
+      .filter(([name]) => {
         try {
-          require.resolve(pkgName);
+          require.resolve(name);
           return false;
         } catch {
           return true;
         }
-      });
+      })
+      .map(([name, version]) => `${name}@${version}`);
 
     if (packages.length === 0) return null;
 
