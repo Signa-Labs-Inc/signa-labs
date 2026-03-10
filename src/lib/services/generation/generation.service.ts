@@ -7,7 +7,7 @@
  *   3. Parse and validate the LLM response
  *   4. Run solution against tests in the sandbox
  *   5. Retry with feedback if validation fails (up to 2 retries)
- *   6. Persist the validated exercise + files
+ *   6. Persist the validated exercise + files + lesson + synthesis
  *   7. Create an attempt for the user
  *   8. Return exerciseId + attemptId
  */
@@ -28,6 +28,7 @@ import type {
   LLMExerciseOutput,
   ExerciseFileInsert,
 } from './generation.types';
+import type { LessonContent, SynthesisContent } from '@/lib/services/teaching/teaching.types';
 
 // ============================================================
 // Constants
@@ -38,7 +39,7 @@ const MAX_RETRIES = 2;
 const MAX_GENERATIONS_PER_HOUR = 10;
 const MIN_PROMPT_LENGTH = 10;
 const MAX_PROMPT_LENGTH = 2000;
-const OVERALL_TIMEOUT_MS = 300_000; // 5 minutes — hard/expert exercises need multiple LLM + sandbox rounds
+const OVERALL_TIMEOUT_MS = 300_000;
 
 // ============================================================
 // Service
@@ -68,7 +69,7 @@ export class ExerciseGenerationService {
     // 2. Rate limit check
     await this.checkRateLimit(input.userId);
 
-    // 3. Resolve environment — detects frameworks from the prompt
+    // 3. Resolve environment
     let resolvedEnv;
     try {
       resolvedEnv = await resolveEnvironment(input.userPrompt, input.language);
@@ -100,10 +101,8 @@ export class ExerciseGenerationService {
     let validationResult: SandboxResult | null = null;
 
     for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-      // Check overall timeout before each attempt
       this.checkTimeout(startTime);
 
-      // Build prompt
       const prompt = buildGenerationPrompt({
         userPrompt: input.userPrompt,
         language: input.language,
@@ -118,10 +117,8 @@ export class ExerciseGenerationService {
             : undefined,
       });
 
-      // Call Claude
       exerciseOutput = await this.callLLM(prompt, startTime);
 
-      // Validate in sandbox
       this.checkTimeout(startTime);
       validationResult = await this.validateInSandbox(exerciseOutput, input.language, environment);
 
@@ -130,11 +127,9 @@ export class ExerciseGenerationService {
         validationResult.tests_failed === 0 &&
         validationResult.tests_total > 0
       ) {
-        // Validation passed
         break;
       }
 
-      // Validation failed — prepare retry context
       lastError =
         validationResult.error_message ??
         `${validationResult.tests_failed}/${validationResult.tests_total} tests failed`;
@@ -160,7 +155,11 @@ export class ExerciseGenerationService {
 
     const generationTimeMs = Date.now() - startTime;
 
-    // 6. Persist exercise + files
+    // 6. Extract and validate teaching content
+    const lessonContent = this.extractLessonContent(exerciseOutput);
+    const synthesisContent = this.extractSynthesisContent(exerciseOutput);
+
+    // 7. Persist exercise + files + teaching content
     const files = this.buildFileInserts(exerciseOutput);
 
     const exercise = await writer.createExerciseWithFiles(
@@ -175,16 +174,18 @@ export class ExerciseGenerationService {
         hints: exerciseOutput.hints,
         tags: exerciseOutput.tags,
         llmModel: LLM_MODEL,
-        llmParameters: { temperature: 1, max_tokens: 8192 },
+        llmParameters: { temperature: 1, max_tokens: 16384 },
         generationTimeMs,
         isValidated: true,
         validationOutput: validationResult,
         templateId: input.templateId,
+        lessonContent,
+        synthesisContent,
       },
       files
     );
 
-    // 7. Create an attempt for the user
+    // 8. Create an attempt for the user
     const { attemptId } = await this.submissionService.getOrCreateAttempt(
       input.userId,
       exercise.id
@@ -195,6 +196,63 @@ export class ExerciseGenerationService {
       attemptId,
       title: exerciseOutput.title,
       validationPassed: true,
+    };
+  }
+
+  // ============================================================
+  // Private: Teaching content extraction
+  // ============================================================
+
+  /**
+   * Extract and validate lesson content from the LLM output.
+   * Returns null if the LLM didn't generate lesson content (non-fatal).
+   */
+  private extractLessonContent(output: LLMExerciseOutput): LessonContent | null {
+    const raw = output.lessonContent;
+    if (!raw) return null;
+
+    // Validate required fields
+    if (!raw.title || typeof raw.title !== 'string') return null;
+    if (!raw.body || typeof raw.body !== 'string') return null;
+
+    // Ensure code example exists and is valid
+    const codeExample = raw.codeExample;
+    if (!codeExample || !codeExample.code || typeof codeExample.code !== 'string') {
+      return {
+        title: raw.title,
+        body: raw.body,
+        codeExample: { code: '', language: '', annotations: [] },
+        keyTakeaways: Array.isArray(raw.keyTakeaways) ? raw.keyTakeaways : [],
+      };
+    }
+
+    return {
+      title: raw.title,
+      body: raw.body,
+      codeExample: {
+        code: codeExample.code,
+        language: codeExample.language ?? '',
+        annotations: Array.isArray(codeExample.annotations) ? codeExample.annotations : [],
+      },
+      keyTakeaways: Array.isArray(raw.keyTakeaways) ? raw.keyTakeaways : [],
+    };
+  }
+
+  /**
+   * Extract and validate synthesis content from the LLM output.
+   * Returns null if the LLM didn't generate synthesis content (non-fatal).
+   */
+  private extractSynthesisContent(output: LLMExerciseOutput): SynthesisContent | null {
+    const raw = output.synthesisContent;
+    if (!raw) return null;
+
+    if (!raw.summary || typeof raw.summary !== 'string') return null;
+
+    return {
+      summary: raw.summary,
+      connections: raw.connections ?? '',
+      realWorld: raw.realWorld ?? '',
+      nextPreview: raw.nextPreview ?? null,
     };
   }
 
@@ -216,7 +274,6 @@ export class ExerciseGenerationService {
   // ============================================================
 
   private async callLLM(prompt: string, startTime: number): Promise<LLMExerciseOutput> {
-    // Calculate remaining time for this LLM call
     const elapsed = Date.now() - startTime;
     const remainingMs = OVERALL_TIMEOUT_MS - elapsed;
 
@@ -230,7 +287,6 @@ export class ExerciseGenerationService {
     let response: Anthropic.Message;
 
     try {
-      // Race the API call against our timeout
       const apiCall = this.anthropic.messages.create({
         model: LLM_MODEL,
         max_tokens: 16384,
@@ -256,7 +312,6 @@ export class ExerciseGenerationService {
       throw new GenerationError('GENERATION_FAILED', `Claude API call failed: ${message}`);
     }
 
-    // Detect truncation before parsing
     if (response.stop_reason === 'max_tokens') {
       throw new GenerationError(
         'INVALID_LLM_RESPONSE',
@@ -264,19 +319,14 @@ export class ExerciseGenerationService {
       );
     }
 
-    // Extract text content
     const textBlock = response.content.find((block) => block.type === 'text');
     if (!textBlock || textBlock.type !== 'text') {
       throw new GenerationError('INVALID_LLM_RESPONSE', 'Claude returned no text content');
     }
 
-    // Parse JSON — handle various formatting Claude might use
     const rawText = textBlock.text.trim();
-
-    // Strip markdown fences if present
     let jsonText = rawText.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '');
 
-    // If the text doesn't start with {, try to find the JSON object
     if (!jsonText.trimStart().startsWith('{')) {
       const firstBrace = jsonText.indexOf('{');
       const lastBrace = jsonText.lastIndexOf('}');
@@ -295,7 +345,6 @@ export class ExerciseGenerationService {
       );
     }
 
-    // Basic structure validation
     this.validateLLMOutput(parsed);
 
     return parsed;
@@ -342,6 +391,9 @@ export class ExerciseGenerationService {
         );
       }
     }
+
+    // Teaching content is optional — don't fail if missing
+    // extractLessonContent and extractSynthesisContent handle validation
   }
 
   // ============================================================
@@ -356,7 +408,6 @@ export class ExerciseGenerationService {
     const response = await this.executionClient.executeSubmission({
       image: environment.baseImage,
       language: language as 'python' | 'javascript' | 'typescript' | 'sql' | 'go',
-      // Use solution files as the submission (validating that the solution passes)
       submissionFiles: output.solutionFiles.map((f) => ({
         filePath: f.filePath,
         content: f.content,

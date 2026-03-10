@@ -165,6 +165,27 @@ Explain in the description that the exercise teaches the pattern used in Next.js
 ${getDifficultyGuidelines(input.difficulty)}
 ${input.pathContext ? `\n${input.pathContext}` : ''}
 
+## Teaching Content
+
+In addition to the exercise, generate teaching content that helps the user learn:
+
+**Pre-exercise lesson (lessonContent):**
+- Teach the concept this exercise tests BEFORE the user attempts it
+- Write for someone at the "${input.difficulty}" level
+- 300-500 words of clear explanation in markdown
+- Include ONE code example that demonstrates the concept (NOT the exercise solution)
+- Add 2-3 line annotations pointing out key parts of the example
+- End with 2-3 key takeaways the reader should remember
+- The lesson should make the exercise approachable — after reading, the user should think "I can do this"
+
+**Post-exercise synthesis (synthesisContent):**
+- Summarize what the user learned (1 sentence)
+- Connect it to broader programming concepts (2-3 sentences)
+- Mention where this is used in real codebases (1-2 sentences)
+- nextPreview should be null (the path system fills this in later)
+
+IMPORTANT: The lesson's code example must be DIFFERENT from the exercise solution. It should teach the concept generically, not solve the specific problem.
+
 ## Output Format
 
 Respond with ONLY a JSON object (no markdown fences, no preamble) matching this exact structure:
@@ -195,7 +216,25 @@ Respond with ONLY a JSON object (no markdown fences, no preamble) matching this 
       "content": "# Test file using ${config.testFramework}\\n# Import from: ${config.importStyle}"
     }
   ],
-  "supportFiles": []
+  "supportFiles": [],
+  "lessonContent": {
+    "title": "Short title for the concept being taught",
+    "body": "Markdown explanation of the concept (300-500 words). Explain WHY it works, not just HOW. Build from what the reader likely knows at the '${input.difficulty}' level. Use clear, simple language. Include inline code references where helpful.",
+    "codeExample": {
+      "code": "A single clear code example demonstrating the concept (NOT the exercise solution)",
+      "language": "${config.displayName.toLowerCase()}",
+      "annotations": [
+        { "line": 1, "text": "Brief annotation explaining this line" }
+      ]
+    },
+    "keyTakeaways": ["2-3 key points to remember"]
+  },
+  "synthesisContent": {
+    "summary": "One sentence: what the user will learn by completing this exercise",
+    "connections": "How this concept connects to broader programming patterns (2-3 sentences)",
+    "realWorld": "Where this is used in production codebases (1-2 sentences)",
+    "nextPreview": null
+  }
 }
 
 Note: starterFiles, solutionFiles, testFiles, and supportFiles are ARRAYS and may contain multiple entries for multi-file exercises. Each file needs a unique filePath and fileName. Starter and solution arrays must have matching file paths — every starter file must have a corresponding solution file with the same filePath.
@@ -220,6 +259,7 @@ ${config.depsFileName === 'requirements.txt' ? `{"filePath": "requirements.txt",
 7. Prefer using packages already available in the sandbox. If the exercise requires additional packages, include a ${config.depsFileName || 'requirements.txt'} in supportFiles with pinned versions.
 8. All code must be testable with the specified test framework.
 9. For multi-file exercises, each starter file must have clear TODO comments and all files must work together with correct imports.
+10. The lessonContent code example must NOT be the exercise solution. It should teach the concept generically so the user learns the pattern before applying it.
 ${input.retryContext ? getRetryInstructions(input.retryContext) : ''}`;
 
   return prompt;

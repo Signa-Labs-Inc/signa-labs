@@ -44,6 +44,8 @@ export async function createExerciseWithFiles(
         isValidated: input.isValidated,
         validationOutput: input.validationOutput,
         tags: input.tags,
+        lessonContent: input.lessonContent ?? null,
+        synthesisContent: input.synthesisContent ?? null,
       })
       .returning({ id: exercises.id });
 

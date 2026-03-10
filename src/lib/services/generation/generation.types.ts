@@ -9,6 +9,7 @@ import type {
   ExerciseDifficulty,
   ExerciseLanguage,
 } from '@/lib/services/exercises/exercises.constants';
+import type { LessonContent, SynthesisContent } from '@/lib/services/teaching/teaching.types';
 import { AppError } from '@/lib/utils/errors';
 
 // ============================================================
@@ -57,6 +58,8 @@ export interface LLMExerciseOutput {
   solutionFiles: LLMFileOutput[];
   testFiles: LLMFileOutput[];
   supportFiles?: LLMFileOutput[];
+  lessonContent?: LessonContent;
+  synthesisContent?: SynthesisContent;
 }
 
 export interface LLMFileOutput {
@@ -94,6 +97,8 @@ export interface CreateGeneratedExerciseInput {
   isValidated: boolean;
   validationOutput: SandboxResult | null;
   templateId?: string;
+  lessonContent?: LessonContent | null;
+  synthesisContent?: SynthesisContent | null;
 }
 
 export interface CreateGeneratedExerciseResult {
