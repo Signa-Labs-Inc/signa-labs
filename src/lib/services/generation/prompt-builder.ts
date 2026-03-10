@@ -217,7 +217,7 @@ Respond with ONLY a JSON object (no markdown fences, no preamble) matching this 
     }
   ],
   "supportFiles": [],
-    "lessonContent": {
+  "lessonContent": {
     "title": "Short title for the concept being taught",
     "body": "Markdown explanation of the concept (300-500 words). Explain WHY it works, not just HOW. Build from what the reader likely knows at the '${input.difficulty}' level. Use clear, simple language. Include inline code references where helpful.",
     "codeExample": {
