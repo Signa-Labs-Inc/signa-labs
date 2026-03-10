@@ -15,7 +15,6 @@ import { useTimeTracking } from '@/hooks/use-time-tracking';
 import type { ExerciseDetail } from '@/lib/services/exercises/exercises.types';
 import type { SandboxResult } from '@/lib/sandboxes/types';
 import { LessonPanel } from './lesson-panel';
-import type { LessonContent } from '@/lib/services/teaching/teaching.types';
 
 // ============================================================
 // Constants
@@ -51,7 +50,6 @@ type ExerciseWorkspaceProps = {
   draftCode?: Record<string, string> | null;
   pathId?: string | null;
   pathExerciseId?: string | null;
-  lessonContent?: LessonContent | null;
 };
 
 type SubmitResponse = {
@@ -83,7 +81,6 @@ export function ExerciseWorkspace({
   draftCode,
   pathId,
   pathExerciseId,
-  lessonContent,
 }: ExerciseWorkspaceProps) {
   const allFiles = [...exercise.starterFiles, ...exercise.supportFiles];
   const isPathExercise = Boolean(pathId && pathExerciseId);
@@ -126,6 +123,7 @@ export function ExerciseWorkspace({
   });
 
   type LeftTab = 'lesson' | 'instructions' | 'hints';
+  const lessonContent = exercise.lessonContent;
   const hasLesson = Boolean(lessonContent && lessonContent.title && lessonContent.body);
   const [leftTab, setLeftTab] = useState<LeftTab>(hasLesson ? 'lesson' : 'instructions');
 

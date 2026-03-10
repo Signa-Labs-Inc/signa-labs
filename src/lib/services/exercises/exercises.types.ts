@@ -1,4 +1,4 @@
-import { LessonContent, SynthesisContent } from '../teaching/teaching.types';
+import type { LessonContent, SynthesisContent } from '../teaching/teaching.types';
 import { ExerciseDifficulty, ExerciseLanguage } from './exercises.constants';
 export type Exercise = {
   id: string;
