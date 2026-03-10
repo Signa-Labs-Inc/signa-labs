@@ -183,6 +183,7 @@ In addition to the exercise, generate teaching content that helps the user learn
 - Connect it to broader programming concepts (2-3 sentences)
 - Mention where this is used in real codebases (1-2 sentences)
 - nextPreview should be null (the path system fills this in later)
+- synthesisContent must be written in PAST TENSE — the user has already completed the exercise. Say "You built..." or "You implemented..." not "You'll learn..." or "This exercise covers..."
 
 IMPORTANT: The lesson's code example must be DIFFERENT from the exercise solution. It should teach the concept generically, not solve the specific problem.
 
@@ -230,7 +231,7 @@ Respond with ONLY a JSON object (no markdown fences, no preamble) matching this 
     "keyTakeaways": ["2-3 key points to remember"]
   },
   "synthesisContent": {
-    "summary": "One sentence: what the user will learn by completing this exercise",
+    "summary": "One sentence in PAST TENSE: what the user just learned (e.g. 'You implemented effect cleanup to prevent memory leaks' NOT 'You'll learn about effect cleanup')",
     "connections": "How this concept connects to broader programming patterns (2-3 sentences)",
     "realWorld": "Where this is used in production codebases (1-2 sentences)",
     "nextPreview": null
@@ -260,6 +261,8 @@ ${config.depsFileName === 'requirements.txt' ? `{"filePath": "requirements.txt",
 8. All code must be testable with the specified test framework.
 9. For multi-file exercises, each starter file must have clear TODO comments and all files must work together with correct imports.
 10. The lessonContent code example must NOT be the exercise solution. It should teach the concept generically so the user learns the pattern before applying it.
+11. Write tests that validate BEHAVIOR and DATA, not exact presentation. Use regex or partial matches (e.g. /John Doe/i) rather than expecting exact standalone text. Users should have creative freedom in how they present data as long as the data is present and correct.
+12. synthesisContent must be written in PAST TENSE — the user has already completed the exercise. Say "You built..." or "You implemented..." not "You'll learn..." or "This exercise covers..."
 ${input.retryContext ? getRetryInstructions(input.retryContext) : ''}`;
 
   return prompt;
@@ -327,6 +330,17 @@ Guidelines:
 - For multi-file React exercises, each component should be in its own file (e.g. Button.tsx, Card.tsx) and the main file should compose them
 - Additional packages (e.g. react-hook-form, zod) can be included via deps.json in supportFiles
 
+## Testing Best Practices (IMPORTANT)
+
+Write tests that validate BEHAVIOR and DATA, not exact presentation:
+- Use regex matchers for text content: screen.getByText(/John Doe/i) instead of screen.getByText('John Doe')
+- Use { exact: false } when checking for data within surrounding text: screen.getByText('John Doe', { exact: false })
+- Use toHaveTextContent for partial content matching on elements
+- NEVER assert exact standalone text when the exercise asks users to "display" or "show" data — users may wrap values in labels, sentences, or different elements
+- Test that the correct DATA is present in the document, not the exact HTML structure or sentence phrasing
+- For lists and collections, verify the count and content, not the exact element type used
+- Allow users creative freedom in presentation — a user might render a name as "John Doe", "Name: John Doe", or "Hello, John Doe" and all should pass
+
 Example test structure:
 \`\`\`
 import { render, screen } from '@testing-library/react';
@@ -334,9 +348,22 @@ import userEvent from '@testing-library/user-event';
 import { MyComponent } from '../submission/solution.${language === 'typescript' ? 'tsx' : 'jsx'}';
 
 describe('MyComponent', () => {
-  it('renders correctly', () => {
+  it('displays user name', () => {
+    render(<MyComponent name="John Doe" />);
+    expect(screen.getByText(/John Doe/i)).toBeInTheDocument();
+  });
+
+  it('shows all list items', () => {
+    render(<MyComponent items={['Apple', 'Banana']} />);
+    expect(screen.getByText(/Apple/i)).toBeInTheDocument();
+    expect(screen.getByText(/Banana/i)).toBeInTheDocument();
+  });
+
+  it('handles click events', async () => {
+    const user = userEvent.setup();
     render(<MyComponent />);
-    expect(screen.getByText('Hello')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /submit/i }));
+    expect(screen.getByText(/submitted/i)).toBeInTheDocument();
   });
 });
 \`\`\`

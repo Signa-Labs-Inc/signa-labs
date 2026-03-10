@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Play, Eye, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Play, Eye, RotateCcw, X, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { InstructionsPanel } from './instructions-panel';
@@ -16,7 +16,9 @@ import type { ExerciseDetail } from '@/lib/services/exercises/exercises.types';
 import type { SandboxResult } from '@/lib/sandboxes/types';
 import { LessonPanel } from './lesson-panel';
 import { ExplanationPanel } from './explanation-panel';
+import { SynthesisPanel } from './synthesis-panel';
 import type { FailureExplanation } from '@/lib/services/teaching/teaching.types';
+import { useRouter } from 'next/navigation';
 
 // ============================================================
 // Constants
@@ -52,6 +54,7 @@ type ExerciseWorkspaceProps = {
   draftCode?: Record<string, string> | null;
   pathId?: string | null;
   pathExerciseId?: string | null;
+  previouslyCompleted?: boolean;
 };
 
 type SubmitResponse = {
@@ -83,7 +86,9 @@ export function ExerciseWorkspace({
   draftCode,
   pathId,
   pathExerciseId,
+  previouslyCompleted = false,
 }: ExerciseWorkspaceProps) {
+  const router = useRouter();
   const allFiles = [...exercise.starterFiles, ...exercise.supportFiles];
   const isPathExercise = Boolean(pathId && pathExerciseId);
 
@@ -92,6 +97,9 @@ export function ExerciseWorkspace({
 
   const [explanation, setExplanation] = useState<FailureExplanation | null>(null);
   const [isExplaining, setIsExplaining] = useState(false);
+
+  const [showSynthesis, setShowSynthesis] = useState(false);
+  const [showCompletionBanner, setShowCompletionBanner] = useState(previouslyCompleted);
 
   // Track user's code edits per file (keyed by file ID)
   // Prefer saved draft code over original starter content
@@ -126,6 +134,8 @@ export function ExerciseWorkspace({
     exerciseId: exercise.id,
     attemptId,
   });
+
+  const synthesisContent = exercise.synthesisContent;
 
   type LeftTab = 'lesson' | 'instructions' | 'hints';
   const lessonContent = exercise.lessonContent;
@@ -260,6 +270,7 @@ export function ExerciseWorkspace({
     setPathResult(null);
     setExplanation(null);
     setIsExplaining(false);
+    setShowSynthesis(false);
 
     try {
       const editableFiles = allFiles
@@ -306,6 +317,9 @@ export function ExerciseWorkspace({
       };
 
       setResult(sandboxResult);
+      if (data.isPassing && synthesisContent) {
+        setShowSynthesis(true);
+      }
       if (!data.isPassing) {
         fetchExplanation(data);
       } else {
@@ -329,6 +343,7 @@ export function ExerciseWorkspace({
     isPathExercise,
     recordPathCompletion,
     fetchExplanation,
+    synthesisContent,
   ]);
 
   return (
@@ -405,6 +420,25 @@ export function ExerciseWorkspace({
                   : 'Continue to next milestone →'}
               </Link>
             )}
+          </div>
+        )}
+
+        {/* Previously completed banner */}
+        {showCompletionBanner && (
+          <div className="flex items-center justify-between bg-sky-50 px-4 py-2.5 text-sm text-sky-800 dark:bg-sky-950 dark:text-sky-200">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 flex-shrink-0" />
+              <span>
+                You&apos;ve already completed this exercise. This is a fresh attempt &mdash; your
+                previous solution won&apos;t be loaded.
+              </span>
+            </div>
+            <button
+              onClick={() => setShowCompletionBanner(false)}
+              className="ml-4 flex-shrink-0 rounded p-0.5 hover:bg-sky-100 dark:hover:bg-sky-900"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
         )}
 
@@ -526,14 +560,22 @@ export function ExerciseWorkspace({
               )}
             </div>
 
-            {/* Results panel */}
+            {/* Results + Explanation + Synthesis */}
             <div>
               <ResultsPanel result={result} isSubmitting={isSubmitting} error={submitError} />
-              {(explanation || isExplaining) && (
+              {(explanation || isExplaining) && !showSynthesis && (
                 <ExplanationPanel
                   explanation={explanation}
                   isLoading={isExplaining}
                   onViewLesson={lessonContent ? () => setLeftTab('lesson') : undefined}
+                />
+              )}
+              {showSynthesis && synthesisContent && (
+                <SynthesisPanel
+                  synthesis={synthesisContent}
+                  pathId={pathId}
+                  onNextExercise={pathId ? () => router.push(`/paths/${pathId}`) : undefined}
+                  onViewPaths={!pathId ? () => router.push('/paths/new') : undefined}
                 />
               )}
             </div>
