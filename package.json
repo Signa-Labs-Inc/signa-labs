@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "concurrently --kill-others --names \"next,trigger\" --prefix-colors \"yellow,blue\" \"next dev\" \"pnpm trigger:dev\"",
     "trigger:dev": "trigger.dev dev",
-    "dev:doppler": "doppler run -- next dev",
+    "dev:doppler": "doppler run -- concurrently --kill-others --names \"next,trigger\" --prefix-colors \"yellow,blue\" \"next dev\" \"pnpm trigger:dev\"",
     "build": "next build",
     "build:migrate": "drizzle-kit migrate && next build",
     "build:doppler": "doppler run -- next build",

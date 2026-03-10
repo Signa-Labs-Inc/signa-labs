@@ -22,8 +22,8 @@ export const generatePathExerciseTask = task({
   retry: { maxAttempts: 1 },
 
   run: async (payload: GeneratePathExercisePayload): Promise<GeneratePathExerciseOutput> => {
-    metadata.set('step', 'analyzing');
-    metadata.set('progress', 'Analyzing your performance...');
+    metadata.set('step', 'generating');
+    metadata.set('progress', 'Generating your next exercise...');
 
     const pathService = new PathService();
     const result = await pathService.getNextExercise(payload.pathId, payload.userId);
