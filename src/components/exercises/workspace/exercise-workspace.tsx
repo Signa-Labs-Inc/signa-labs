@@ -15,6 +15,8 @@ import { useTimeTracking } from '@/hooks/use-time-tracking';
 import type { ExerciseDetail } from '@/lib/services/exercises/exercises.types';
 import type { SandboxResult } from '@/lib/sandboxes/types';
 import { LessonPanel } from './lesson-panel';
+import { ExplanationPanel } from './explanation-panel';
+import type { FailureExplanation } from '@/lib/services/teaching/teaching.types';
 
 // ============================================================
 // Constants
@@ -87,6 +89,9 @@ export function ExerciseWorkspace({
 
   const [activeFileId, setActiveFileId] = useState<string>(allFiles[0]?.id ?? '');
   const [showPreview, setShowPreview] = useState<boolean>(false);
+
+  const [explanation, setExplanation] = useState<FailureExplanation | null>(null);
+  const [isExplaining, setIsExplaining] = useState(false);
 
   // Track user's code edits per file (keyed by file ID)
   // Prefer saved draft code over original starter content
@@ -208,6 +213,8 @@ export function ExerciseWorkspace({
     setResult(null);
     setSubmitError(null);
     setPathResult(null);
+    setExplanation(null);
+    setIsExplaining(false);
 
     try {
       const editableFiles = allFiles
@@ -254,6 +261,12 @@ export function ExerciseWorkspace({
       };
 
       setResult(sandboxResult);
+      //   // Fetch AI explanation for failed submissions
+      if (!data.isPassing) {
+        fetchExplanation(data);
+      } else {
+        setExplanation(null);
+      }
 
       // If this is a path exercise and all tests passed, record completion
       if (isPathExercise && data.isPassing) {
@@ -265,6 +278,51 @@ export function ExerciseWorkspace({
       setIsSubmitting(false);
     }
   }, [allFiles, fileContents, exercise.id, attemptId, isPathExercise, recordPathCompletion]);
+
+  const fetchExplanation = useCallback(
+    async (submissionData: SubmitResponse) => {
+      if (submissionData.isPassing) return;
+
+      setIsExplaining(true);
+      setExplanation(null);
+
+      try {
+        const solutionCode = allFiles
+          .filter((f) => f.isEditable)
+          .map((f) => `// ${f.filePath}\n${fileContents[f.id] ?? f.content}`)
+          .join('\n\n');
+
+        const response = await fetch(`/api/exercises/${exercise.id}/explain`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            submissionId: submissionData.submissionId,
+            exerciseTitle: exercise.title,
+            exerciseDescription: exercise.description,
+            exerciseDifficulty: exercise.difficulty,
+            userCode: solutionCode,
+            testsPassed: submissionData.testsPassed,
+            testsTotal: submissionData.testsTotal,
+            testResults: submissionData.results.map((r) => ({
+              name: r.name,
+              passed: r.passed,
+              error: r.error,
+            })),
+          }),
+        });
+
+        if (response.ok) {
+          const data = (await response.json()) as { explanation: FailureExplanation };
+          setExplanation(data.explanation);
+        }
+      } catch {
+        // Non-blocking — test results are still visible
+      } finally {
+        setIsExplaining(false);
+      }
+    },
+    [allFiles, fileContents, exercise]
+  );
 
   return (
     <>
@@ -462,7 +520,16 @@ export function ExerciseWorkspace({
             </div>
 
             {/* Results panel */}
-            <ResultsPanel result={result} isSubmitting={isSubmitting} error={submitError} />
+            <div>
+              <ResultsPanel result={result} isSubmitting={isSubmitting} error={submitError} />
+              {(explanation || isExplaining) && (
+                <ExplanationPanel
+                  explanation={explanation!}
+                  isLoading={isExplaining}
+                  onViewLesson={lessonContent ? () => setLeftTab('lesson') : undefined}
+                />
+              )}
+            </div>
           </div>
         </div>
       </div>
