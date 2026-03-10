@@ -47,6 +47,8 @@ type ExerciseWorkspaceProps = {
   exercise: ExerciseDetail;
   attemptId: string;
   draftCode?: Record<string, string> | null;
+  pathId?: string | null;
+  pathExerciseId?: string | null;
 };
 
 type SubmitResponse = {
@@ -61,12 +63,26 @@ type SubmitResponse = {
   error: string | null;
 };
 
+type PathCompletionResult = {
+  milestoneAdvanced: boolean;
+  pathCompleted: boolean;
+  nextAction: 'continue' | 'milestone_complete' | 'path_complete';
+  message: string;
+};
+
 // ============================================================
 // Component
 // ============================================================
 
-export function ExerciseWorkspace({ exercise, attemptId, draftCode }: ExerciseWorkspaceProps) {
+export function ExerciseWorkspace({
+  exercise,
+  attemptId,
+  draftCode,
+  pathId,
+  pathExerciseId,
+}: ExerciseWorkspaceProps) {
   const allFiles = [...exercise.starterFiles, ...exercise.supportFiles];
+  const isPathExercise = Boolean(pathId && pathExerciseId);
 
   const [activeFileId, setActiveFileId] = useState<string>(allFiles[0]?.id ?? '');
   const [showPreview, setShowPreview] = useState<boolean>(false);
@@ -110,6 +126,9 @@ export function ExerciseWorkspace({ exercise, attemptId, draftCode }: ExerciseWo
   const [result, setResult] = useState<SandboxResult | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
+  // Path completion state
+  const [pathResult, setPathResult] = useState<PathCompletionResult | null>(null);
+
   const activeFile = allFiles.find((f) => f.id === activeFileId) ?? allFiles[0];
 
   function handleCodeChange(value: string): void {
@@ -118,17 +137,14 @@ export function ExerciseWorkspace({ exercise, attemptId, draftCode }: ExerciseWo
   }
 
   const handleReset = useCallback(async () => {
-    // Cancel any pending/in-flight auto-saves so they don't overwrite the reset
     cancelPendingSaves();
 
-    // Reset file contents to original starter code
     const initial: Record<string, string> = {};
     for (const file of allFiles) {
       initial[file.id] = file.content;
     }
     setFileContents(initial);
 
-    // Clear the saved draft on the server
     try {
       await fetch(`/api/exercises/${exercise.id}/draft`, {
         method: 'PUT',
@@ -140,13 +156,54 @@ export function ExerciseWorkspace({ exercise, attemptId, draftCode }: ExerciseWo
     }
   }, [allFiles, exercise.id, attemptId, cancelPendingSaves]);
 
+  /**
+   * Record path exercise completion after all tests pass.
+   */
+  const recordPathCompletion = useCallback(
+    async (data: SubmitResponse) => {
+      if (!pathId || !pathExerciseId) return;
+      if (!data.isPassing) return;
+
+      try {
+        // Collect the user's solution code for skill assessment
+        const solutionCode = allFiles
+          .filter((f) => f.isEditable)
+          .map((f) => `// ${f.filePath}\n${fileContents[f.id] ?? f.content}`)
+          .join('\n\n');
+
+        const response = await fetch(`/api/paths/${pathId}/complete`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            pathExerciseId,
+            exerciseId: exercise.id,
+            attemptId,
+            testsPassed: data.testsPassed,
+            testsTotal: data.testsTotal,
+            timeSpentSeconds: 0, // Time tracking handles this separately
+            hintsUsed: 0, // Could be enhanced to track this
+            userSolutionCode: solutionCode,
+          }),
+        });
+
+        if (response.ok) {
+          const result = (await response.json()) as PathCompletionResult;
+          setPathResult(result);
+        }
+      } catch {
+        // Non-blocking — the exercise submission already succeeded
+      }
+    },
+    [pathId, pathExerciseId, exercise.id, attemptId, allFiles, fileContents]
+  );
+
   const handleSubmit = useCallback(async (): Promise<void> => {
     setIsSubmitting(true);
     setResult(null);
     setSubmitError(null);
+    setPathResult(null);
 
     try {
-      // Collect editable files with their current content
       const editableFiles = allFiles
         .filter((f) => f.isEditable)
         .map((f) => ({
@@ -164,16 +221,25 @@ export function ExerciseWorkspace({ exercise, attemptId, draftCode }: ExerciseWo
       });
 
       if (!response.ok) {
-        const errorBody = (await response.json().catch(() => null)) as { error?: string } | null;
-        setSubmitError(errorBody?.error ?? `Submission failed (${response.status})`);
+        const errorBody = await response.json().catch(() => null);
+        const errMsg = errorBody?.error;
+        setSubmitError(
+          typeof errMsg === 'string' ? errMsg : `Submission failed (${response.status})`
+        );
         return;
       }
 
       const data = (await response.json()) as SubmitResponse;
+      const errorMessage =
+        typeof data.error === 'string'
+          ? data.error
+          : data.error
+            ? JSON.stringify(data.error)
+            : undefined;
 
       const sandboxResult: SandboxResult = {
         status: data.error ? 'error' : 'completed',
-        error_message: data.error ?? undefined,
+        error_message: errorMessage,
         tests_passed: data.testsPassed,
         tests_failed: data.testsFailed,
         tests_total: data.testsTotal,
@@ -182,12 +248,17 @@ export function ExerciseWorkspace({ exercise, attemptId, draftCode }: ExerciseWo
       };
 
       setResult(sandboxResult);
+
+      // If this is a path exercise and all tests passed, record completion
+      if (isPathExercise && data.isPassing) {
+        await recordPathCompletion(data);
+      }
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : 'Network error');
     } finally {
       setIsSubmitting(false);
     }
-  }, [allFiles, fileContents, exercise.id, attemptId]);
+  }, [allFiles, fileContents, exercise.id, attemptId, isPathExercise, recordPathCompletion]);
 
   return (
     <>
@@ -195,7 +266,7 @@ export function ExerciseWorkspace({ exercise, attemptId, draftCode }: ExerciseWo
         {/* Top bar */}
         <div className="flex items-center justify-between border-b px-4 py-2">
           <div className="flex items-center gap-3">
-            <Link href="/exercises">
+            <Link href={isPathExercise ? `/paths/${pathId}` : '/exercises'}>
               <Button variant="ghost" size="icon" className="h-8 w-8">
                 <ArrowLeft className="h-4 w-4" />
               </Button>
@@ -243,6 +314,28 @@ export function ExerciseWorkspace({ exercise, attemptId, draftCode }: ExerciseWo
             </Button>
           </div>
         </div>
+
+        {/* Path milestone/completion banner */}
+        {pathResult && (
+          <div
+            className={`px-4 py-3 text-center text-sm font-medium ${
+              pathResult.pathCompleted
+                ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200'
+                : pathResult.milestoneAdvanced
+                  ? 'bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-200'
+                  : 'bg-muted text-muted-foreground'
+            }`}
+          >
+            {pathResult.message}
+            {pathResult.nextAction !== 'continue' && pathId && (
+              <Link href={`/paths/${pathId}`} className="ml-2 underline hover:no-underline">
+                {pathResult.pathCompleted
+                  ? 'View completed path →'
+                  : 'Continue to next milestone →'}
+              </Link>
+            )}
+          </div>
+        )}
 
         {/* Main workspace area */}
         <div className="flex flex-1 overflow-hidden">
