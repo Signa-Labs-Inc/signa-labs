@@ -68,5 +68,6 @@ export type SandboxErrorType =
   | 'timeout'
   | 'configuration_error'
   | 'parse_error'
+  | 'dependency_error'
   | 'runner_error'
   | 'unknown_error';

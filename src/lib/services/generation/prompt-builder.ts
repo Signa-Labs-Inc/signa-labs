@@ -42,6 +42,7 @@ interface LanguageConfig {
   solutionFileName: string;
   testFileName: string;
   importStyle: string;
+  depsFileName: string;
 }
 
 const LANGUAGE_CONFIGS: Record<string, LanguageConfig> = {
@@ -54,6 +55,7 @@ const LANGUAGE_CONFIGS: Record<string, LanguageConfig> = {
     solutionFileName: 'solution.py',
     testFileName: 'test_solution.py',
     importStyle: 'from solution import function_name',
+    depsFileName: 'requirements.txt',
   },
   javascript: {
     displayName: 'JavaScript',
@@ -64,6 +66,7 @@ const LANGUAGE_CONFIGS: Record<string, LanguageConfig> = {
     solutionFileName: 'solution.mjs',
     testFileName: 'solution.test.mjs',
     importStyle: 'import { functionName } from "../submission/solution.mjs"',
+    depsFileName: 'deps.json',
   },
   typescript: {
     displayName: 'TypeScript',
@@ -74,6 +77,7 @@ const LANGUAGE_CONFIGS: Record<string, LanguageConfig> = {
     solutionFileName: 'solution.ts',
     testFileName: 'solution.test.ts',
     importStyle: 'import { functionName } from "../submission/solution"',
+    depsFileName: 'deps.json',
   },
   sql: {
     displayName: 'SQL',
@@ -84,6 +88,7 @@ const LANGUAGE_CONFIGS: Record<string, LanguageConfig> = {
     solutionFileName: 'solution.sql',
     testFileName: 'test_solution.py',
     importStyle: 'open("/workspace/submission/solution.sql").read()',
+    depsFileName: 'requirements.txt',
   },
   go: {
     displayName: 'Go',
@@ -94,6 +99,7 @@ const LANGUAGE_CONFIGS: Record<string, LanguageConfig> = {
     solutionFileName: 'solution.go',
     testFileName: 'solution_test.go',
     importStyle: 'functions are in the same package',
+    depsFileName: '',
   },
 };
 
@@ -124,13 +130,17 @@ ${input.exerciseType ? `**Exercise type:** ${input.exerciseType}` : ''}
 
 ## Sandbox Environment Constraints
 
-IMPORTANT: The exercise runs in an isolated sandbox. If the user's prompt asks for something that requires packages or tools not available in the sandbox, reinterpret it as an exercise that uses only the available tools.
+IMPORTANT: The exercise runs in an isolated sandbox. The sandbox has the language runtime, the test framework, and any framework-specific packages listed below.
 
-The sandbox has the language runtime, the test framework, and any framework-specific packages listed below. It does NOT have:
+The sandbox does NOT have:
 - No browser or real DOM (unless React sandbox is active)
-- No external network access
 - No database servers (SQLite is available for SQL exercises)
 - No file system access beyond the workspace directory
+
+However, if the exercise requires packages beyond what's pre-installed, you may include a dependency file in the supportFiles array:
+- Python: include a "requirements.txt" file with one package per line, version-pinned (e.g. requests==2.31.0)
+- Node.js: include a "deps.json" file with {"dependencies": {"package": "version"}} format (exact versions, no ^ or ~)
+These will be installed automatically before tests run (60-second timeout for installation). Only include packages that are truly needed — prefer using what's already available in the sandbox.
 ${getFrameworkInstructions(input.detectedFramework, input.language)}
 ## Language-Specific Requirements
 
@@ -141,11 +151,19 @@ ${getFrameworkInstructions(input.detectedFramework, input.language)}
 - Test file name: \`${config.testFileName}\`
 - In test files, import from the submission directory: \`${config.importStyle}\`
 - File extensions: \`${config.fileExtension}\`
+${config.depsFileName ? `- Dependency file (if needed): \`${config.depsFileName}\`` : ''}
+
+Note: Meta-frameworks (Next.js, Remix, Nuxt, SvelteKit) cannot run in the sandbox. If the user asks about Next.js concepts, create exercises that test the underlying patterns:
+- "Next.js Server Components" → React component exercises
+- "Next.js API routes" → Express/pure function exercises  
+- "Next.js data fetching" → async function exercises
+- "Next.js middleware" → pure function exercises with Request/Response objects
+Explain in the description that the exercise teaches the pattern used in Next.js.
 
 ## Difficulty Guidelines
 
 ${getDifficultyGuidelines(input.difficulty)}
-${input.pathContext ? `\n## Learning Path Context\n\n${input.pathContext}` : ''}
+${input.pathContext ? `\n${input.pathContext}` : ''}
 
 ## Output Format
 
@@ -176,12 +194,20 @@ Respond with ONLY a JSON object (no markdown fences, no preamble) matching this 
       "fileName": "${config.testFileName}",
       "content": "# Test file using ${config.testFramework}\\n# Import from: ${config.importStyle}"
     }
-  ]
+  ],
+  "supportFiles": []
 }
 
-Note: starterFiles, solutionFiles, and testFiles are ARRAYS and may contain multiple entries for multi-file exercises. Each file needs a unique filePath and fileName. Starter and solution arrays must have matching file paths — every starter file must have a corresponding solution file with the same filePath.
+Note: starterFiles, solutionFiles, testFiles, and supportFiles are ARRAYS and may contain multiple entries for multi-file exercises. Each file needs a unique filePath and fileName. Starter and solution arrays must have matching file paths — every starter file must have a corresponding solution file with the same filePath.
 
 For multi-file exercises, additional files should use descriptive names (e.g. "utils${config.fileExtension}", "models${config.fileExtension}"). Tests import all files from the submission directory using relative paths like: ${config.importStyle.replace('solution', 'filename')}.
+${
+  config.depsFileName
+    ? `
+If the exercise needs packages not already in the sandbox, include a "${config.depsFileName}" in the supportFiles array. Example:
+${config.depsFileName === 'requirements.txt' ? `{"filePath": "requirements.txt", "fileName": "requirements.txt", "content": "requests==2.31.0\\nbeautifulsoup4==4.12.3"}` : `{"filePath": "deps.json", "fileName": "deps.json", "content": "{\\"dependencies\\": {\\"lodash\\": \\"4.17.21\\"}}"}`}`
+    : ''
+}
 
 ## Critical Rules
 
@@ -191,7 +217,7 @@ For multi-file exercises, additional files should use descriptive names (e.g. "u
 4. Include at least 4 test cases covering: basic functionality, edge cases, and error handling.
 5. The description should be clear enough that a developer at the "${input.difficulty}" level can understand what to build.
 6. Do NOT include any text outside the JSON object.
-7. Do NOT use any packages or libraries beyond what is listed as available in the sandbox.
+7. Prefer using packages already available in the sandbox. If the exercise requires additional packages, include a ${config.depsFileName || 'requirements.txt'} in supportFiles with pinned versions.
 8. All code must be testable with the specified test framework.
 9. For multi-file exercises, each starter file must have clear TODO comments and all files must work together with correct imports.
 ${input.retryContext ? getRetryInstructions(input.retryContext) : ''}`;
@@ -232,6 +258,7 @@ function getFrameworkInstructions(framework: string | null | undefined, language
     return `
 Available packages: standard library + ${LANGUAGE_CONFIGS[language]?.testFramework ?? 'test framework'} only.
 All code must be pure functions/classes testable with direct function calls.
+Additional packages can be included via supportFiles if needed.
 `;
   }
 
@@ -258,6 +285,7 @@ Guidelines:
 - Do NOT use CSS-in-JS libraries (styled-components, emotion) — use inline styles or className strings
 - Do NOT import CSS files
 - For multi-file React exercises, each component should be in its own file (e.g. Button.tsx, Card.tsx) and the main file should compose them
+- Additional packages (e.g. react-hook-form, zod) can be included via deps.json in supportFiles
 
 Example test structure:
 \`\`\`
@@ -291,6 +319,7 @@ Guidelines:
 - Do NOT start the server (no app.listen) — supertest handles that
 - Do NOT use database connections — mock data with in-memory objects
 - For multi-file Express exercises, split into routes.ts, middleware.ts, and app.ts
+- Additional packages (e.g. zod, cors) can be included via deps.json in supportFiles
 
 Example test structure:
 \`\`\`
@@ -316,12 +345,7 @@ This exercise uses a Python web sandbox with the following packages available:
 - httpx (for async HTTP testing)
 - pytest
 
-ONLY these packages are available. Do NOT use:
-- No JWT libraries (pyjwt, python-jose)
-- No bcrypt, passlib, or authentication libraries
-- No SQLAlchemy, databases, or ORM libraries
-- No Redis, caching libraries
-- No external packages beyond what is listed above
+Additional packages can be included via requirements.txt in supportFiles if the exercise requires them (e.g. pydantic-settings, python-multipart).
 
 Keep exercises focused on core API concepts:
 - Route handling, request/response patterns
@@ -373,6 +397,8 @@ This exercise uses a data science sandbox with the following packages available:
 - scikit-learn
 - nltk (with punkt_tab, stopwords, averaged_perceptron_tagger_eng, wordnet data downloaded)
 
+Additional packages can be included via requirements.txt in supportFiles if needed (e.g. seaborn, statsmodels, xgboost).
+
 Guidelines:
 - Exercises should focus on data manipulation, analysis, or ML concepts
 - Tests should verify function outputs using numpy.testing or pandas.testing where appropriate
@@ -410,6 +436,8 @@ def test_model_accuracy():
 This exercise uses a bioinformatics sandbox with the following packages available:
 - biopython
 - numpy, pandas
+
+Additional packages can be included via requirements.txt in supportFiles if needed.
 
 Guidelines:
 - Exercises should focus on biological sequence analysis, genomics, or molecular biology concepts
@@ -565,6 +593,7 @@ func TestTwoSum(t *testing.T) {
       return `
 Available packages: standard library + ${LANGUAGE_CONFIGS[language]?.testFramework ?? 'test framework'} only.
 All code must be pure functions/classes testable with direct function calls.
+Additional packages can be included via supportFiles if needed.
 `;
   }
 }
@@ -583,7 +612,7 @@ When generating an exercise:
 - Write thorough tests that cover normal cases, edge cases, and boundary conditions
 - Provide progressive hints that help without spoiling the answer
 - Choose appropriate tags for discoverability
-- Keep all code self-contained with no external dependencies beyond what the sandbox provides
+- Prefer using packages already in the sandbox, but if the exercise requires additional packages, include a dependency file (requirements.txt or deps.json) in supportFiles — they will be installed automatically
 
 IMPORTANT: Match the exercise complexity to the user's prompt and selected difficulty level.
 - If the user says "I want to learn X", create a BEGINNER-FRIENDLY exercise that teaches the basics of X
@@ -625,14 +654,14 @@ function getDifficultyGuidelines(difficulty: string): string {
 - Multiple concepts combined
 - Concise description, user must infer some requirements
 - 8-10 test cases including tricky edge cases
-- IMPORTANT: Exercise must be complex in LOGIC, not in dependencies. Use only the packages available in the sandbox.
+- IMPORTANT: Exercise must be complex in LOGIC, not in dependencies. Use only the packages available in the sandbox unless truly necessary.
 - Use 2-3 files to teach separation of concerns and modular design`;
     case 'expert':
       return `- Advanced algorithms, optimization, or system design concepts
 - Requires deep understanding of the language
 - Minimal description, complex requirements
 - 10+ test cases including performance and stress tests
-- IMPORTANT: Exercise must be complex in LOGIC, not in dependencies. Use only the packages available in the sandbox.
+- IMPORTANT: Exercise must be complex in LOGIC, not in dependencies. Use only the packages available in the sandbox unless truly necessary.
 - Use 2-4 files with clear module boundaries and well-defined interfaces`;
     default:
       return `- Moderate complexity, 2-3 concepts
@@ -656,6 +685,6 @@ Please fix the issues. Make sure:
 - The test assertions match the solution's actual output
 - There are no import errors or syntax issues
 - Test imports use the correct path: import from the submission directory
-- No external packages or dependencies are used beyond what the sandbox provides
+- If using external packages, ensure they are listed in the dependency file (requirements.txt or deps.json) in supportFiles
 - For multi-file exercises, all imports between files are correct`;
 }
