@@ -44,6 +44,10 @@ export const exercises = pgTable(
     difficulty: text().$type<ExerciseDifficulty>().notNull().default('medium'),
     language: text().$type<ExerciseLanguage>().notNull(),
 
+    // Learning content
+    lessonContent: jsonb('lesson_content').default({}),
+    synthesisContent: jsonb('synthesis_content').default({}),
+
     // Hints
     hints: jsonb().$type<string[]>().notNull().default([]),
 
