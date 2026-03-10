@@ -14,6 +14,7 @@ import { useAutoSave } from '@/hooks/use-auto-save';
 import { useTimeTracking } from '@/hooks/use-time-tracking';
 import type { ExerciseDetail } from '@/lib/services/exercises/exercises.types';
 import type { SandboxResult } from '@/lib/sandboxes/types';
+import { LessonPanel } from './lesson-panel';
 
 // ============================================================
 // Constants
@@ -120,6 +121,11 @@ export function ExerciseWorkspace({
     exerciseId: exercise.id,
     attemptId,
   });
+
+  type LeftTab = 'lesson' | 'instructions' | 'hints';
+  const lessonContent = exercise.lessonContent;
+  const hasLesson = Boolean(lessonContent && lessonContent.title && lessonContent.body);
+  const [leftTab, setLeftTab] = useState<LeftTab>(hasLesson ? 'lesson' : 'instructions');
 
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -341,8 +347,56 @@ export function ExerciseWorkspace({
         <div className="flex flex-1 overflow-hidden">
           {/* Left panel: Instructions + Hints */}
           <div className="flex w-[400px] flex-shrink-0 flex-col border-r">
-            <InstructionsPanel description={exercise.description} tags={exercise.tags} />
-            <HintPanel exerciseId={exercise.id} hintCount={exercise.hintCount} />
+            {/* Left panel tabs */}
+            <div className="bg-muted/30 flex items-center border-b px-2">
+              {hasLesson && (
+                <button
+                  onClick={() => setLeftTab('lesson')}
+                  className={`px-3 py-2 text-sm transition-colors ${
+                    leftTab === 'lesson'
+                      ? 'border-foreground text-foreground border-b-2 font-medium'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Lesson
+                </button>
+              )}
+              <button
+                onClick={() => setLeftTab('instructions')}
+                className={`px-3 py-2 text-sm transition-colors ${
+                  leftTab === 'instructions'
+                    ? 'border-foreground text-foreground border-b-2 font-medium'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Instructions
+              </button>
+              <button
+                onClick={() => setLeftTab('hints')}
+                className={`px-3 py-2 text-sm transition-colors ${
+                  leftTab === 'hints'
+                    ? 'border-foreground text-foreground border-b-2 font-medium'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Hints
+              </button>
+            </div>
+
+            {/* Left panel content */}
+            {leftTab === 'lesson' && lessonContent && (
+              <LessonPanel
+                lesson={lessonContent}
+                language={exercise.language}
+                onStartExercise={() => setLeftTab('instructions')}
+              />
+            )}
+            {leftTab === 'instructions' && (
+              <InstructionsPanel description={exercise.description} tags={exercise.tags} />
+            )}
+            {leftTab === 'hints' && (
+              <HintPanel exerciseId={exercise.id} hintCount={exercise.hintCount} />
+            )}
           </div>
 
           {/* Right panel: File tabs + Editor/Preview + Results */}

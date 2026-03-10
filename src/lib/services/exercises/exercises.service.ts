@@ -42,6 +42,8 @@ export async function getExerciseDetail(exerciseId: string): Promise<ExerciseDet
     hintCount: exercise.hints?.length ?? 0,
     starterFiles,
     supportFiles,
+    lessonContent: exercise.lessonContent ?? null,
+    synthesisContent: exercise.synthesisContent ?? null,
   };
 }
 
