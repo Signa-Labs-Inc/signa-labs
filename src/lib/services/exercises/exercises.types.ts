@@ -1,3 +1,4 @@
+import { LessonContent, SynthesisContent } from '../teaching/teaching.types';
 import { ExerciseDifficulty, ExerciseLanguage } from './exercises.constants';
 export type Exercise = {
   id: string;
@@ -9,6 +10,8 @@ export type Exercise = {
   tags: string[] | null;
   hints?: string[] | null;
   environment: ExerciseEnvironment;
+  lessonContent?: LessonContent | null;
+  synthesisContent?: SynthesisContent | null;
 };
 /** Minimal exercise data for catalog listings */
 export type ExerciseSummary = {
@@ -32,6 +35,8 @@ export type ExerciseDetail = {
   environment: ExerciseEnvironment;
   starterFiles: ExerciseFile[];
   supportFiles: ExerciseFile[];
+  lessonContent: LessonContent | null;
+  synthesisContent: SynthesisContent | null;
 };
 /** A single file belonging to an exercise */
 export type ExerciseFile = {

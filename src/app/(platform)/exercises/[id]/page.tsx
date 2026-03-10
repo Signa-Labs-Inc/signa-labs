@@ -36,6 +36,7 @@ export default async function ExerciseWorkspacePage({
       draftCode={draftCode}
       pathId={pathId ?? null}
       pathExerciseId={pathExerciseId ?? null}
+      lessonContent={exercise.lessonContent ?? null}
     />
   );
 }
