@@ -14,7 +14,7 @@ const LLM_MODEL = process.env.GENERATION_LLM_MODEL ?? 'claude-sonnet-4-20250514'
 
 export async function generateExplanation(
   input: GenerateExplanationInput
-): Promise<{ explanation: FailureExplanation; generationTimeMs: number }> {
+): Promise<{ explanation: FailureExplanation; generationTimeMs: number; llmModel: string }> {
   const startTime = Date.now();
   const anthropic = new Anthropic();
 
@@ -65,6 +65,7 @@ export async function generateExplanation(
         severity: 'logic',
       },
       generationTimeMs: Date.now() - startTime,
+      llmModel: LLM_MODEL,
     };
   }
 
@@ -82,6 +83,7 @@ export async function generateExplanation(
   return {
     explanation,
     generationTimeMs: Date.now() - startTime,
+    llmModel: LLM_MODEL,
   };
 }
 

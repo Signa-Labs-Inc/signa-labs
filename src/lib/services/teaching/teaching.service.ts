@@ -10,14 +10,7 @@
 import * as reader from './teaching.reader';
 import * as writer from './teaching.writer';
 import { generateExplanation } from './explanation-generator';
-import { TeachingError } from './teaching.types';
-import type {
-  FailureExplanation,
-  GenerateExplanationInput,
-  ExplanationRecord,
-} from './teaching.types';
-
-const LLM_MODEL = process.env.GENERATION_LLM_MODEL ?? 'claude-sonnet-4-20250514';
+import type { FailureExplanation, GenerateExplanationInput } from './teaching.types';
 
 export class TeachingService {
   /**
@@ -47,7 +40,7 @@ export class TeachingService {
       : null;
 
     // Generate explanation
-    const { explanation, generationTimeMs } = await generateExplanation({
+    const { explanation, generationTimeMs, llmModel } = await generateExplanation({
       ...input,
       attemptNumber,
       previousExplanations,
@@ -61,7 +54,7 @@ export class TeachingService {
       exerciseId: input.exerciseId,
       attemptNumber,
       explanation,
-      llmModel: LLM_MODEL,
+      llmModel,
       generationTimeMs,
     });
 
