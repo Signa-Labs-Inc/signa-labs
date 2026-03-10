@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Sparkles, ArrowRight } from 'lucide-react';
+import { Sparkles, ArrowRight, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -13,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { usePathCreation } from '@/hooks/use-path-creation';
 
 // ============================================================
 // Constants
@@ -60,45 +60,23 @@ export default function NewPathPage() {
   const [prompt, setPrompt] = useState('');
   const [language, setLanguage] = useState('typescript');
   const [level, setLevel] = useState('');
-  const [isCreating, setIsCreating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  const { status, progress, error, result, startCreation } = usePathCreation();
+
+  // Redirect when path is created
+  useEffect(() => {
+    if (result) {
+      router.push(`/paths/${result.pathId}`);
+    }
+  }, [result, router]);
 
   const handleCreate = useCallback(async () => {
     if (!prompt.trim() || !level) return;
+    await startCreation({ prompt: prompt.trim(), language, startingLevel: level });
+  }, [prompt, language, level, startCreation]);
 
-    setIsCreating(true);
-    setError(null);
-
-    try {
-      const response = await fetch('/api/paths', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: prompt.trim(),
-          language,
-          startingLevel: level,
-        }),
-      });
-
-      if (!response.ok) {
-        const body = await response.json().catch(() => null);
-        const errMsg = body?.error;
-        setError(typeof errMsg === 'string' ? errMsg : 'Failed to create learning path');
-        return;
-      }
-
-      const data = (await response.json()) as { pathId?: string };
-      if (!data.pathId || typeof data.pathId !== 'string') {
-        setError('Unexpected response — missing path ID');
-        return;
-      }
-      router.push(`/paths/${data.pathId}`);
-    } catch {
-      setError('Network error — please try again');
-    } finally {
-      setIsCreating(false);
-    }
-  }, [prompt, language, level, router]);
+  const isCreating = status !== 'idle' && status !== 'failed' && status !== 'completed';
+  const isSubmittable = prompt.trim().length >= 10 && !!level && !isCreating;
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-10">
@@ -119,13 +97,11 @@ export default function NewPathPage() {
           <textarea
             id="prompt"
             value={prompt}
-            onChange={(e) => {
-              setPrompt(e.target.value);
-              setError(null);
-            }}
+            onChange={(e) => setPrompt(e.target.value)}
             placeholder="e.g. I want to learn to build React components with Tailwind CSS"
             rows={3}
             maxLength={500}
+            disabled={isCreating}
             className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring mt-2 flex w-full resize-none rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
           />
           <p className="text-muted-foreground mt-1 text-xs">{prompt.length}/500</p>
@@ -149,7 +125,7 @@ export default function NewPathPage() {
         {/* Language */}
         <div>
           <Label className="text-base font-medium">Language</Label>
-          <Select value={language} onValueChange={setLanguage}>
+          <Select value={language} onValueChange={setLanguage} disabled={isCreating}>
             <SelectTrigger className="mt-2">
               <SelectValue />
             </SelectTrigger>
@@ -170,10 +146,8 @@ export default function NewPathPage() {
             {LEVELS.map((l) => (
               <button
                 key={l.value}
-                onClick={() => {
-                  setLevel(l.value);
-                  setError(null);
-                }}
+                onClick={() => setLevel(l.value)}
+                disabled={isCreating}
                 className={`rounded-lg border p-4 text-left transition-colors ${
                   level === l.value
                     ? 'border-primary bg-primary/5 ring-primary/20 ring-1'
@@ -187,24 +161,12 @@ export default function NewPathPage() {
           </div>
         </div>
 
-        {/* Error */}
-        {error && (
-          <div className="bg-destructive/10 text-destructive rounded-lg px-4 py-3 text-sm">
-            {error}
-          </div>
-        )}
-
         {/* Create button */}
-        <Button
-          onClick={handleCreate}
-          disabled={!prompt.trim() || !level || isCreating}
-          className="w-full gap-2"
-          size="lg"
-        >
+        <Button onClick={handleCreate} disabled={!isSubmittable} className="w-full gap-2" size="lg">
           {isCreating ? (
             <>
               <Sparkles className="h-4 w-4 animate-pulse" />
-              Creating your learning path...
+              {progress ?? 'Creating your learning path...'}
             </>
           ) : (
             <>
@@ -214,10 +176,24 @@ export default function NewPathPage() {
           )}
         </Button>
 
-        {isCreating && (
-          <p className="text-muted-foreground text-center text-sm">
-            AI is designing your personalized curriculum. This takes about 10 seconds.
-          </p>
+        {/* Error */}
+        {status === 'failed' && error && (
+          <div className="flex items-start gap-3 rounded-lg border border-red-900/50 bg-red-950/20 p-4">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
+            <div>
+              <p className="text-sm font-medium text-red-300">Path creation failed</p>
+              <p className="mt-1 text-sm text-red-300/80">{error}</p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCreate}
+                className="mt-3"
+                disabled={!prompt.trim() || !level}
+              >
+                Try Again
+              </Button>
+            </div>
+          </div>
         )}
       </div>
     </div>

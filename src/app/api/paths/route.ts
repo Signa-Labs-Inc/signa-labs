@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { tasks } from '@trigger.dev/sdk/v3';
 import { requireCurrentUser } from '@/lib/services/auth/auth.service';
 import { PathService } from '@/lib/services/paths/paths.service';
 import { handleError } from '@/lib/utils/api.handler-errors';
+import type { createPathTask } from '@/trigger/create-path';
+import type { CreatePathInput } from '@/lib/services/paths/paths.types';
 
 const VALID_STARTING_LEVELS = ['beginner', 'some_experience', 'intermediate', 'advanced'];
 
@@ -38,19 +41,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const pathService = new PathService();
-    const result = await pathService.createPath({
+    const handle = await tasks.trigger<typeof createPathTask>('create-path', {
       userId: user.id,
       prompt: body.prompt.trim(),
       language: body.language,
-      startingLevel: body.startingLevel as
-        | 'beginner'
-        | 'some_experience'
-        | 'intermediate'
-        | 'advanced',
+      startingLevel: body.startingLevel as CreatePathInput['startingLevel'],
     });
 
-    return NextResponse.json(result, { status: 201 });
+    return NextResponse.json(
+      { runId: handle.id, publicAccessToken: handle.publicAccessToken },
+      { status: 202 }
+    );
   } catch (error) {
     return handleError(error);
   }

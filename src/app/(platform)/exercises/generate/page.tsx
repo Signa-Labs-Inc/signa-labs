@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sparkles, Code2, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils/helpers';
+import { useGenerationJob } from '@/hooks/use-generation-job';
+import { useState, useCallback } from 'react';
 
 // ============================================================
 // Types
@@ -20,19 +22,6 @@ import { cn } from '@/lib/utils/helpers';
 
 type Language = 'python' | 'javascript' | 'typescript';
 type Difficulty = 'beginner' | 'easy' | 'medium' | 'hard' | 'expert';
-
-type GenerateResponse = {
-  exerciseId: string;
-  attemptId: string;
-  title: string;
-  validationPassed: boolean;
-};
-
-type ErrorResponse = {
-  error: string | { code?: string; message?: string };
-};
-
-type GenerationStatus = 'idle' | 'generating' | 'success' | 'error';
 
 // ============================================================
 // Constants
@@ -61,13 +50,6 @@ const DIFFICULTY_OPTIONS: { value: Difficulty; label: string; description: strin
   { value: 'expert', label: 'Expert', description: 'Complex optimization and design' },
 ];
 
-const STATUS_MESSAGES = {
-  generating: 'Generating your exercise...',
-  validating: 'Running tests to validate the solution...',
-  refining: 'Refining the exercise...',
-  saving: 'Almost ready...',
-};
-
 // ============================================================
 // Component
 // ============================================================
@@ -78,71 +60,26 @@ export default function GenerateExercisePage() {
   const [prompt, setPrompt] = useState<string>('');
   const [language, setLanguage] = useState<Language>('python');
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
-  const [status, setStatus] = useState<GenerationStatus>('idle');
-  const [statusMessage, setStatusMessage] = useState<string>('');
-  const [errorMessage, setErrorMessage] = useState<string>('');
+
+  const { status, progress, error, result, startGeneration } = useGenerationJob();
+
+  // Redirect when exercise is ready
+  useEffect(() => {
+    if (result) {
+      router.push(`/exercises/${result.exerciseId}`);
+    }
+  }, [result, router]);
 
   const handleGenerate = useCallback(async (): Promise<void> => {
-    setStatus('generating');
-    setStatusMessage(STATUS_MESSAGES.generating);
-    setErrorMessage('');
-
-    try {
-      // Progress messaging — timings reflect actual generation phases
-      const progressTimer = setTimeout(() => {
-        setStatusMessage(STATUS_MESSAGES.validating);
-      }, 15000);
-
-      const refiningTimer = setTimeout(() => {
-        setStatusMessage(STATUS_MESSAGES.refining);
-      }, 40000);
-
-      const savingTimer = setTimeout(() => {
-        setStatusMessage(STATUS_MESSAGES.saving);
-      }, 80000);
-
-      const response = await fetch('/api/exercises/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, language, difficulty }),
-      });
-
-      clearTimeout(progressTimer);
-      clearTimeout(refiningTimer);
-      clearTimeout(savingTimer);
-
-      if (!response.ok) {
-        const errorBody = (await response.json().catch(() => null)) as ErrorResponse | null;
-        const rawError = errorBody?.error;
-        const message =
-          typeof rawError === 'string'
-            ? rawError
-            : (rawError?.message ?? rawError?.code ?? `Generation failed (${response.status})`);
-        setStatus('error');
-        setErrorMessage(message);
-        return;
-      }
-
-      const data = (await response.json()) as GenerateResponse;
-
-      setStatus('success');
-      setStatusMessage(`Created: ${data.title}`);
-
-      // Redirect to the exercise workspace
-      setTimeout(() => {
-        router.push(`/exercises/${data.exerciseId}`);
-      }, 500);
-    } catch (err) {
-      setStatus('error');
-      setErrorMessage(err instanceof Error ? err.message : 'Network error');
-    }
-  }, [prompt, language, difficulty, router]);
+    await startGeneration({ prompt, language, difficulty });
+  }, [prompt, language, difficulty, startGeneration]);
 
   const handleExampleClick = useCallback((example: string): void => {
     setPrompt(example);
   }, []);
 
-  const isSubmittable = prompt.trim().length >= 10 && status !== 'generating';
+  const isGenerating = status !== 'idle' && status !== 'failed' && status !== 'completed';
+  const isSubmittable = prompt.trim().length >= 10 && !isGenerating;
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-12">
@@ -171,7 +108,7 @@ export default function GenerateExercisePage() {
             placeholder="e.g. Build a function that flattens a deeply nested array"
             rows={4}
             maxLength={2000}
-            disabled={status === 'generating'}
+            disabled={isGenerating}
             className="resize-none"
           />
           <div className="flex items-center justify-between">
@@ -189,7 +126,7 @@ export default function GenerateExercisePage() {
             <Select
               value={language}
               onValueChange={(v) => setLanguage(v as Language)}
-              disabled={status === 'generating'}
+              disabled={isGenerating}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -209,7 +146,7 @@ export default function GenerateExercisePage() {
             <Select
               value={difficulty}
               onValueChange={(v) => setDifficulty(v as Difficulty)}
-              disabled={status === 'generating'}
+              disabled={isGenerating}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -232,10 +169,10 @@ export default function GenerateExercisePage() {
           className="w-full gap-2"
           size="lg"
         >
-          {status === 'generating' ? (
+          {isGenerating ? (
             <>
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-              {statusMessage}
+              {progress ?? 'Generating...'}
             </>
           ) : (
             <>
@@ -245,19 +182,36 @@ export default function GenerateExercisePage() {
           )}
         </Button>
 
+        {/* Progress steps */}
+        {isGenerating && (
+          <div className="text-muted-foreground flex items-center justify-center gap-6 text-xs">
+            <Step
+              label="Queued"
+              active={status === 'queued' || status === 'submitting'}
+              done={status === 'generating' || status === 'validating'}
+            />
+            <Step
+              label="Generating"
+              active={status === 'generating'}
+              done={status === 'validating'}
+            />
+            <Step label="Validating" active={status === 'validating'} done={false} />
+          </div>
+        )}
+
         {/* Error state */}
-        {status === 'error' && (
+        {status === 'failed' && error && (
           <div className="flex items-start gap-3 rounded-lg border border-red-900/50 bg-red-950/20 p-4">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
             <div>
               <p className="text-sm font-medium text-red-300">Generation failed</p>
-              <p className="mt-1 text-sm text-red-300/80">{errorMessage}</p>
+              <p className="mt-1 text-sm text-red-300/80">{error}</p>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleGenerate}
                 className="mt-3"
-                disabled={!isSubmittable}
+                disabled={prompt.trim().length < 10}
               >
                 Try Again
               </Button>
@@ -276,7 +230,7 @@ export default function GenerateExercisePage() {
               <button
                 key={example}
                 onClick={() => handleExampleClick(example)}
-                disabled={status === 'generating'}
+                disabled={isGenerating}
                 className={cn(
                   'rounded-full border px-3 py-1.5 text-xs transition-colors',
                   'text-muted-foreground hover:text-foreground hover:border-foreground/30',
@@ -290,6 +244,26 @@ export default function GenerateExercisePage() {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ============================================================
+// Step indicator
+// ============================================================
+
+function Step({ label, active, done }: { label: string; active: boolean; done: boolean }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <div
+        className={cn(
+          'h-2 w-2 rounded-full transition-colors',
+          done ? 'bg-emerald-500' : active ? 'bg-primary animate-pulse' : 'bg-muted-foreground/30'
+        )}
+      />
+      <span className={cn(done ? 'text-emerald-500' : active ? 'text-foreground' : '')}>
+        {label}
+      </span>
     </div>
   );
 }

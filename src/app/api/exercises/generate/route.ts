@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { tasks } from '@trigger.dev/sdk/v3';
 import { requireCurrentUser } from '@/lib/services/auth/auth.service';
 import { handleError } from '@/lib/utils/api.handler-errors';
-import { ExerciseGenerationService } from '@/lib/services/generation/generation.service';
+import type { generateExerciseTask } from '@/trigger/generate-exercise';
 import type { GenerateExerciseInput } from '@/lib/services/generation/generation.types';
 
 interface GenerateRequestBody {
@@ -67,17 +68,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const service = new ExerciseGenerationService();
-    const result = await service.generateExercise({
+    // Trigger the background task — returns immediately
+    const handle = await tasks.trigger<typeof generateExerciseTask>('generate-exercise', {
       userId: user.id,
-      userPrompt: body.prompt,
+      userPrompt: body.prompt.trim(),
       language: body.language as GenerateExerciseInput['language'],
       difficulty:
         (body.difficulty as 'beginner' | 'easy' | 'medium' | 'hard' | 'expert') ?? undefined,
       exerciseType: body.exerciseType as GenerateExerciseInput['exerciseType'],
     });
 
-    return NextResponse.json(result);
+    return NextResponse.json(
+      {
+        runId: handle.id,
+        publicAccessToken: handle.publicAccessToken,
+      },
+      { status: 202 }
+    );
   } catch (error) {
     return handleError(error);
   }

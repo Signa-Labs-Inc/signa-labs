@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { usePathExercise } from '@/hooks/use-path-exercise';
 import type { PathProgress, MilestoneProgress } from '@/lib/services/paths/paths.types';
 
 // ============================================================
@@ -52,40 +53,33 @@ type PathDashboardProps = {
 
 export function PathDashboard({ progress }: PathDashboardProps) {
   const router = useRouter();
-  const [isLoadingExercise, setIsLoadingExercise] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleContinue = useCallback(async () => {
-    setIsLoadingExercise(true);
-    setError(null);
+  const {
+    status: exerciseStatus,
+    progress: exerciseProgress,
+    error: exerciseError,
+    result: exerciseResult,
+    generateNext,
+  } = usePathExercise();
 
-    try {
-      const response = await fetch(`/api/paths/${progress.id}/next`, {
-        method: 'POST',
-      });
-
-      if (!response.ok) {
-        const body = await response.json().catch(() => null);
-        const errMsg = body?.error;
-        setError(typeof errMsg === 'string' ? errMsg : 'Failed to generate exercise');
-        return;
-      }
-
-      const data = (await response.json()) as {
-        exerciseId: string;
-        pathExerciseId: string;
-      };
-
+  // Redirect when exercise is ready
+  useEffect(() => {
+    if (exerciseResult) {
       router.push(
-        `/exercises/${data.exerciseId}?pathId=${progress.id}&pathExerciseId=${data.pathExerciseId}`
+        `/exercises/${exerciseResult.exerciseId}?pathId=${progress.id}&pathExerciseId=${exerciseResult.pathExerciseId}`
       );
-    } catch {
-      setError('Network error');
-    } finally {
-      setIsLoadingExercise(false);
     }
-  }, [progress.id, router]);
+  }, [exerciseResult, progress.id, router]);
+
+  const isLoadingExercise =
+    exerciseStatus !== 'idle' && exerciseStatus !== 'failed' && exerciseStatus !== 'completed';
+
+  const handleContinue = useCallback(async () => {
+    setError(null);
+    await generateNext(progress.id);
+  }, [progress.id, generateNext]);
 
   const handlePause = useCallback(async () => {
     setIsUpdating(true);
@@ -189,7 +183,9 @@ export function PathDashboard({ progress }: PathDashboardProps) {
       </div>
 
       {/* Error message */}
-      {error && <p className="text-destructive mb-4 text-center text-sm">{error}</p>}
+      {(error || exerciseError) && (
+        <p className="text-destructive mb-4 text-center text-sm">{error || exerciseError}</p>
+      )}
 
       {/* Continue button */}
       {isActive && (
@@ -203,7 +199,7 @@ export function PathDashboard({ progress }: PathDashboardProps) {
             {isLoadingExercise ? (
               <>
                 <Sparkles className="h-4 w-4 animate-pulse" />
-                Generating your next exercise...
+                {exerciseProgress ?? 'Generating your next exercise...'}
               </>
             ) : (
               <>

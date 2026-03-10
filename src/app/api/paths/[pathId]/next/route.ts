@@ -1,21 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { tasks } from '@trigger.dev/sdk/v3';
 import { requireCurrentUser } from '@/lib/services/auth/auth.service';
-import { PathService } from '@/lib/services/paths/paths.service';
 import { handleError } from '@/lib/utils/api.handler-errors';
+import type { generatePathExerciseTask } from '@/trigger/generate-path-exercise';
 
 interface RouteParams {
   params: Promise<{ pathId: string }>;
 }
 
-export async function POST(request: NextRequest, { params }: RouteParams) {
+export async function POST(_request: NextRequest, { params }: RouteParams) {
   try {
     const user = await requireCurrentUser();
     const { pathId } = await params;
 
-    const pathService = new PathService();
-    const result = await pathService.getNextExercise(pathId, user.id);
+    const handle = await tasks.trigger<typeof generatePathExerciseTask>('generate-path-exercise', {
+      pathId,
+      userId: user.id,
+    });
 
-    return NextResponse.json(result);
+    return NextResponse.json(
+      { runId: handle.id, publicAccessToken: handle.publicAccessToken },
+      { status: 202 }
+    );
   } catch (error) {
     return handleError(error);
   }
