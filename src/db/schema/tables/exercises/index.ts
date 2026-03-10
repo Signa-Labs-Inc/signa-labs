@@ -18,6 +18,7 @@ import type {
   ExerciseLanguage,
   ExerciseOrigin,
 } from '@/lib/services/exercises/exercises.constants';
+import type { LessonContent, SynthesisContent } from '@/lib/services/teaching/teaching.types';
 
 export const exercises = pgTable(
   'exercises',
@@ -45,8 +46,8 @@ export const exercises = pgTable(
     language: text().$type<ExerciseLanguage>().notNull(),
 
     // Learning content
-    lessonContent: jsonb('lesson_content').default({}),
-    synthesisContent: jsonb('synthesis_content').default({}),
+    lessonContent: jsonb('lesson_content').$type<LessonContent>(),
+    synthesisContent: jsonb('synthesis_content').$type<SynthesisContent>(),
 
     // Hints
     hints: jsonb().$type<string[]>().notNull().default([]),
