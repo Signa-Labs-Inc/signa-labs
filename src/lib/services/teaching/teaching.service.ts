@@ -35,9 +35,7 @@ export class TeachingService {
 
     // Get lesson title if available
     const lessonContent = await reader.getLessonContent(input.exerciseId);
-    const lessonTitle = lessonContent
-      ? ((lessonContent as { title?: string }).title ?? null)
-      : null;
+    const lessonTitle = lessonContent?.title ?? null;
 
     // Generate explanation
     const { explanation, generationTimeMs, llmModel } = await generateExplanation({

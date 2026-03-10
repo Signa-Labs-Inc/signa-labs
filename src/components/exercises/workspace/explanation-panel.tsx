@@ -8,7 +8,7 @@ import type { FailureExplanation } from '@/lib/services/teaching/teaching.types'
 // ============================================================
 
 type ExplanationPanelProps = {
-  explanation: FailureExplanation;
+  explanation: FailureExplanation | null;
   isLoading?: boolean;
   onViewLesson?: () => void;
 };
@@ -55,6 +55,8 @@ export function ExplanationPanel({ explanation, isLoading, onViewLesson }: Expla
       </div>
     );
   }
+
+  if (!explanation) return null;
 
   const severity = SEVERITY_CONFIG[explanation.severity] ?? SEVERITY_CONFIG.logic;
   const SeverityIcon = severity.icon;

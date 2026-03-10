@@ -4,7 +4,7 @@
  * Database reads for the teaching layer.
  */
 
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, sql } from 'drizzle-orm';
 import { db } from '@/index';
 import { submissionExplanations } from '@/db/schema/tables/submission_explanations';
 import { exercises } from '@/db/schema/tables/exercises';
@@ -51,8 +51,8 @@ export async function getPreviousExplanations(
  * This is the attempt number for progressive hinting.
  */
 export async function getExplanationCount(userId: string, exerciseId: string): Promise<number> {
-  const results = await db
-    .select({ id: submissionExplanations.id })
+  const [result] = await db
+    .select({ count: sql<number>`count(*)::int` })
     .from(submissionExplanations)
     .where(
       and(
@@ -61,7 +61,7 @@ export async function getExplanationCount(userId: string, exerciseId: string): P
       )
     );
 
-  return results.length;
+  return result?.count ?? 0;
 }
 
 /**

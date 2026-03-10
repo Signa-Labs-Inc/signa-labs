@@ -208,6 +208,51 @@ export function ExerciseWorkspace({
     [pathId, pathExerciseId, exercise.id, attemptId, allFiles, fileContents]
   );
 
+  const fetchExplanation = useCallback(
+    async (submissionData: SubmitResponse) => {
+      if (submissionData.isPassing) return;
+
+      setIsExplaining(true);
+      setExplanation(null);
+
+      try {
+        const solutionCode = allFiles
+          .filter((f) => f.isEditable)
+          .map((f) => `// ${f.filePath}\n${fileContents[f.id] ?? f.content}`)
+          .join('\n\n');
+
+        const response = await fetch(`/api/exercises/${exercise.id}/explain`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            submissionId: submissionData.submissionId,
+            exerciseTitle: exercise.title,
+            exerciseDescription: exercise.description,
+            exerciseDifficulty: exercise.difficulty,
+            userCode: solutionCode,
+            testsPassed: submissionData.testsPassed,
+            testsTotal: submissionData.testsTotal,
+            testResults: submissionData.results.map((r) => ({
+              name: r.name,
+              passed: r.passed,
+              error: r.error,
+            })),
+          }),
+        });
+
+        if (response.ok) {
+          const data = (await response.json()) as { explanation: FailureExplanation };
+          setExplanation(data.explanation);
+        }
+      } catch {
+        // Non-blocking — test results are still visible
+      } finally {
+        setIsExplaining(false);
+      }
+    },
+    [allFiles, fileContents, exercise]
+  );
+
   const handleSubmit = useCallback(async (): Promise<void> => {
     setIsSubmitting(true);
     setResult(null);
@@ -261,7 +306,6 @@ export function ExerciseWorkspace({
       };
 
       setResult(sandboxResult);
-      //   // Fetch AI explanation for failed submissions
       if (!data.isPassing) {
         fetchExplanation(data);
       } else {
@@ -277,52 +321,15 @@ export function ExerciseWorkspace({
     } finally {
       setIsSubmitting(false);
     }
-  }, [allFiles, fileContents, exercise.id, attemptId, isPathExercise, recordPathCompletion]);
-
-  const fetchExplanation = useCallback(
-    async (submissionData: SubmitResponse) => {
-      if (submissionData.isPassing) return;
-
-      setIsExplaining(true);
-      setExplanation(null);
-
-      try {
-        const solutionCode = allFiles
-          .filter((f) => f.isEditable)
-          .map((f) => `// ${f.filePath}\n${fileContents[f.id] ?? f.content}`)
-          .join('\n\n');
-
-        const response = await fetch(`/api/exercises/${exercise.id}/explain`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            submissionId: submissionData.submissionId,
-            exerciseTitle: exercise.title,
-            exerciseDescription: exercise.description,
-            exerciseDifficulty: exercise.difficulty,
-            userCode: solutionCode,
-            testsPassed: submissionData.testsPassed,
-            testsTotal: submissionData.testsTotal,
-            testResults: submissionData.results.map((r) => ({
-              name: r.name,
-              passed: r.passed,
-              error: r.error,
-            })),
-          }),
-        });
-
-        if (response.ok) {
-          const data = (await response.json()) as { explanation: FailureExplanation };
-          setExplanation(data.explanation);
-        }
-      } catch {
-        // Non-blocking — test results are still visible
-      } finally {
-        setIsExplaining(false);
-      }
-    },
-    [allFiles, fileContents, exercise]
-  );
+  }, [
+    allFiles,
+    fileContents,
+    exercise.id,
+    attemptId,
+    isPathExercise,
+    recordPathCompletion,
+    fetchExplanation,
+  ]);
 
   return (
     <>
@@ -524,7 +531,7 @@ export function ExerciseWorkspace({
               <ResultsPanel result={result} isSubmitting={isSubmitting} error={submitError} />
               {(explanation || isExplaining) && (
                 <ExplanationPanel
-                  explanation={explanation!}
+                  explanation={explanation}
                   isLoading={isExplaining}
                   onViewLesson={lessonContent ? () => setLeftTab('lesson') : undefined}
                 />
