@@ -87,26 +87,18 @@ export interface ExplanationRecord {
 // Errors
 // ============================================================
 
-export class TeachingError extends Error {
-  code: string;
+import { AppError } from '@/lib/utils/errors';
 
+const teachingStatusMap: Record<string, number> = {
+  EXERCISE_NOT_FOUND: 404,
+  SUBMISSION_NOT_FOUND: 404,
+  ALREADY_PASSING: 400,
+  EXPLANATION_GENERATION_FAILED: 500,
+};
+
+export class TeachingError extends AppError {
   constructor(code: string, message: string) {
-    super(message);
-    this.code = code;
+    super(message, code, teachingStatusMap[code] ?? 500);
     this.name = 'TeachingError';
-  }
-
-  get httpStatus(): number {
-    switch (this.code) {
-      case 'EXERCISE_NOT_FOUND':
-      case 'SUBMISSION_NOT_FOUND':
-        return 404;
-      case 'EXPLANATION_GENERATION_FAILED':
-        return 500;
-      case 'ALREADY_PASSING':
-        return 400;
-      default:
-        return 500;
-    }
   }
 }
