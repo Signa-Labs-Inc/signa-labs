@@ -36,6 +36,10 @@ import { SubmissionService } from '../submissions/submissions.service';
 import { assessSkills } from './skill-assessor';
 import { ExerciseGenerationService } from '../generation/generation.service';
 import type { GenerateExerciseInput } from '../generation/generation.types';
+import { enrichSynthesisWithPathContext } from './teaching-integration';
+import * as exerciseReader from '../exercises/exercises.reader';
+import * as exerciseWriter from '../exercises/exercises.writer';
+import type { SynthesisContent } from '../teaching/teaching.types';
 
 const LLM_MODEL = process.env.GENERATION_LLM_MODEL ?? 'claude-sonnet-4-20250514';
 
@@ -539,19 +543,41 @@ export class PathService {
     // 5. Check if milestone should advance
     const { advance, reasoning } = await this.shouldAdvanceMilestone(input.pathId, milestone.id);
 
+    let milestoneAdvanced = false;
+    let pathCompleted = false;
+
     if (advance) {
-      const { pathCompleted } = await this.advanceMilestone(input.pathId);
+      const result = await this.advanceMilestone(input.pathId);
+      milestoneAdvanced = true;
+      pathCompleted = result.pathCompleted;
+    }
 
-      if (pathCompleted) {
-        return {
-          milestoneAdvanced: true,
-          pathCompleted: true,
-          skillsAssessed: skillAssessments,
-          nextAction: 'path_complete',
-          message: `Congratulations! You've completed "${path.title}"!`,
-        };
+    // 5.5 Enrich synthesis with path context (after milestone transition
+    // so nextPreview reflects the post-advance state)
+    const exerciseRecord = await exerciseReader.getExerciseById(input.exerciseId);
+    if (exerciseRecord?.synthesisContent) {
+      const enrichedSynthesis = await enrichSynthesisWithPathContext(
+        exerciseRecord.synthesisContent as SynthesisContent,
+        input.pathId,
+        milestone.id
+      );
+
+      if (enrichedSynthesis) {
+        await exerciseWriter.updateExerciseSynthesis(input.exerciseId, enrichedSynthesis);
       }
+    }
 
+    if (pathCompleted) {
+      return {
+        milestoneAdvanced: true,
+        pathCompleted: true,
+        skillsAssessed: skillAssessments,
+        nextAction: 'path_complete',
+        message: `Congratulations! You've completed "${path.title}"!`,
+      };
+    }
+
+    if (milestoneAdvanced) {
       return {
         milestoneAdvanced: true,
         pathCompleted: false,
