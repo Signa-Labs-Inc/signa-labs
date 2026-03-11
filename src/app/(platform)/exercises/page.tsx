@@ -35,7 +35,7 @@ export default async function ExercisesPage({ searchParams }: { searchParams: Se
   ]);
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-10">
+    <div className="animate-fade-in mx-auto max-w-6xl px-6 py-10">
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Exercises</h1>

@@ -26,7 +26,7 @@ export default async function PathsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-10">
+    <div className="animate-fade-in mx-auto max-w-4xl px-6 py-10">
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Learning Paths</h1>

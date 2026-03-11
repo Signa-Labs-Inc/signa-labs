@@ -37,7 +37,7 @@ export function PathCard({ path }: PathCardProps) {
   return (
     <Link
       href={`/paths/${path.id}`}
-      className="group bg-card hover:border-foreground/20 block rounded-xl border p-5 transition-colors"
+      className="group bg-card hover:border-foreground/20 hover:-translate-y-0.5 hover:shadow-md block rounded-xl border p-5 transition-all duration-200"
     >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
