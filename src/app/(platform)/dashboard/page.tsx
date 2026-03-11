@@ -34,7 +34,7 @@ export default async function DashboardPage() {
   const completedPaths = paths.filter((p) => p.status === 'completed');
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-10">
+    <div className="animate-fade-in mx-auto max-w-5xl px-6 py-10">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>

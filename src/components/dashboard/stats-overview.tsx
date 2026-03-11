@@ -16,36 +16,44 @@ function formatTime(seconds: number): string {
 export function StatsOverview({ stats }: StatsOverviewProps) {
   return (
     <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-      <StatCard
-        icon={<Trophy className="h-5 w-5" />}
-        iconBg="bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400"
-        label="Completed"
-        value={stats.totalExercisesCompleted}
-        subtitle={`of ${stats.totalExercisesAttempted} attempted`}
-      />
-      <StatCard
-        icon={<Flame className="h-5 w-5" />}
-        iconBg="bg-orange-100 text-orange-600 dark:bg-orange-950 dark:text-orange-400"
-        label="Current Streak"
-        value={stats.currentStreakDays}
-        subtitle={stats.currentStreakDays === 1 ? 'day' : 'days'}
-        highlight={stats.currentStreakDays >= 7}
-      />
-      <StatCard
-        icon={<Target className="h-5 w-5" />}
-        iconBg="bg-indigo-100 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400"
-        label="Longest Streak"
-        value={stats.longestStreakDays}
-        subtitle={stats.longestStreakDays === 1 ? 'day' : 'days'}
-      />
-      <StatCard
-        icon={<Clock className="h-5 w-5" />}
-        iconBg="bg-sky-100 text-sky-600 dark:bg-sky-950 dark:text-sky-400"
-        label="Practice Time"
-        value={formatTime(stats.totalTimeSpentSeconds)}
-        subtitle="total"
-        isStringValue
-      />
+      <div className="animate-fade-in" style={{ animationDelay: '0ms' }}>
+        <StatCard
+          icon={<Trophy className="h-5 w-5" />}
+          iconBg="bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400"
+          label="Completed"
+          value={stats.totalExercisesCompleted}
+          subtitle={`of ${stats.totalExercisesAttempted} attempted`}
+        />
+      </div>
+      <div className="animate-fade-in" style={{ animationDelay: '80ms' }}>
+        <StatCard
+          icon={<Flame className="h-5 w-5" />}
+          iconBg="bg-orange-100 text-orange-600 dark:bg-orange-950 dark:text-orange-400"
+          label="Current Streak"
+          value={stats.currentStreakDays}
+          subtitle={stats.currentStreakDays === 1 ? 'day' : 'days'}
+          highlight={stats.currentStreakDays >= 7}
+        />
+      </div>
+      <div className="animate-fade-in" style={{ animationDelay: '160ms' }}>
+        <StatCard
+          icon={<Target className="h-5 w-5" />}
+          iconBg="bg-indigo-100 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400"
+          label="Longest Streak"
+          value={stats.longestStreakDays}
+          subtitle={stats.longestStreakDays === 1 ? 'day' : 'days'}
+        />
+      </div>
+      <div className="animate-fade-in" style={{ animationDelay: '240ms' }}>
+        <StatCard
+          icon={<Clock className="h-5 w-5" />}
+          iconBg="bg-sky-100 text-sky-600 dark:bg-sky-950 dark:text-sky-400"
+          label="Practice Time"
+          value={formatTime(stats.totalTimeSpentSeconds)}
+          subtitle="total"
+          isStringValue
+        />
+      </div>
     </div>
   );
 }
