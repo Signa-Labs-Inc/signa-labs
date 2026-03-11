@@ -40,7 +40,7 @@ export function ExerciseCard({ exercise }: { exercise: ExerciseSummary }) {
 
   return (
     <Link href={`/exercises/${exercise.id}`}>
-      <Card className="hover:border-foreground/20 h-full transition-colors">
+      <Card className="hover:border-foreground/20 hover:-translate-y-0.5 hover:shadow-md h-full transition-all duration-200">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between gap-2">
             <Badge variant="outline" className={DIFFICULTY_COLORS[exercise.difficulty] ?? ''}>

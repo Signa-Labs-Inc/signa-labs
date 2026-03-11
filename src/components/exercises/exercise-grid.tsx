@@ -18,8 +18,10 @@ export function ExerciseGrid({ exercises }: ExerciseGridProps) {
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {exercises.map((exercise) => (
-        <ExerciseCard key={exercise.id} exercise={exercise} />
+      {exercises.map((exercise, index) => (
+        <div key={exercise.id} className="animate-fade-in" style={{ animationDelay: `${index * 60}ms` }}>
+          <ExerciseCard exercise={exercise} />
+        </div>
       ))}
     </div>
   );

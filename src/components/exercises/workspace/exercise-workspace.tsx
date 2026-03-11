@@ -352,7 +352,7 @@ export function ExerciseWorkspace({
 
   return (
     <>
-      <div className="flex h-[calc(100vh-64px)] flex-col">
+      <div className="flex h-full flex-col">
         {/* Top bar */}
         <div className="flex items-center justify-between border-b px-4 py-2">
           <div className="flex items-center gap-3">
