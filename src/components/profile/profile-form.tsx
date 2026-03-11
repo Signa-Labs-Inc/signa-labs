@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import type {
   UserProfile,
   UserPreferences,
@@ -31,6 +32,10 @@ type FormState = {
   bio: string;
   preferredCodingLanguage: string;
   editorTheme: string;
+  editorFontSize: number;
+  dailyGoalMinutes: number;
+  emailNotifications: boolean;
+  streakReminders: boolean;
 };
 
 // ============================================================
@@ -50,6 +55,17 @@ const EDITOR_THEMES = [
   { value: 'light', label: 'Light' },
 ];
 
+const FONT_SIZES = [12, 13, 14, 15, 16, 18, 20, 22, 24];
+
+const DAILY_GOAL_OPTIONS = [
+  { value: 15, label: '15 minutes' },
+  { value: 30, label: '30 minutes' },
+  { value: 45, label: '45 minutes' },
+  { value: 60, label: '1 hour' },
+  { value: 90, label: '1.5 hours' },
+  { value: 120, label: '2 hours' },
+];
+
 // ============================================================
 // Component
 // ============================================================
@@ -63,17 +79,24 @@ export function ProfileForm({ profile, userEmail }: ProfileFormProps) {
     bio: profile?.bio ?? '',
     preferredCodingLanguage: prefs.preferred_coding_language ?? 'python',
     editorTheme: prefs.editor_theme ?? 'dark',
+    editorFontSize: prefs.editor_font_size ?? 14,
+    dailyGoalMinutes: prefs.daily_goal_minutes ?? 30,
+    emailNotifications: prefs.email_notifications ?? true,
+    streakReminders: prefs.streak_reminders ?? true,
   });
 
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const updateField = useCallback((field: keyof FormState, value: string) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-    setSaveMessage(null);
-    setErrorMessage(null);
-  }, []);
+  const updateField = useCallback(
+    (field: keyof FormState, value: string | number | boolean) => {
+      setForm((prev) => ({ ...prev, [field]: value }));
+      setSaveMessage(null);
+      setErrorMessage(null);
+    },
+    []
+  );
 
   const handleSave = useCallback(async () => {
     setIsSaving(true);
@@ -91,6 +114,10 @@ export function ProfileForm({ profile, userEmail }: ProfileFormProps) {
           preferences: {
             preferred_coding_language: form.preferredCodingLanguage,
             editor_theme: form.editorTheme,
+            editor_font_size: form.editorFontSize,
+            daily_goal_minutes: form.dailyGoalMinutes,
+            email_notifications: form.emailNotifications,
+            streak_reminders: form.streakReminders,
           },
         }),
       });
@@ -166,9 +193,9 @@ export function ProfileForm({ profile, userEmail }: ProfileFormProps) {
         </div>
       </section>
 
-      {/* Preferences Section */}
-      <section>
-        <h2 className="mb-4 text-lg font-semibold">Preferences</h2>
+      {/* Coding Preferences Section */}
+      <section className="border-t pt-6 mt-6">
+        <h2 className="mb-4 text-lg font-semibold">Coding Preferences</h2>
         <div className="max-w-md space-y-4">
           <div>
             <Label>Preferred Coding Language</Label>
@@ -209,6 +236,81 @@ export function ProfileForm({ profile, userEmail }: ProfileFormProps) {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div>
+            <Label>Editor Font Size</Label>
+            <Select
+              value={String(form.editorFontSize)}
+              onValueChange={(value) => updateField('editorFontSize', Number(value))}
+            >
+              <SelectTrigger className="mt-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {FONT_SIZES.map((size) => (
+                  <SelectItem key={size} value={String(size)}>
+                    {size}px
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </section>
+
+      {/* Goals & Notifications Section */}
+      <section className="border-t pt-6 mt-6">
+        <h2 className="mb-4 text-lg font-semibold">Goals & Notifications</h2>
+        <div className="max-w-md space-y-4">
+          <div>
+            <Label>Daily Goal</Label>
+            <Select
+              value={String(form.dailyGoalMinutes)}
+              onValueChange={(value) => updateField('dailyGoalMinutes', Number(value))}
+            >
+              <SelectTrigger className="mt-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {DAILY_GOAL_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={String(option.value)}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-muted-foreground mt-1 text-xs">
+              How much time you want to spend coding each day
+            </p>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <Label htmlFor="emailNotifications">Email Notifications</Label>
+              <p className="text-muted-foreground text-xs">
+                Receive updates about your progress via email
+              </p>
+            </div>
+            <Switch
+              id="emailNotifications"
+              checked={form.emailNotifications}
+              onCheckedChange={(checked: boolean) => updateField('emailNotifications', checked)}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <Label htmlFor="streakReminders">Streak Reminders</Label>
+              <p className="text-muted-foreground text-xs">
+                Get reminded to keep your coding streak alive
+              </p>
+            </div>
+            <Switch
+              id="streakReminders"
+              checked={form.streakReminders}
+              onCheckedChange={(checked: boolean) => updateField('streakReminders', checked)}
+            />
           </div>
         </div>
       </section>
