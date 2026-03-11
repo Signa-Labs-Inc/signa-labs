@@ -574,7 +574,11 @@ export function ExerciseWorkspace({
                 <SynthesisPanel
                   synthesis={synthesisContent}
                   pathId={pathId}
-                  onNextExercise={pathId ? () => router.push(`/paths/${pathId}`) : undefined}
+                  onNextExercise={
+                    pathId && pathResult?.nextAction === 'continue'
+                      ? () => router.push(`/paths/${pathId}`)
+                      : undefined
+                  }
                   onViewPaths={!pathId ? () => router.push('/paths/new') : undefined}
                 />
               )}
