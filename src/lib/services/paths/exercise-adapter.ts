@@ -17,6 +17,7 @@ import type {
   RecentExercisePerformance,
   ExerciseGenerationContext,
 } from './paths.types';
+import { buildLessonPathContext } from './teaching-integration';
 
 // ============================================================
 // Performance analysis
@@ -223,7 +224,15 @@ export function buildPathContext(input: {
 - Hints used: ${prevExercise.hintsUsed}`;
   }
 
-  return `
+  const lessonContext = buildLessonPathContext({
+    milestoneTitle: input.milestoneTitle,
+    milestoneDescription: input.milestoneDescription,
+    milestoneSkills: input.milestoneSkills,
+    targetSkills: input.targetSkills,
+    performance: input.performance,
+    exerciseIndex: input.exerciseIndex,
+  });
+  const learningContext = `
 ## Learning Path Context
 
 This exercise is part of a structured learning path. It should feel like a natural next step in the user's journey, not a random problem.
@@ -249,6 +258,7 @@ ${previousExerciseSection}
 ${input.adaptationInstructions}
 
 IMPORTANT: This exercise must teach or reinforce the target skills listed above. It should build naturally on what the user has already demonstrated. Do NOT repeat an exercise the user has already completed — create something new that advances their understanding.`;
+  return learningContext + '\n' + lessonContext;
 }
 
 // ============================================================

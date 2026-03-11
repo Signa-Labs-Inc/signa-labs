@@ -36,6 +36,10 @@ import { SubmissionService } from '../submissions/submissions.service';
 import { assessSkills } from './skill-assessor';
 import { ExerciseGenerationService } from '../generation/generation.service';
 import type { GenerateExerciseInput } from '../generation/generation.types';
+import { enrichSynthesisWithPathContext } from './teaching-integration';
+import * as exerciseReader from '../exercises/exercises.reader';
+import * as exerciseWriter from '../exercises/exercises.writer';
+import type { SynthesisContent } from '../teaching/teaching.types';
 
 const LLM_MODEL = process.env.GENERATION_LLM_MODEL ?? 'claude-sonnet-4-20250514';
 
@@ -534,6 +538,21 @@ export class PathService {
         nextAction: 'continue',
         message: 'Exercise already completed',
       };
+    }
+
+    // 4.5 Enrich synthesis with path context
+    // Read the exercise's synthesis content and add "next preview"
+    const exerciseRecord = await exerciseReader.getExerciseById(input.exerciseId);
+    if (exerciseRecord?.synthesisContent) {
+      const enrichedSynthesis = await enrichSynthesisWithPathContext(
+        exerciseRecord.synthesisContent as SynthesisContent,
+        input.pathId,
+        milestone.id
+      );
+
+      if (enrichedSynthesis) {
+        await exerciseWriter.updateExerciseSynthesis(input.exerciseId, enrichedSynthesis);
+      }
     }
 
     // 5. Check if milestone should advance
