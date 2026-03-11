@@ -296,6 +296,10 @@ export class SubmissionService {
     return reader.getAttemptDraftCode(attemptId, userId);
   }
 
+  async hasPassingSubmission(userId: string, exerciseId: string): Promise<boolean> {
+    return reader.hasPassingSubmission(userId, exerciseId);
+  }
+
   /**
    * Save draft code for the user's active attempt.
    */

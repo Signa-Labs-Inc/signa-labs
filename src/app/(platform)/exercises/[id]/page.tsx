@@ -26,8 +26,10 @@ export default async function ExerciseWorkspacePage({
   }
 
   const submissionService = new SubmissionService();
-  const { attemptId } = await submissionService.getOrCreateAttempt(user.id, exercise.id);
+  const { attemptId, isNew } = await submissionService.getOrCreateAttempt(user.id, exercise.id);
   const draftCode = await submissionService.getDraftCode(user.id, attemptId);
+  const previouslyCompleted =
+    isNew && (await submissionService.hasPassingSubmission(user.id, exercise.id));
 
   return (
     <ExerciseWorkspace
@@ -36,6 +38,7 @@ export default async function ExerciseWorkspacePage({
       draftCode={draftCode}
       pathId={pathId ?? null}
       pathExerciseId={pathExerciseId ?? null}
+      previouslyCompleted={previouslyCompleted}
     />
   );
 }
