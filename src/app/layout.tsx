@@ -15,10 +15,22 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Signa Labs',
+    default: 'Signa Labs - Learn to Code by Doing',
     template: '%s | Signa Labs',
   },
-  description: 'Signa Labs Inc.',
+  description:
+    'AI-powered coding exercises that adapt to your skill level. Get personalized lessons, real-time feedback, and structured learning paths.',
+  keywords: ['coding', 'programming', 'learn to code', 'AI', 'exercises', 'learning paths'],
+  openGraph: {
+    title: 'Signa Labs - Learn to Code by Doing',
+    description: 'AI-powered coding exercises that adapt to your skill level.',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Signa Labs - Learn to Code by Doing',
+    description: 'AI-powered coding exercises that adapt to your skill level.',
+  },
 };
 
 export default function RootLayout({
