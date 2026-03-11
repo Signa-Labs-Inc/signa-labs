@@ -540,8 +540,20 @@ export class PathService {
       };
     }
 
-    // 4.5 Enrich synthesis with path context
-    // Read the exercise's synthesis content and add "next preview"
+    // 5. Check if milestone should advance
+    const { advance, reasoning } = await this.shouldAdvanceMilestone(input.pathId, milestone.id);
+
+    let milestoneAdvanced = false;
+    let pathCompleted = false;
+
+    if (advance) {
+      const result = await this.advanceMilestone(input.pathId);
+      milestoneAdvanced = true;
+      pathCompleted = result.pathCompleted;
+    }
+
+    // 5.5 Enrich synthesis with path context (after milestone transition
+    // so nextPreview reflects the post-advance state)
     const exerciseRecord = await exerciseReader.getExerciseById(input.exerciseId);
     if (exerciseRecord?.synthesisContent) {
       const enrichedSynthesis = await enrichSynthesisWithPathContext(
@@ -555,22 +567,17 @@ export class PathService {
       }
     }
 
-    // 5. Check if milestone should advance
-    const { advance, reasoning } = await this.shouldAdvanceMilestone(input.pathId, milestone.id);
+    if (pathCompleted) {
+      return {
+        milestoneAdvanced: true,
+        pathCompleted: true,
+        skillsAssessed: skillAssessments,
+        nextAction: 'path_complete',
+        message: `Congratulations! You've completed "${path.title}"!`,
+      };
+    }
 
-    if (advance) {
-      const { pathCompleted } = await this.advanceMilestone(input.pathId);
-
-      if (pathCompleted) {
-        return {
-          milestoneAdvanced: true,
-          pathCompleted: true,
-          skillsAssessed: skillAssessments,
-          nextAction: 'path_complete',
-          message: `Congratulations! You've completed "${path.title}"!`,
-        };
-      }
-
+    if (milestoneAdvanced) {
       return {
         milestoneAdvanced: true,
         pathCompleted: false,

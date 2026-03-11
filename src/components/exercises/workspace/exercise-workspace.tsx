@@ -135,7 +135,7 @@ export function ExerciseWorkspace({
     attemptId,
   });
 
-  const synthesisContent = exercise.synthesisContent;
+  const [synthesisContent, setSynthesisContent] = useState(exercise.synthesisContent);
 
   type LeftTab = 'lesson' | 'instructions' | 'hints';
   const lessonContent = exercise.lessonContent;
@@ -210,6 +210,10 @@ export function ExerciseWorkspace({
         if (response.ok) {
           const result = (await response.json()) as PathCompletionResult;
           setPathResult(result);
+
+          // Update synthesis with path-aware nextPreview so the panel
+          // reflects what comes next without waiting for a page refresh.
+          setSynthesisContent((prev) => (prev ? { ...prev, nextPreview: result.message } : prev));
         }
       } catch {
         // Non-blocking — the exercise submission already succeeded
