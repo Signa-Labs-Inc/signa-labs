@@ -1,4 +1,5 @@
 import type { LanguageStat } from '@/lib/services/dashboard/dashboard.types';
+import { LanguageIcon } from '@/components/ui/language-icon';
 
 type LanguageBreakdownProps = {
   data: LanguageStat[];
@@ -44,7 +45,10 @@ export function LanguageBreakdown({ data }: LanguageBreakdownProps) {
             return (
               <div key={lang.language}>
                 <div className="mb-1.5 flex items-center justify-between">
-                  <span className="text-sm font-medium">{config.label}</span>
+                  <span className="flex items-center gap-1.5 text-sm font-medium">
+                    <LanguageIcon language={lang.language} className="h-4 w-4" />
+                    {config.label}
+                  </span>
                   <div className="flex items-center gap-2">
                     <span className="text-muted-foreground text-sm">
                       {lang.completed} completed

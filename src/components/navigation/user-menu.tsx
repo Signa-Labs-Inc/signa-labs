@@ -5,11 +5,7 @@ import { useUser, useClerk } from '@clerk/nextjs';
 import Link from 'next/link';
 import { LogOut, User } from 'lucide-react';
 
-interface UserMenuProps {
-  isCollapsed: boolean;
-}
-
-export function UserMenu({ isCollapsed }: UserMenuProps) {
+export function UserMenu() {
   const { user } = useUser();
   const { signOut } = useClerk();
   const [isOpen, setIsOpen] = useState(false);
@@ -28,43 +24,40 @@ export function UserMenu({ isCollapsed }: UserMenuProps) {
   if (!user) return null;
 
   const displayName = user.fullName || user.primaryEmailAddress?.emailAddress || 'User';
-  const avatarUrl = user.imageUrl;
+  const initials = displayName
+    .split(/[\s@]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0].toUpperCase())
+    .join('');
 
   return (
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors hover:bg-sidebar-accent/50 ${
-          isCollapsed ? 'justify-center px-2' : ''
-        }`}
+        className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-accent/50"
       >
-        <img
-          src={avatarUrl}
-          alt={displayName}
-          className="h-7 w-7 shrink-0 rounded-full"
-        />
-        {!isCollapsed && (
-          <span className="truncate text-sidebar-foreground">{displayName}</span>
-        )}
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-primary to-violet-400 text-white text-xs font-bold">
+          {initials}
+        </div>
+        <span className="hidden truncate text-foreground sm:block max-w-30">
+          {displayName}
+        </span>
       </button>
 
       {isOpen && (
-        <div
-          className={`absolute bottom-full mb-2 z-50 w-48 rounded-md border border-sidebar-border bg-sidebar p-1 shadow-lg ${
-            isCollapsed ? 'left-full ml-2 bottom-0 mb-0' : 'left-0'
-          }`}
-        >
+        <div className="absolute right-0 top-full mt-2 z-50 w-48 rounded-md border border-border bg-card p-1 shadow-lg">
           <Link
             href="/profile"
             onClick={() => setIsOpen(false)}
-            className="flex items-center gap-2 rounded-sm px-3 py-2 text-sm text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors"
+            className="flex items-center gap-2 rounded-sm px-3 py-2 text-sm text-foreground hover:bg-accent/50 transition-colors"
           >
             <User className="h-4 w-4" />
             Profile
           </Link>
           <button
             onClick={() => signOut()}
-            className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors"
+            className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm text-foreground hover:bg-accent/50 transition-colors"
           >
             <LogOut className="h-4 w-4" />
             Sign Out

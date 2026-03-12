@@ -1,4 +1,4 @@
-// src/components/exercises/exercise-grid.tsx
+import { Search } from 'lucide-react';
 import type { ExerciseSummary } from '@/lib/services/exercises/exercises.types';
 import { ExerciseCard } from './exercise-card';
 
@@ -9,9 +9,14 @@ type ExerciseGridProps = {
 export function ExerciseGrid({ exercises }: ExerciseGridProps) {
   if (exercises.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-16">
-        <p className="text-muted-foreground text-lg font-medium">No exercises found</p>
-        <p className="text-muted-foreground mt-1 text-sm">Try adjusting your filters.</p>
+      <div className="flex flex-col items-center justify-center rounded-xl border bg-card py-20 text-center">
+        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
+          <Search className="h-6 w-6 text-primary" />
+        </div>
+        <h3 className="text-lg font-semibold">No exercises found</h3>
+        <p className="text-muted-foreground mt-1 max-w-sm text-sm">
+          Try adjusting your filters or search query, or generate a custom exercise.
+        </p>
       </div>
     );
   }

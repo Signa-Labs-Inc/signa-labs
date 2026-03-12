@@ -1,18 +1,33 @@
-import { Sidebar } from '@/components/navigation/sidebar';
+'use client';
+
+import { usePathname } from 'next/navigation';
+import { TopNav } from '@/components/navigation/top-nav';
 import { MobileNav } from '@/components/navigation/mobile-nav';
+import { Footer } from '@/components/navigation/footer';
 
 export default function PlatformLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  const isExerciseWorkspace =
+    /^\/exercises\/[^/]+$/.test(pathname) && pathname !== '/exercises/generate';
+
+  if (isExerciseWorkspace) {
+    return <div className="h-screen flex flex-col bg-background">{children}</div>;
+  }
+
   return (
-    <div className="flex h-screen">
-      <Sidebar />
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <MobileNav />
-        <main className="flex-1 overflow-y-auto">{children}</main>
+    <div className="flex min-h-screen flex-col">
+      {/* Desktop top nav */}
+      <div className="hidden md:block">
+        <TopNav />
       </div>
+      {/* Mobile nav */}
+      <MobileNav />
+      <main className="flex-1">{children}</main>
+      <Footer />
     </div>
   );
 }

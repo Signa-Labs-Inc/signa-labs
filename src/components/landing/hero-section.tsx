@@ -16,7 +16,7 @@ export function HeroSection() {
         <h1 className="animate-fade-in text-5xl leading-tight font-bold tracking-tight text-white sm:text-6xl md:text-7xl">
           Master Coding
           <br />
-          <span className="bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
+          <span className="bg-linear-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
             Through Practice
           </span>
         </h1>

@@ -1,6 +1,6 @@
 'use client';
 
-import { CheckCircle2, Sparkles, ArrowRight, Globe, Link2 } from 'lucide-react';
+import { CheckCircle2, FlaskConical, ArrowRight, Globe, Link2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { SynthesisContent } from '@/lib/services/teaching/teaching.types';
 
@@ -74,7 +74,7 @@ export function SynthesisPanel({
         )}
         {!pathId && onViewPaths && (
           <Button onClick={onViewPaths} variant="outline" size="sm" className="gap-2">
-            <Sparkles className="h-3.5 w-3.5" />
+            <FlaskConical className="h-3.5 w-3.5" />
             Start a Learning Path
           </Button>
         )}

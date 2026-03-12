@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { CheckCircle2, XCircle, Lightbulb, Play, Trophy } from 'lucide-react';
 import type { ActivityItem } from '@/lib/services/dashboard/dashboard.types';
+import { LanguageIcon } from '@/components/ui/language-icon';
 
 type ActivityFeedProps = {
   items: ActivityItem[];
@@ -95,10 +96,11 @@ export function ActivityFeed({ items }: ActivityFeedProps) {
                   <p className="text-foreground text-sm leading-snug">{config.label(item)}</p>
                   <div className="mt-1 flex items-center gap-2">
                     <span
-                      className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${
+                      className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium ${
                         LANGUAGE_COLORS[item.exerciseLanguage] ?? 'bg-muted text-muted-foreground'
                       }`}
                     >
+                      <LanguageIcon language={item.exerciseLanguage} className="h-3 w-3" />
                       {item.exerciseLanguage}
                     </span>
                     <span className="text-muted-foreground text-xs">
