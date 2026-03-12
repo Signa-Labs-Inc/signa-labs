@@ -25,6 +25,7 @@ import { LanguageIcon } from '@/components/ui/language-icon';
 import { LANGUAGE_LABELS } from '@/components/ui/language-icon';
 import { SkillsBadges } from '@/components/paths/skills-badges';
 import { usePathExercise } from '@/hooks/use-path-exercise';
+import { toast } from 'sonner';
 import type { PathProgress, MilestoneProgress } from '@/lib/services/paths/paths.types';
 
 // ============================================================
@@ -50,7 +51,6 @@ type PathDashboardProps = {
 export function PathDashboard({ progress }: PathDashboardProps) {
   const router = useRouter();
   const [isUpdating, setIsUpdating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const {
     status: exerciseStatus,
@@ -73,24 +73,23 @@ export function PathDashboard({ progress }: PathDashboardProps) {
     exerciseStatus !== 'idle' && exerciseStatus !== 'failed' && exerciseStatus !== 'completed';
 
   const handleContinue = useCallback(async () => {
-    setError(null);
     await generateNext(progress.id);
   }, [progress.id, generateNext]);
 
   const handlePause = useCallback(async () => {
     setIsUpdating(true);
-    setError(null);
     try {
       const res = await fetch(`/api/paths/${progress.id}/pause`, { method: 'PUT' });
       if (!res.ok) {
         const body = await res.json().catch(() => null);
         const msg = body?.error;
-        setError(typeof msg === 'string' ? msg : 'Failed to pause path — please try again');
+        toast.error(typeof msg === 'string' ? msg : 'Failed to pause path — please try again');
         return;
       }
+      toast.success('Path paused');
       router.refresh();
     } catch {
-      setError('Failed to pause path — please try again');
+      toast.error('Failed to pause path — please try again');
     } finally {
       setIsUpdating(false);
     }
@@ -98,18 +97,18 @@ export function PathDashboard({ progress }: PathDashboardProps) {
 
   const handleResume = useCallback(async () => {
     setIsUpdating(true);
-    setError(null);
     try {
       const res = await fetch(`/api/paths/${progress.id}/resume`, { method: 'PUT' });
       if (!res.ok) {
         const body = await res.json().catch(() => null);
         const msg = body?.error;
-        setError(typeof msg === 'string' ? msg : 'Failed to resume path — please try again');
+        toast.error(typeof msg === 'string' ? msg : 'Failed to resume path — please try again');
         return;
       }
+      toast.success('Path resumed');
       router.refresh();
     } catch {
-      setError('Failed to resume path — please try again');
+      toast.error('Failed to resume path — please try again');
     } finally {
       setIsUpdating(false);
     }
@@ -255,9 +254,9 @@ export function PathDashboard({ progress }: PathDashboardProps) {
 
       <div className="mx-auto max-w-4xl px-6 py-8">
         {/* Error message */}
-        {(error || exerciseError) && (
+        {exerciseError && (
           <div className="bg-destructive/10 text-destructive mb-6 rounded-lg border border-destructive/20 px-4 py-3 text-center text-sm">
-            {error || exerciseError}
+            {exerciseError}
           </div>
         )}
 
