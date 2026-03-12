@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { toast } from 'sonner';
 import type {
   UserProfile,
   UserPreferences,
@@ -86,22 +87,16 @@ export function ProfileForm({ profile, userEmail }: ProfileFormProps) {
   });
 
   const [isSaving, setIsSaving] = useState<boolean>(false);
-  const [saveMessage, setSaveMessage] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const updateField = useCallback(
     (field: keyof FormState, value: string | number | boolean) => {
       setForm((prev) => ({ ...prev, [field]: value }));
-      setSaveMessage(null);
-      setErrorMessage(null);
     },
     []
   );
 
   const handleSave = useCallback(async () => {
     setIsSaving(true);
-    setSaveMessage(null);
-    setErrorMessage(null);
 
     try {
       const response = await fetch('/api/profile', {
@@ -124,14 +119,13 @@ export function ProfileForm({ profile, userEmail }: ProfileFormProps) {
 
       if (!response.ok) {
         const body = (await response.json()) as { error?: string };
-        setErrorMessage(body.error ?? 'Failed to save profile');
+        toast.error(body.error ?? 'Failed to save profile');
         return;
       }
 
-      setSaveMessage('Profile saved');
-      setTimeout(() => setSaveMessage(null), 3000);
+      toast.success('Profile saved');
     } catch {
-      setErrorMessage('Network error');
+      toast.error('Network error — please try again');
     } finally {
       setIsSaving(false);
     }
@@ -320,8 +314,6 @@ export function ProfileForm({ profile, userEmail }: ProfileFormProps) {
         <Button onClick={handleSave} disabled={isSaving}>
           {isSaving ? 'Saving...' : 'Save Changes'}
         </Button>
-        {saveMessage && <span className="text-sm text-emerald-600">{saveMessage}</span>}
-        {errorMessage && <span className="text-sm text-red-500">{errorMessage}</span>}
       </div>
     </div>
   );

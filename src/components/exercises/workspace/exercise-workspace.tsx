@@ -20,6 +20,8 @@ import { ExplanationPanel } from './explanation-panel';
 import { SynthesisPanel } from './synthesis-panel';
 import type { FailureExplanation } from '@/lib/services/teaching/teaching.types';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { fireConfetti, fireBurst } from '@/lib/utils/confetti';
 
 // ============================================================
 // Constants
@@ -174,9 +176,9 @@ export function ExerciseWorkspace({
    * Record path exercise completion after all tests pass.
    */
   const recordPathCompletion = useCallback(
-    async (data: SubmitResponse) => {
-      if (!pathId || !pathExerciseId) return;
-      if (!data.isPassing) return;
+    async (data: SubmitResponse): Promise<PathCompletionResult | null> => {
+      if (!pathId || !pathExerciseId) return null;
+      if (!data.isPassing) return null;
 
       try {
         // Collect the user's solution code for skill assessment
@@ -207,10 +209,12 @@ export function ExerciseWorkspace({
           // Update synthesis with path-aware nextPreview so the panel
           // reflects what comes next without waiting for a page refresh.
           setSynthesisContent((prev) => (prev ? { ...prev, nextPreview: result.message } : prev));
+          return result;
         }
       } catch {
         // Non-blocking — the exercise submission already succeeded
       }
+      return null;
     },
     [pathId, pathExerciseId, exercise.id, attemptId, allFiles, fileContents]
   );
@@ -319,16 +323,36 @@ export function ExerciseWorkspace({
       }
       if (!data.isPassing) {
         fetchExplanation(data);
+        toast.error(`${data.testsFailed} of ${data.testsTotal} tests failed`, {
+          description: 'Check the results panel for details.',
+        });
       } else {
         setExplanation(null);
+        toast.success('All tests passed!', {
+          description: `${data.testsPassed} of ${data.testsTotal} tests passed in ${data.executionTimeMs}ms`,
+        });
+        fireConfetti();
       }
 
       // If this is a path exercise and all tests passed, record completion
       if (isPathExercise && data.isPassing) {
-        await recordPathCompletion(data);
+        const pathRes = await recordPathCompletion(data);
+        if (pathRes?.pathCompleted) {
+          fireBurst();
+          toast.success('Path completed!', {
+            description: pathRes.message,
+          });
+        } else if (pathRes?.milestoneAdvanced) {
+          fireBurst();
+          toast.success('Milestone complete!', {
+            description: pathRes.message,
+          });
+        }
       }
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Network error');
+      const msg = err instanceof Error ? err.message : 'Network error';
+      setSubmitError(msg);
+      toast.error('Submission failed', { description: msg });
     } finally {
       setIsSubmitting(false);
     }
