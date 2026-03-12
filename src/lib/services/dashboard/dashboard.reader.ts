@@ -56,6 +56,29 @@ export async function getDashboardStats(userId: string): Promise<DashboardStats>
 }
 
 // ============================================================
+// Today's practice time
+// ============================================================
+
+/**
+ * Get the total time the user has practiced today (sum of attempt time_spent_seconds).
+ */
+export async function getTodayPracticeTimeSeconds(userId: string): Promise<number> {
+  const [result] = await db
+    .select({
+      totalSeconds: sql<number>`COALESCE(SUM(${exerciseAttempts.timeSpentSeconds}), 0)::int`,
+    })
+    .from(exerciseAttempts)
+    .where(
+      and(
+        eq(exerciseAttempts.userId, userId),
+        sql`${exerciseAttempts.startedAt}::date = CURRENT_DATE`
+      )
+    );
+
+  return result?.totalSeconds ?? 0;
+}
+
+// ============================================================
 // Activity heatmap
 // ============================================================
 
