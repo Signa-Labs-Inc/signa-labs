@@ -10,13 +10,16 @@ import {
   getActivityHeatmap,
   getLanguageBreakdown,
   getRecentActivity,
+  getTodayPracticeTimeSeconds,
 } from '@/lib/services/dashboard/dashboard.reader';
+import { getUserProfile } from '@/lib/services/users_profiles/users-profiles.reader';
 import { PathService } from '@/lib/services/paths/paths.service';
 import { StatsOverview } from '@/components/dashboard/stats-overview';
 import { ActivityHeatmap } from '@/components/dashboard/activity-heatmap';
 import { LanguageBreakdown } from '@/components/dashboard/language-breakdown';
 import { ActivityFeed } from '@/components/dashboard/activity-feed';
 import { PathCard } from '@/components/paths/path-card';
+import { DailyGoalProgress } from '@/components/dashboard/daily-goal-progress';
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
@@ -24,13 +27,17 @@ export default async function DashboardPage() {
 
   const pathService = new PathService();
 
-  const [stats, heatmap, languages, activity, paths] = await Promise.all([
+  const [stats, heatmap, languages, activity, paths, userProfile, todayTime] = await Promise.all([
     getDashboardStats(user.id),
     getActivityHeatmap(user.id, 365),
     getLanguageBreakdown(user.id),
     getRecentActivity(user.id, 20),
     pathService.getUserPaths(user.id).catch(() => []),
+    getUserProfile(user.id),
+    getTodayPracticeTimeSeconds(user.id),
   ]);
+
+  const dailyGoalMinutes = userProfile?.preferences?.daily_goal_minutes ?? 30;
 
   const hasActivity = stats.totalExercisesAttempted > 0;
   const activePaths = paths.filter((p) => p.status === 'active');
@@ -52,8 +59,9 @@ export default async function DashboardPage() {
           <p className="text-muted-foreground mt-1">Track your coding practice progress</p>
 
           {(hasActivity || paths.length > 0) && (
-            <div className="mt-6">
+            <div className="mt-6 space-y-4">
               <StatsOverview stats={stats} />
+              <DailyGoalProgress todaySeconds={todayTime} goalMinutes={dailyGoalMinutes} />
             </div>
           )}
         </div>
