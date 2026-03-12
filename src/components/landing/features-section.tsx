@@ -1,11 +1,11 @@
-import { Sparkles, Route, Play, BarChart3 } from 'lucide-react';
+import { FlaskConical, Route, Play, BarChart3 } from 'lucide-react';
 
 const features = [
   {
-    icon: Sparkles,
-    title: 'AI-Generated Exercises',
+    icon: FlaskConical,
+    title: 'Custom-Crafted Exercises',
     description:
-      'Every exercise is uniquely crafted by AI, tailored to your skill level and learning goals.',
+      'Every exercise is uniquely crafted and tailored to your skill level and learning goals.',
   },
   {
     icon: Route,
@@ -43,7 +43,7 @@ export function FeaturesSection() {
           {features.map((feature, index) => (
             <div
               key={feature.title}
-              className="animate-fade-in group rounded-xl border border-white/10 bg-zinc-950 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-violet-500/30 hover:shadow-lg hover:shadow-violet-500/5"
+              className="animate-fade-in group rounded-xl border border-white/10 bg-linear-to-br from-zinc-950 via-zinc-950 to-violet-950/30 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-violet-500/30 hover:shadow-lg hover:shadow-violet-500/5"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               <div className="mb-4 flex size-10 items-center justify-center rounded-lg bg-violet-500/10">

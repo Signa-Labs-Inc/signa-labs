@@ -9,12 +9,21 @@ import {
   CheckCircle2,
   Lock,
   Circle,
-  Sparkles,
+  FlaskConical,
   Pause,
   RotateCcw,
+  Trophy,
+  Zap,
+  Target,
+  BookOpen,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { LanguageIcon } from '@/components/ui/language-icon';
+import { LANGUAGE_LABELS } from '@/components/ui/language-icon';
+import { SkillsBadges } from '@/components/paths/skills-badges';
 import { usePathExercise } from '@/hooks/use-path-exercise';
 import type { PathProgress, MilestoneProgress } from '@/lib/services/paths/paths.types';
 
@@ -23,24 +32,11 @@ import type { PathProgress, MilestoneProgress } from '@/lib/services/paths/paths
 // ============================================================
 
 const DIFFICULTY_COLORS: Record<string, string> = {
-  beginner: 'text-emerald-600',
-  easy: 'text-sky-600',
-  medium: 'text-amber-600',
-  hard: 'text-orange-600',
-  expert: 'text-red-600',
-};
-
-const MILESTONE_ICONS: Record<string, typeof CheckCircle2> = {
-  completed: CheckCircle2,
-  active: Circle,
-  locked: Lock,
-};
-
-const MILESTONE_COLORS: Record<string, string> = {
-  completed:
-    'text-emerald-500 border-emerald-200 bg-emerald-50 dark:bg-emerald-950 dark:border-emerald-800',
-  active: 'text-primary border-primary/30 bg-primary/5',
-  locked: 'text-muted-foreground border-muted bg-muted/30',
+  beginner: 'text-emerald-500 bg-emerald-500/10',
+  easy: 'text-sky-500 bg-sky-500/10',
+  medium: 'text-amber-500 bg-amber-500/10',
+  hard: 'text-orange-500 bg-orange-500/10',
+  expert: 'text-red-500 bg-red-500/10',
 };
 
 // ============================================================
@@ -123,223 +119,386 @@ export function PathDashboard({ progress }: PathDashboardProps) {
   const isPaused = progress.status === 'paused';
   const isCompleted = progress.status === 'completed';
 
+  const completedMilestones = progress.milestones.filter((m) => m.status === 'completed').length;
+  const languageLabel =
+    LANGUAGE_LABELS[progress.language.toLowerCase()] ?? progress.language;
+
   return (
-    <div className="mx-auto max-w-3xl px-6 py-10">
-      {/* Header */}
-      <div className="mb-8">
-        <Link
-          href="/paths"
-          className="text-muted-foreground hover:text-foreground mb-4 inline-flex items-center gap-1 text-sm transition-colors"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          All Paths
-        </Link>
-
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">{progress.title}</h1>
-            <p className="text-muted-foreground mt-1">
-              {progress.totalExercisesCompleted}/{progress.estimatedTotalExercises} exercises
-              {' · '}
-              {progress.milestones.filter((m) => m.status === 'completed').length}/
-              {progress.totalMilestones} milestones
-            </p>
-          </div>
-
-          <div className="flex shrink-0 items-center gap-2">
-            {isActive && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handlePause}
-                disabled={isUpdating}
-                className="text-muted-foreground"
-              >
-                <Pause className="mr-1 h-4 w-4" />
-                Pause
-              </Button>
-            )}
-            {isPaused && (
-              <Button variant="ghost" size="sm" onClick={handleResume} disabled={isUpdating}>
-                <RotateCcw className="mr-1 h-4 w-4" />
-                Resume
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {/* Progress bar */}
-        <div className="mt-4 flex items-center gap-3">
-          <div className="bg-muted h-3 flex-1 overflow-hidden rounded-full">
-            <div
-              className={`h-full rounded-full transition-all duration-700 ${
-                isCompleted ? 'bg-emerald-500' : 'bg-primary'
-              }`}
-              style={{ width: `${progress.percentComplete}%` }}
-            />
-          </div>
-          <span className="text-sm font-semibold">{progress.percentComplete}%</span>
-        </div>
-      </div>
-
-      {/* Error message */}
-      {(error || exerciseError) && (
-        <p className="text-destructive mb-4 text-center text-sm">{error || exerciseError}</p>
-      )}
-
-      {/* Continue button */}
-      {isActive && (
-        <div className="mb-8">
-          <Button
-            onClick={handleContinue}
-            disabled={isLoadingExercise}
-            size="lg"
-            className="w-full gap-2"
+    <div className="animate-fade-in">
+      {/* ── Hero Header ── */}
+      <div className="relative overflow-hidden border-b border-border bg-linear-to-br from-primary/10 via-background to-violet-500/5">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent" />
+        <div className="relative mx-auto max-w-4xl px-6 py-8 md:py-12">
+          {/* Back link */}
+          <Link
+            href="/paths"
+            className="text-muted-foreground hover:text-foreground mb-6 inline-flex items-center gap-1.5 text-sm transition-colors"
           >
-            {isLoadingExercise ? (
-              <>
-                <Sparkles className="h-4 w-4 animate-pulse" />
-                {exerciseProgress ?? 'Generating your next exercise...'}
-              </>
-            ) : (
-              <>
-                <Play className="h-4 w-4" />
-                Continue Learning
-              </>
-            )}
-          </Button>
-        </div>
-      )}
-
-      {/* Completed banner */}
-      {isCompleted && (
-        <div className="mb-8 rounded-xl border border-emerald-200 bg-emerald-50 p-6 text-center dark:border-emerald-800 dark:bg-emerald-950">
-          <CheckCircle2 className="mx-auto mb-2 h-8 w-8 text-emerald-500" />
-          <h2 className="text-lg font-semibold">Path Complete!</h2>
-          <p className="text-muted-foreground mt-1 text-sm">
-            You&apos;ve completed all milestones. Great work!
-          </p>
-          <Link href="/paths/new">
-            <Button className="mt-4 gap-2">
-              <Sparkles className="h-4 w-4" />
-              Start a New Path
-            </Button>
+            <ArrowLeft className="h-3.5 w-3.5" />
+            All Paths
           </Link>
-        </div>
-      )}
 
-      {/* Milestones */}
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold">Milestones</h2>
-        {progress.milestones.map((milestone) => (
-          <MilestoneCard key={milestone.id} milestone={milestone} />
-        ))}
-      </div>
+          <div className="flex items-start gap-5">
+            {/* Language icon */}
+            <div className="bg-card flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border shadow-sm md:h-16 md:w-16">
+              <LanguageIcon language={progress.language} className="h-8 w-8 md:h-9 md:w-9" />
+            </div>
 
-      {/* Skills acquired */}
-      {progress.skillsAcquired.length > 0 && (
-        <div className="mt-8">
-          <h2 className="mb-4 text-lg font-semibold">Skills Acquired</h2>
-          <div className="flex flex-wrap gap-2">
-            {progress.skillsAcquired.map(({ skill, confidence }) => (
-              <div key={skill} className="flex items-center gap-2 rounded-lg border px-3 py-2">
-                <span className="text-sm">{skill.replace(/_/g, ' ')}</span>
-                <div className="bg-muted h-1.5 w-16 overflow-hidden rounded-full">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
+                    {progress.title}
+                  </h1>
+                  <p className="text-muted-foreground mt-1 text-sm">
+                    {languageLabel} · {progress.estimatedTotalExercises} exercises ·{' '}
+                    {progress.totalMilestones} milestones
+                  </p>
+                </div>
+
+                <div className="flex shrink-0 items-center gap-2">
+                  {isActive && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handlePause}
+                      disabled={isUpdating}
+                      className="text-muted-foreground"
+                    >
+                      <Pause className="mr-1.5 h-4 w-4" />
+                      Pause
+                    </Button>
+                  )}
+                  {isPaused && (
+                    <Button variant="ghost" size="sm" onClick={handleResume} disabled={isUpdating}>
+                      <RotateCcw className="mr-1.5 h-4 w-4" />
+                      Resume
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {/* Progress bar */}
+              <div className="mt-4 flex items-center gap-3">
+                <div className="bg-muted/50 h-3 flex-1 overflow-hidden rounded-full">
                   <div
-                    className={`h-full rounded-full ${
-                      confidence >= 0.7
+                    className={`h-full rounded-full transition-all duration-700 ${
+                      isCompleted
                         ? 'bg-emerald-500'
-                        : confidence >= 0.4
-                          ? 'bg-amber-500'
-                          : 'bg-muted-foreground'
+                        : 'bg-linear-to-r from-primary to-violet-400'
                     }`}
-                    style={{ width: `${confidence * 100}%` }}
+                    style={{ width: `${progress.percentComplete}%` }}
                   />
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ============================================================
-// Milestone Card
-// ============================================================
-
-function MilestoneCard({ milestone }: { milestone: MilestoneProgress }) {
-  const Icon = MILESTONE_ICONS[milestone.status] ?? Circle;
-  const colorClass = MILESTONE_COLORS[milestone.status] ?? MILESTONE_COLORS.locked;
-  const isActive = milestone.status === 'active';
-
-  return (
-    <div className={`rounded-xl border p-5 transition-colors ${colorClass}`}>
-      <div className="flex items-start gap-3">
-        <Icon
-          className={`mt-0.5 h-5 w-5 shrink-0 ${
-            milestone.status === 'completed'
-              ? 'text-emerald-500'
-              : milestone.status === 'active'
-                ? 'text-primary'
-                : 'text-muted-foreground'
-          }`}
-        />
-
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <h3 className="font-medium">
-              {milestone.index + 1}. {milestone.title}
-            </h3>
-            <span className={`text-xs ${DIFFICULTY_COLORS[milestone.targetDifficulty] ?? ''}`}>
-              {milestone.targetDifficulty}
-            </span>
-          </div>
-
-          <p className="text-muted-foreground mt-1 text-sm">{milestone.description}</p>
-
-          {/* Progress within milestone */}
-          {milestone.status !== 'locked' && (
-            <div className="mt-3 space-y-2">
-              <div className="text-muted-foreground flex items-center gap-2 text-xs">
-                <span>
-                  {milestone.exercisesCompleted}/{milestone.minExercises}+ exercises
+                <span className="text-sm font-semibold tabular-nums">
+                  {progress.percentComplete}%
                 </span>
-                {milestone.gatesPassed.length > 0 && (
-                  <span>
-                    · {milestone.gatesPassed.length}/{milestone.skillGates.length} skills
-                    demonstrated
-                  </span>
-                )}
               </div>
-
-              {/* Skill gates */}
-              {isActive && milestone.skillGates.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {milestone.skillGates.map((gate) => {
-                    const passed = milestone.gatesPassed.includes(gate);
-                    return (
-                      <Badge
-                        key={gate}
-                        variant={passed ? 'default' : 'outline'}
-                        className={`text-xs ${
-                          passed
-                            ? 'border-emerald-200 bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
-                            : ''
-                        }`}
-                      >
-                        {passed && <CheckCircle2 className="mr-1 h-3 w-3" />}
-                        {gate.replace(/_/g, ' ')}
-                      </Badge>
-                    );
-                  })}
-                </div>
-              )}
             </div>
+          </div>
+
+          {/* Stats row */}
+          <div className="mt-6 grid grid-cols-3 gap-4">
+            <div className="bg-card/60 rounded-xl border p-4 backdrop-blur-sm">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                  <BookOpen className="h-4 w-4 text-primary" />
+                </div>
+                <div>
+                  <p className="text-lg font-bold tabular-nums">
+                    {progress.totalExercisesCompleted}
+                    <span className="text-muted-foreground text-sm font-normal">
+                      /{progress.estimatedTotalExercises}
+                    </span>
+                  </p>
+                  <p className="text-muted-foreground text-xs">Exercises</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-card/60 rounded-xl border p-4 backdrop-blur-sm">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-500/10">
+                  <Target className="h-4 w-4 text-violet-500" />
+                </div>
+                <div>
+                  <p className="text-lg font-bold tabular-nums">
+                    {completedMilestones}
+                    <span className="text-muted-foreground text-sm font-normal">
+                      /{progress.totalMilestones}
+                    </span>
+                  </p>
+                  <p className="text-muted-foreground text-xs">Milestones</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-card/60 rounded-xl border p-4 backdrop-blur-sm">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/10">
+                  <Zap className="h-4 w-4 text-amber-500" />
+                </div>
+                <div>
+                  <p className="text-lg font-bold tabular-nums">
+                    {progress.skillsAcquired.length}
+                  </p>
+                  <p className="text-muted-foreground text-xs">Skills</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Skills acquired — inline badges */}
+          {progress.skillsAcquired.length > 0 && (
+            <SkillsBadges skills={progress.skillsAcquired} />
           )}
         </div>
       </div>
+
+      <div className="mx-auto max-w-4xl px-6 py-8">
+        {/* Error message */}
+        {(error || exerciseError) && (
+          <div className="bg-destructive/10 text-destructive mb-6 rounded-lg border border-destructive/20 px-4 py-3 text-center text-sm">
+            {error || exerciseError}
+          </div>
+        )}
+
+        {/* ── Continue CTA ── */}
+        {isActive && (
+          <div className="mb-8 overflow-hidden rounded-xl border border-primary/20 bg-linear-to-r from-primary/5 via-card to-violet-500/5">
+            <div className="flex items-center gap-4 p-5 md:p-6">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                <Play className="h-6 w-6 text-primary" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold">Ready to continue?</p>
+                <p className="text-muted-foreground text-sm">
+                  AI will generate your next exercise based on your progress
+                </p>
+              </div>
+              <Button
+                onClick={handleContinue}
+                disabled={isLoadingExercise}
+                size="lg"
+                className="shrink-0 gap-2"
+              >
+                {isLoadingExercise ? (
+                  <>
+                    <FlaskConical className="h-4 w-4 animate-pulse" />
+                    {exerciseProgress ?? 'Generating...'}
+                  </>
+                ) : (
+                  <>
+                    <Play className="h-4 w-4" />
+                    Next Exercise
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* ── Completed Banner ── */}
+        {isCompleted && (
+          <div className="mb-8 overflow-hidden rounded-xl border border-emerald-500/20 bg-linear-to-r from-emerald-500/5 via-card to-emerald-500/5">
+            <div className="flex flex-col items-center p-8 text-center">
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10">
+                <Trophy className="h-8 w-8 text-emerald-500" />
+              </div>
+              <h2 className="text-xl font-bold">Path Complete!</h2>
+              <p className="text-muted-foreground mt-1 max-w-sm text-sm">
+                You&apos;ve conquered all {progress.totalMilestones} milestones and completed{' '}
+                {progress.totalExercisesCompleted} exercises. Impressive work!
+              </p>
+              <Link href="/paths/new" className="mt-5">
+                <Button className="gap-2">
+                  <FlaskConical className="h-4 w-4" />
+                  Start a New Path
+                </Button>
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* ── Milestone Timeline ── */}
+        <div>
+          <h2 className="mb-6 text-lg font-semibold">Milestone Roadmap</h2>
+          <div className="relative">
+            {progress.milestones.map((milestone, i) => (
+              <MilestoneTimelineItem
+                key={milestone.id}
+                milestone={milestone}
+                isLast={i === progress.milestones.length - 1}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
+
+// ============================================================
+// Milestone Timeline Item
+// ============================================================
+
+function MilestoneTimelineItem({
+  milestone,
+  isLast,
+}: {
+  milestone: MilestoneProgress;
+  isLast: boolean;
+}) {
+  const [expanded, setExpanded] = useState(milestone.status === 'active');
+
+  const isCompleted = milestone.status === 'completed';
+  const isActive = milestone.status === 'active';
+  const isLocked = milestone.status === 'locked';
+  const difficultyClass = DIFFICULTY_COLORS[milestone.targetDifficulty] ?? '';
+
+  const exerciseProgress =
+    milestone.minExercises > 0
+      ? Math.min(100, Math.round((milestone.exercisesCompleted / milestone.minExercises) * 100))
+      : 0;
+
+  return (
+    <div className="relative flex gap-4 pb-6">
+      {/* Timeline connector */}
+      {!isLast && (
+        <div
+          className={`absolute left-4.25 top-10 bottom-0 w-0.5 ${
+            isCompleted ? 'bg-emerald-500' : 'bg-border'
+          }`}
+        />
+      )}
+
+      {/* Timeline node */}
+      <div className="relative z-10 shrink-0 pt-1">
+        {isCompleted ? (
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500">
+            <CheckCircle2 className="h-5 w-5 text-white" />
+          </div>
+        ) : isActive ? (
+          <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-primary bg-primary/10">
+            <Circle className="h-4 w-4 fill-primary text-primary" />
+          </div>
+        ) : (
+          <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-border bg-muted">
+            <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+          </div>
+        )}
+      </div>
+
+      {/* Content card */}
+      <div
+        className={`flex-1 overflow-hidden rounded-xl border transition-all duration-200 ${
+          isActive
+            ? 'border-primary/30 bg-linear-to-br from-card to-primary/5 shadow-sm'
+            : isCompleted
+              ? 'bg-card'
+              : 'bg-card opacity-60'
+        }`}
+      >
+        <button
+          onClick={() => !isLocked && setExpanded(!expanded)}
+          className={`flex w-full items-start justify-between gap-3 p-4 text-left ${
+            isLocked ? 'cursor-default' : 'cursor-pointer'
+          }`}
+        >
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <h3 className={`font-semibold ${isLocked ? 'text-muted-foreground' : ''}`}>
+                {milestone.index + 1}. {milestone.title}
+              </h3>
+              {difficultyClass && (
+                <span className={`rounded-md px-2 py-0.5 text-xs font-medium capitalize ${difficultyClass}`}>
+                  {milestone.targetDifficulty}
+                </span>
+              )}
+            </div>
+            <p className={`mt-1 text-sm ${isLocked ? 'text-muted-foreground/60' : 'text-muted-foreground'}`}>
+              {milestone.description}
+            </p>
+
+            {/* Progress bar for non-locked milestones */}
+            {!isLocked && (
+              <div className="mt-3 flex items-center gap-3">
+                <div className="bg-muted h-1.5 flex-1 overflow-hidden rounded-full">
+                  <div
+                    className={`h-full rounded-full transition-all duration-500 ${
+                      isCompleted ? 'bg-emerald-500' : 'bg-linear-to-r from-primary to-violet-400'
+                    }`}
+                    style={{ width: `${isCompleted ? 100 : exerciseProgress}%` }}
+                  />
+                </div>
+                <span className="text-muted-foreground shrink-0 text-xs tabular-nums">
+                  {milestone.exercisesCompleted}/{milestone.minExercises}+ exercises
+                </span>
+              </div>
+            )}
+          </div>
+
+          {!isLocked && (
+            <div className="shrink-0 pt-1">
+              {expanded ? (
+                <ChevronUp className="h-4 w-4 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              )}
+            </div>
+          )}
+        </button>
+
+        {/* Expanded skill gates */}
+        {expanded && !isLocked && milestone.skillGates.length > 0 && (
+          <div className="border-t px-4 py-3">
+            <p className="text-muted-foreground mb-2 text-xs font-medium uppercase tracking-wider">
+              Skill Gates
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {milestone.skillGates.map((gate) => {
+                const passed = milestone.gatesPassed.includes(gate);
+                return (
+                  <Badge
+                    key={gate}
+                    variant={passed ? 'default' : 'outline'}
+                    className={`text-xs ${
+                      passed
+                        ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-500'
+                        : 'text-muted-foreground'
+                    }`}
+                  >
+                    {passed && <CheckCircle2 className="mr-1 h-3 w-3" />}
+                    {gate.replace(/_/g, ' ')}
+                  </Badge>
+                );
+              })}
+            </div>
+            {milestone.gatesRemaining.length > 0 && isActive && (
+              <p className="text-muted-foreground mt-2 text-xs">
+                {milestone.gatesRemaining.length} skill
+                {milestone.gatesRemaining.length === 1 ? '' : 's'} remaining to unlock next
+                milestone
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Expanded skills list */}
+        {expanded && !isLocked && milestone.skills.length > 0 && milestone.skillGates.length === 0 && (
+          <div className="border-t px-4 py-3">
+            <p className="text-muted-foreground mb-2 text-xs font-medium uppercase tracking-wider">
+              Skills covered
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {milestone.skills.map((skill) => (
+                <Badge key={skill} variant="outline" className="text-xs text-muted-foreground">
+                  {skill.replace(/_/g, ' ')}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+

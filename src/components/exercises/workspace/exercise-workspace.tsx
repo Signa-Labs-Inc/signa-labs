@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowLeft, Play, Eye, RotateCcw, X, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { LanguageIcon } from '@/components/ui/language-icon';
 import { InstructionsPanel } from './instructions-panel';
 import { CodeEditor } from './code-editor';
 import { HintPanel } from './hint-panel';
@@ -35,14 +36,6 @@ const DIFFICULTY_COLORS: Record<string, string> = {
     'bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-800',
 };
 
-const LANGUAGE_LABELS: Record<string, string> = {
-  python: 'Python',
-  typescript: 'TypeScript',
-  javascript: 'JavaScript',
-  go: 'Go',
-  ruby: 'Ruby',
-  sql: 'SQL',
-};
 
 // ============================================================
 // Types
@@ -354,7 +347,7 @@ export function ExerciseWorkspace({
     <>
       <div className="flex h-full flex-col">
         {/* Top bar */}
-        <div className="flex items-center justify-between border-b px-4 py-2">
+        <div className="flex items-center justify-between border-b bg-card px-4 py-2">
           <div className="flex items-center gap-3">
             <Link href={isPathExercise ? `/paths/${pathId}` : '/exercises'}>
               <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -365,9 +358,7 @@ export function ExerciseWorkspace({
             <Badge variant="outline" className={DIFFICULTY_COLORS[exercise.difficulty] ?? ''}>
               {exercise.difficulty}
             </Badge>
-            <span className="text-muted-foreground text-sm">
-              {LANGUAGE_LABELS[exercise.language] ?? exercise.language}
-            </span>
+            <LanguageIcon language={exercise.language} showLabel className="h-4 w-4" />
           </div>
 
           <div className="flex items-center gap-3">
@@ -449,7 +440,7 @@ export function ExerciseWorkspace({
         {/* Main workspace area */}
         <div className="flex flex-1 overflow-hidden">
           {/* Left panel: Instructions + Hints */}
-          <div className="flex w-[400px] flex-shrink-0 flex-col border-r">
+          <div className="flex w-[400px] flex-shrink-0 flex-col border-r bg-card">
             {/* Left panel tabs */}
             <div className="bg-muted/30 flex items-center border-b px-2">
               {hasLesson && (
@@ -503,7 +494,7 @@ export function ExerciseWorkspace({
           </div>
 
           {/* Right panel: File tabs + Editor/Preview + Results */}
-          <div className="flex flex-1 flex-col overflow-hidden">
+          <div className="flex flex-1 flex-col overflow-hidden bg-card">
             {/* File tabs */}
             <div className="bg-muted/30 flex items-center border-b px-2">
               <div className="flex flex-1 items-center gap-0 overflow-x-auto">

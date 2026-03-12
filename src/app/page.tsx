@@ -2,6 +2,8 @@ import { LandingNav } from '@/components/landing/landing-nav';
 import { HeroSection } from '@/components/landing/hero-section';
 import { FeaturesSection } from '@/components/landing/features-section';
 import { CTASection } from '@/components/landing/cta-section';
+import { SocialProofSection } from '@/components/landing/social-proof-section';
+import { Footer } from '@/components/navigation/footer';
 
 export default function Home() {
   return (
@@ -9,12 +11,9 @@ export default function Home() {
       <LandingNav />
       <HeroSection />
       <FeaturesSection />
+      <SocialProofSection />
       <CTASection />
-      <footer className="border-t border-white/10 bg-black px-6 py-8">
-        <p className="text-center text-sm text-zinc-500">
-          &copy; 2024 Signa Labs Inc.
-        </p>
-      </footer>
+      <Footer variant="dark" />
     </div>
   );
 }
