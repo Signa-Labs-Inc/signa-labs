@@ -393,14 +393,12 @@ function MilestoneTimelineItem({
             ? 'border-primary/30 bg-linear-to-br from-card to-primary/5 shadow-sm'
             : isCompleted
               ? 'bg-card'
-              : 'bg-card opacity-60'
+              : 'border-border/60 bg-card'
         }`}
       >
         <button
-          onClick={() => !isLocked && setExpanded(!expanded)}
-          className={`flex w-full items-start justify-between gap-3 p-4 text-left ${
-            isLocked ? 'cursor-default' : 'cursor-pointer'
-          }`}
+          onClick={() => setExpanded(!expanded)}
+          className="flex w-full items-start justify-between gap-3 p-4 text-left cursor-pointer"
         >
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
@@ -433,17 +431,23 @@ function MilestoneTimelineItem({
                 </span>
               </div>
             )}
+
+            {/* Locked milestone teaser */}
+            {isLocked && (
+              <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground/50">
+                <Lock className="h-3 w-3" />
+                {milestone.minExercises}+ exercises · {milestone.skills.length} skills to cover
+              </div>
+            )}
           </div>
 
-          {!isLocked && (
-            <div className="shrink-0 pt-1">
-              {expanded ? (
-                <ChevronUp className="h-4 w-4 text-muted-foreground" />
-              ) : (
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              )}
-            </div>
-          )}
+          <div className="shrink-0 pt-1">
+            {expanded ? (
+              <ChevronUp className="h-4 w-4 text-muted-foreground" />
+            ) : (
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            )}
+          </div>
         </button>
 
         {/* Expanded skill gates */}
@@ -494,6 +498,45 @@ function MilestoneTimelineItem({
                 </Badge>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Locked milestone preview — teases what's coming */}
+        {expanded && isLocked && (
+          <div className="border-t border-border/60 px-4 py-3">
+            <p className="text-muted-foreground/60 mb-2 text-xs font-medium uppercase tracking-wider">
+              What you&apos;ll learn
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {milestone.skills.map((skill) => (
+                <Badge
+                  key={skill}
+                  variant="outline"
+                  className="border-border/40 text-xs text-muted-foreground/40"
+                >
+                  <Lock className="mr-1 h-2.5 w-2.5" />
+                  {skill.replace(/_/g, ' ')}
+                </Badge>
+              ))}
+            </div>
+            {milestone.skillGates.length > 0 && (
+              <>
+                <p className="text-muted-foreground/60 mb-2 mt-3 text-xs font-medium uppercase tracking-wider">
+                  Skills required to unlock
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {milestone.skillGates.map((gate) => (
+                    <Badge
+                      key={gate}
+                      variant="outline"
+                      className="border-amber-500/20 text-xs text-amber-500/60"
+                    >
+                      {gate.replace(/_/g, ' ')}
+                    </Badge>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>
