@@ -40,6 +40,24 @@ export async function getUserPaths(userId: string) {
     .orderBy(desc(learningPaths.updatedAt));
 }
 
+let _totalPathCountCache: { value: number; expiresAt: number } | null = null;
+const PATH_COUNT_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+/** Count all learning paths created on the platform (cached for 5 min) */
+export async function getTotalPathCount(): Promise<number> {
+  if (_totalPathCountCache && Date.now() < _totalPathCountCache.expiresAt) {
+    return _totalPathCountCache.value;
+  }
+
+  const [result] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(learningPaths);
+
+  const count = result?.count ?? 0;
+  _totalPathCountCache = { value: count, expiresAt: Date.now() + PATH_COUNT_TTL_MS };
+  return count;
+}
+
 export async function getUserActivePaths(userId: string) {
   return db
     .select()

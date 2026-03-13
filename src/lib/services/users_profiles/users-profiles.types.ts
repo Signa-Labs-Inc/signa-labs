@@ -21,6 +21,8 @@ export interface UserPreferences {
   daily_goal_minutes: number;
   email_notifications: boolean;
   streak_reminders: boolean;
+  onboarding_tour_completed?: boolean;
+  onboarding_dismissed_hints?: string[];
 }
 
 export interface UpdateProfileInput {

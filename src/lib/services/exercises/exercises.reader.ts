@@ -305,6 +305,33 @@ export async function getUserExercises(
   };
 }
 
+// --- Cached platform stats ---------------------------------------------------
+
+let _platformCountCache: { value: number; expiresAt: number } | null = null;
+const PLATFORM_COUNT_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+/** Count all validated platform exercises (cached for 5 min) */
+export async function getPlatformExerciseCount(): Promise<number> {
+  if (_platformCountCache && Date.now() < _platformCountCache.expiresAt) {
+    return _platformCountCache.value;
+  }
+
+  const [result] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(exercises)
+    .where(
+      and(
+        eq(exercises.origin, 'platform'),
+        isNull(exercises.deletedAt),
+        eq(exercises.isValidated, true)
+      )
+    );
+
+  const count = result?.count ?? 0;
+  _platformCountCache = { value: count, expiresAt: Date.now() + PLATFORM_COUNT_TTL_MS };
+  return count;
+}
+
 /** Soft delete a user's exercise */
 export async function softDeleteUserExercise(exerciseId: string, userId: string): Promise<boolean> {
   const result = await db

@@ -7,6 +7,7 @@ import { getCategorizedExercises } from '@/lib/services/exercises/exercises.serv
 import { CategorySection } from '@/components/exercises/category-section';
 import { UserExercises } from '@/components/exercises/user-exercises';
 import { ExerciseCatalogLink } from '@/components/exercises/exercise-catalog-link';
+import { PageHint } from '@/components/onboarding/page-hint';
 
 export const metadata: Metadata = { title: 'Exercises' };
 
@@ -42,6 +43,7 @@ export default async function ExercisesPage() {
               <ExerciseCatalogLink />
               <Link
                 href="/exercises/generate"
+                data-onboarding="exercises-craft"
                 className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors"
               >
                 <FlaskConical className="h-4 w-4" />
@@ -51,6 +53,8 @@ export default async function ExercisesPage() {
           </div>
         </div>
       </div>
+
+      <PageHint hintId="exercises-craft" />
 
       {/* ── Content ── */}
       <div className="mx-auto max-w-6xl px-6 py-8">

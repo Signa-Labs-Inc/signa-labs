@@ -2,15 +2,16 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Code2, Route, FlaskConical, Crown } from 'lucide-react';
+import { LayoutDashboard, Code2, Route, FlaskConical, Crown, Compass } from 'lucide-react';
 import { UserMenu } from './user-menu';
 import { ThemeToggle } from './theme-toggle';
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/exercises', icon: Code2, label: 'Exercises' },
-  { href: '/paths', icon: Route, label: 'Paths' },
-  { href: '/exercises/generate', icon: FlaskConical, label: 'Craft' },
+  { href: '/discover', icon: Compass, label: 'Discover' },
+  { href: '/exercises', icon: Code2, label: 'Exercises', onboardingId: 'nav-exercises' },
+  { href: '/paths', icon: Route, label: 'Paths', onboardingId: 'nav-paths' },
+  { href: '/exercises/generate', icon: FlaskConical, label: 'Craft', onboardingId: 'nav-craft' },
 ];
 
 export function TopNav() {
@@ -41,6 +42,7 @@ export function TopNav() {
               <Link
                 key={item.href}
                 href={item.href}
+                data-onboarding={item.onboardingId}
                 className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
                   isActive
                     ? 'bg-accent text-accent-foreground'

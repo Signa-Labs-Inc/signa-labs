@@ -3,12 +3,13 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, LayoutDashboard, Code2, Route, FlaskConical, Crown } from 'lucide-react';
+import { Menu, X, LayoutDashboard, Code2, Route, FlaskConical, Crown, Compass } from 'lucide-react';
 import { UserMenu } from './user-menu';
 import { ThemeToggle } from './theme-toggle';
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { href: '/discover', icon: Compass, label: 'Discover' },
   { href: '/exercises', icon: Code2, label: 'Exercises' },
   { href: '/paths', icon: Route, label: 'Paths' },
   { href: '/exercises/generate', icon: FlaskConical, label: 'Craft' },
