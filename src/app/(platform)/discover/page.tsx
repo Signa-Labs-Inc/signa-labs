@@ -18,6 +18,7 @@ import { getTotalPathCount } from '@/lib/services/paths/paths.reader';
 import { CategorySection } from '@/components/exercises/category-section';
 
 export const metadata: Metadata = { title: 'Discover' };
+export const dynamic = 'force-dynamic';
 
 const SUPPORTED_LANGUAGE_COUNT = 6;
 
