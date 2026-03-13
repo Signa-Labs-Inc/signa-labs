@@ -15,6 +15,7 @@ import { PathService } from '@/lib/services/paths/paths.service';
 import { Button } from '@/components/ui/button';
 import { PathCard } from '@/components/paths/path-card';
 import { LanguageIcon } from '@/components/ui/language-icon';
+import { PageHint } from '@/components/onboarding/page-hint';
 
 // ============================================================
 // Quick-start path templates
@@ -122,7 +123,7 @@ export default async function PathsPage() {
                 milestones, and help you master any topic.
               </p>
             </div>
-            <Link href="/paths/new" className="shrink-0">
+            <Link href="/paths/new" className="shrink-0" data-onboarding="paths-create">
               <Button size="lg" className="gap-2 text-base">
                 <FlaskConical className="h-5 w-5" />
                 Create New Path
@@ -131,6 +132,8 @@ export default async function PathsPage() {
           </div>
         </div>
       </div>
+
+      <PageHint hintId="paths-create" />
 
       <div className="mx-auto max-w-5xl px-6 py-10">
         {paths.length === 0 ? (
