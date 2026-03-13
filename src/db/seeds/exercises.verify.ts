@@ -3,19 +3,19 @@ import * as exerciseService from '@/lib/services/exercises/exercises.service';
 
 async function verify() {
   console.log('--- List all exercises ---');
-  const all = await exerciseService.listPlatformExercises();
-  console.log(`Found ${all.length} exercises`);
+  const { exercises: all, totalCount: allCount } = await exerciseService.listPlatformExercises();
+  console.log(`Found ${allCount} exercises`);
   for (const ex of all) {
     console.log(`  [${ex.difficulty}] ${ex.title} (${ex.language})`);
   }
 
   console.log('\n--- Filter by Python ---');
-  const python = await exerciseService.listPlatformExercises({ language: 'python' });
-  console.log(`Found ${python.length} Python exercises`);
+  const { totalCount: pythonCount } = await exerciseService.listPlatformExercises({ language: 'python' });
+  console.log(`Found ${pythonCount} Python exercises`);
 
   console.log('\n--- Filter by medium difficulty ---');
-  const medium = await exerciseService.listPlatformExercises({ difficulty: 'medium' });
-  console.log(`Found ${medium.length} medium exercises`);
+  const { totalCount: mediumCount } = await exerciseService.listPlatformExercises({ difficulty: 'medium' });
+  console.log(`Found ${mediumCount} medium exercises`);
 
   console.log('\n--- Available tags ---');
   const tags = await exerciseService.getAvailableTags();

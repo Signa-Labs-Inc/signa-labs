@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { FlaskConical, AlertTriangle, ArrowRight } from 'lucide-react';
+import { FlaskConical, AlertTriangle, ArrowRight, Bug, Hammer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LanguageIcon } from '@/components/ui/language-icon';
 import { cn } from '@/lib/utils/helpers';
@@ -14,18 +14,28 @@ import { useGenerationJob } from '@/hooks/use-generation-job';
 
 type Language = 'python' | 'javascript' | 'typescript' | 'go' | 'sql';
 type Difficulty = 'beginner' | 'easy' | 'medium' | 'hard' | 'expert';
+type ExerciseMode = 'build' | 'debugging';
 
 // ============================================================
 // Constants
 // ============================================================
 
-const EXAMPLE_PROMPTS = [
+const BUILD_PROMPTS = [
   'Build a function that flattens a deeply nested array',
   'Implement a basic LRU cache with get and put operations',
   'Validate balanced parentheses in a string',
   'Create a debounce utility function',
   'Implement binary search on a sorted array',
   'Group anagrams together from a list of strings',
+];
+
+const DEBUG_PROMPTS = [
+  'A function that removes duplicates from a sorted array',
+  'A merge sort implementation with a subtle bug',
+  'A promise-based retry function with a flaw',
+  'A binary search that fails on edge cases',
+  'A deep clone function that mishandles certain types',
+  'A rate limiter with an off-by-one error',
 ];
 
 const LANGUAGE_OPTIONS: { value: Language; label: string }[] = [
@@ -62,6 +72,7 @@ export default function GenerateExercisePage() {
   const [prompt, setPrompt] = useState<string>('');
   const [language, setLanguage] = useState<Language>('python');
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
+  const [mode, setMode] = useState<ExerciseMode>('build');
 
   const { status, progress, error, result, startGeneration } = useGenerationJob();
 
@@ -72,8 +83,13 @@ export default function GenerateExercisePage() {
   }, [result, router]);
 
   const handleGenerate = useCallback(async (): Promise<void> => {
-    await startGeneration({ prompt, language, difficulty });
-  }, [prompt, language, difficulty, startGeneration]);
+    await startGeneration({
+      prompt,
+      language,
+      difficulty,
+      exerciseType: mode === 'debugging' ? 'debugging' : undefined,
+    });
+  }, [prompt, language, difficulty, mode, startGeneration]);
 
   const isGenerating = status !== 'idle' && status !== 'failed' && status !== 'completed';
   const isSubmittable = prompt.trim().length >= 10 && !isGenerating;
@@ -103,7 +119,11 @@ export default function GenerateExercisePage() {
             <textarea
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              placeholder="What do you want to practice? e.g. Build a function that flattens a deeply nested array..."
+              placeholder={
+                mode === 'debugging'
+                  ? 'Describe the code to debug, e.g. A binary search that fails on edge cases...'
+                  : 'What do you want to practice? e.g. Build a function that flattens a deeply nested array...'
+              }
               rows={3}
               maxLength={2000}
               disabled={isGenerating}
@@ -150,6 +170,36 @@ export default function GenerateExercisePage() {
                   {opt.label}
                 </button>
               ))}
+            </div>
+
+            {/* Mode toggle */}
+            <div className="flex items-center gap-1 rounded-lg border border-border/60 bg-card p-1">
+              <button
+                onClick={() => setMode('build')}
+                disabled={isGenerating}
+                className={cn(
+                  'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-all',
+                  mode === 'build'
+                    ? 'bg-primary/10 text-primary shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                <Hammer className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Build</span>
+              </button>
+              <button
+                onClick={() => setMode('debugging')}
+                disabled={isGenerating}
+                className={cn(
+                  'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-all',
+                  mode === 'debugging'
+                    ? 'bg-orange-500/10 text-orange-500 shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                <Bug className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Debug</span>
+              </button>
             </div>
 
             {/* Char count */}
@@ -242,7 +292,7 @@ export default function GenerateExercisePage() {
             Need inspiration?
           </p>
           <div className="grid gap-2 sm:grid-cols-2">
-            {EXAMPLE_PROMPTS.map((example) => (
+            {(mode === 'debugging' ? DEBUG_PROMPTS : BUILD_PROMPTS).map((example) => (
               <button
                 key={example}
                 onClick={() => setPrompt(example)}
