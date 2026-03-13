@@ -1,8 +1,14 @@
 import { db } from '@/index';
-import { and, arrayContains, eq, ilike, isNull, sql } from 'drizzle-orm/sql';
+import { and, arrayContains, eq, ilike, isNull, sql, or } from 'drizzle-orm/sql';
 import { Exercise, ExerciseCatalogFilters, ExerciseFile } from './exercises.types';
+import type { ExerciseDifficulty, ExerciseLanguage } from './exercises.constants';
 import { exercises } from '@/db/schema/tables/exercises';
 import { exerciseEnvironments, exerciseFiles } from '@/db/schema/tables';
+
+/** Escape LIKE wildcards so user input is treated as literal text */
+function escapeLike(value: string): string {
+  return value.replace(/[%_\\]/g, '\\$&');
+}
 
 // --- Single Exercise ---------------------------------------------------------
 /** Get an exercise with its environment */
@@ -78,10 +84,12 @@ export async function getExerciseSolutionFiles(exerciseId: string): Promise<Exer
   return files;
 }
 
-/** List platform exercises with optional filters */
+/** List platform exercises with optional filters and pagination */
 export async function listPlatformExercises(
-  filters: ExerciseCatalogFilters = {}
-): Promise<Exercise[]> {
+  filters: ExerciseCatalogFilters = {},
+  limit?: number,
+  offset: number = 0
+): Promise<{ exercises: Exercise[]; totalCount: number }> {
   const conditions = [
     eq(exercises.origin, 'platform'),
     isNull(exercises.deletedAt),
@@ -101,10 +109,12 @@ export async function listPlatformExercises(
   }
 
   if (filters.search) {
-    conditions.push(ilike(exercises.title, `%${filters.search}%`));
+    conditions.push(ilike(exercises.title, `%${escapeLike(filters.search)}%`));
   }
 
-  const platformExercises = await db
+  const whereClause = and(...conditions);
+
+  let query = db
     .select({
       id: exercises.id,
       title: exercises.title,
@@ -126,10 +136,83 @@ export async function listPlatformExercises(
     })
     .from(exercises)
     .innerJoin(exerciseEnvironments, eq(exercises.environmentId, exerciseEnvironments.id))
-    .where(and(...conditions))
-    .orderBy(exercises.title);
+    .where(whereClause)
+    .orderBy(sql`${exercises.createdAt} DESC`)
+    .$dynamic();
 
-  return platformExercises;
+  if (limit !== undefined) {
+    query = query.limit(limit).offset(offset);
+  }
+
+  const [countResult, exerciseResults] = await Promise.all([
+    db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(exercises)
+      .where(whereClause),
+    query,
+  ]);
+
+  return {
+    exercises: exerciseResults,
+    totalCount: countResult[0]?.count ?? 0,
+  };
+}
+
+/**
+ * List platform exercises matching ANY of the given tags, with pagination.
+ * Returns { exercises, totalCount } for the matching set.
+ */
+export async function listExercisesByTags(
+  tags: string[],
+  limit: number = 6,
+  offset: number = 0
+): Promise<{ exercises: Exercise[]; totalCount: number }> {
+  const tagConditions = tags.map((tag) => arrayContains(exercises.tags, [tag]));
+
+  const baseConditions = [
+    eq(exercises.origin, 'platform'),
+    isNull(exercises.deletedAt),
+    eq(exercises.isValidated, true),
+    or(...tagConditions)!,
+  ];
+
+  const [countResult, exerciseResults] = await Promise.all([
+    db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(exercises)
+      .where(and(...baseConditions)),
+    db
+      .select({
+        id: exercises.id,
+        title: exercises.title,
+        origin: exercises.origin,
+        description: exercises.description,
+        difficulty: exercises.difficulty,
+        language: exercises.language,
+        tags: exercises.tags,
+        environmentName: exerciseEnvironments.displayName,
+        environment: {
+          id: exerciseEnvironments.id,
+          name: exerciseEnvironments.name,
+          displayName: exerciseEnvironments.displayName,
+          baseImage: exerciseEnvironments.baseImage,
+          maxExecutionSeconds: exerciseEnvironments.maxExecutionSeconds,
+          maxFiles: exerciseEnvironments.maxFiles,
+          maxFileSizeBytes: exerciseEnvironments.maxFileSizeBytes,
+        },
+      })
+      .from(exercises)
+      .innerJoin(exerciseEnvironments, eq(exercises.environmentId, exerciseEnvironments.id))
+      .where(and(...baseConditions))
+      .orderBy(sql`${exercises.createdAt} DESC`)
+      .limit(limit)
+      .offset(offset),
+  ]);
+
+  return {
+    exercises: exerciseResults,
+    totalCount: countResult[0]?.count ?? 0,
+  };
 }
 
 /** Get all distinct tags across platform exercises */
@@ -151,9 +234,34 @@ export async function getAvailableTags(): Promise<string[]> {
 
 // --- User Exercises ----------------------------------------------------------
 
-/** Get exercises created by a specific user */
-export async function getUserExercises(userId: string): Promise<Exercise[]> {
-  const userExercises = await db
+/** Get exercises created by a specific user, with pagination and optional filters */
+export async function getUserExercises(
+  userId: string,
+  limit?: number,
+  offset: number = 0,
+  filters: { search?: string; language?: ExerciseLanguage; difficulty?: ExerciseDifficulty } = {}
+): Promise<{ exercises: Exercise[]; totalCount: number }> {
+  const conditions = [
+    eq(exercises.origin, 'user'),
+    eq(exercises.createdBy, userId),
+    isNull(exercises.deletedAt),
+  ];
+
+  if (filters.search) {
+    conditions.push(ilike(exercises.title, `%${escapeLike(filters.search)}%`));
+  }
+
+  if (filters.language) {
+    conditions.push(eq(exercises.language, filters.language));
+  }
+
+  if (filters.difficulty) {
+    conditions.push(eq(exercises.difficulty, filters.difficulty));
+  }
+
+  const whereClause = and(...conditions);
+
+  let query = db
     .select({
       id: exercises.id,
       title: exercises.title,
@@ -175,16 +283,26 @@ export async function getUserExercises(userId: string): Promise<Exercise[]> {
     })
     .from(exercises)
     .innerJoin(exerciseEnvironments, eq(exercises.environmentId, exerciseEnvironments.id))
-    .where(
-      and(
-        eq(exercises.origin, 'user'),
-        eq(exercises.createdBy, userId),
-        isNull(exercises.deletedAt)
-      )
-    )
-    .orderBy(sql`${exercises.createdAt} DESC`);
+    .where(whereClause)
+    .orderBy(sql`${exercises.createdAt} DESC`)
+    .$dynamic();
 
-  return userExercises;
+  if (limit !== undefined) {
+    query = query.limit(limit).offset(offset);
+  }
+
+  const [countResult, exerciseResults] = await Promise.all([
+    db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(exercises)
+      .where(whereClause),
+    query,
+  ]);
+
+  return {
+    exercises: exerciseResults,
+    totalCount: countResult[0]?.count ?? 0,
+  };
 }
 
 /** Soft delete a user's exercise */

@@ -1,43 +1,25 @@
 import type { Metadata } from 'next';
-import * as exerciseService from '@/lib/services/exercises/exercises.service';
-
-export const metadata: Metadata = { title: 'Exercises' };
-import { ExerciseGrid } from '@/components/exercises/exercise-grid';
-import { ExerciseFilters } from '@/components/exercises/exercise-filters';
-import { UserExercises } from '@/components/exercises/user-exercises';
+import Link from 'next/link';
+import { FlaskConical, BookOpen, Search } from 'lucide-react';
 import { getCurrentUser } from '@/lib/services/auth/auth.service';
 import { getUserExercises } from '@/lib/services/exercises/exercises.reader';
-import { FlaskConical, BookOpen } from 'lucide-react';
-import Link from 'next/link';
-import type { ExerciseCatalogFilters } from '@/lib/services/exercises/exercises.types';
+import { getCategorizedExercises } from '@/lib/services/exercises/exercises.service';
+import { CategorySection } from '@/components/exercises/category-section';
+import { UserExercises } from '@/components/exercises/user-exercises';
+import { ExerciseCatalogLink } from '@/components/exercises/exercise-catalog-link';
 
-type SearchParams = Promise<{
-  language?: string;
-  difficulty?: string;
-  tag?: string;
-  search?: string;
-}>;
+export const metadata: Metadata = { title: 'Exercises' };
 
-export default async function ExercisesPage({
-  searchParams,
-}: {
-  searchParams: SearchParams;
-}) {
-  const params = await searchParams;
+const PREVIEW_LIMIT = 3;
 
-  const filters: ExerciseCatalogFilters = {
-    language: params.language as ExerciseCatalogFilters['language'],
-    difficulty: params.difficulty as ExerciseCatalogFilters['difficulty'],
-    tag: params.tag,
-    search: params.search,
-  };
-
+export default async function ExercisesPage() {
   const user = await getCurrentUser();
 
-  const [exercises, tags, userExercises] = await Promise.all([
-    exerciseService.listPlatformExercises(filters),
-    exerciseService.getAvailableTags(),
-    user ? getUserExercises(user.id) : [],
+  const [sections, userResult] = await Promise.all([
+    getCategorizedExercises(PREVIEW_LIMIT),
+    user
+      ? getUserExercises(user.id, PREVIEW_LIMIT)
+      : { exercises: [], totalCount: 0 },
   ]);
 
   return (
@@ -53,25 +35,19 @@ export default async function ExercisesPage({
                 Exercises
               </div>
               <p className="text-muted-foreground text-sm">
-                Practice coding with hands-on exercises across multiple languages.
+                Practice coding with hands-on exercises across multiple languages and topics.
               </p>
             </div>
-            <Link
-              href="/exercises/generate"
-              className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex shrink-0 items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors"
-            >
-              <FlaskConical className="h-4 w-4" />
-              Craft
-            </Link>
-          </div>
-
-          {/* Search + Filters */}
-          <div className="mt-5">
-            <ExerciseFilters
-              tags={tags}
-              activeFilters={filters}
-              resultCount={exercises.length + (user ? userExercises.length : 0)}
-            />
+            <div className="flex shrink-0 items-center gap-2">
+              <ExerciseCatalogLink />
+              <Link
+                href="/exercises/generate"
+                className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors"
+              >
+                <FlaskConical className="h-4 w-4" />
+                Craft
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -79,14 +55,40 @@ export default async function ExercisesPage({
       {/* ── Content ── */}
       <div className="mx-auto max-w-6xl px-6 py-8">
         {/* User's generated exercises */}
-        {user && userExercises.length > 0 && (
-          <div className="mb-8">
-            <UserExercises exercises={userExercises} showPracticeLibraryHeading />
+        {user && userResult.totalCount > 0 && (
+          <div className="mb-12">
+            <UserExercises
+              exercises={userResult.exercises}
+              totalCount={userResult.totalCount}
+              showPracticeLibraryHeading
+            />
           </div>
         )}
 
-        {/* Platform exercises */}
-        <ExerciseGrid exercises={exercises} />
+        {/* Categorized platform exercises */}
+        {sections.length > 0 ? (
+          <div className="space-y-12">
+            {sections.map((section, index) => (
+              <CategorySection
+                key={section.category.slug}
+                category={section.category}
+                exercises={section.exercises}
+                totalCount={section.totalCount}
+                index={index}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center rounded-xl border bg-card py-20 text-center">
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
+              <Search className="h-6 w-6 text-primary" />
+            </div>
+            <h3 className="text-lg font-semibold">No exercises yet</h3>
+            <p className="text-muted-foreground mt-1 max-w-sm text-sm">
+              Generate a custom exercise to get started, or check back soon for new content.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -164,6 +164,7 @@ Explain in the description that the exercise teaches the pattern used in Next.js
 
 ${getDifficultyGuidelines(input.difficulty)}
 ${input.pathContext ? `\n${input.pathContext}` : ''}
+${input.exerciseType === 'debugging' ? getDebugExerciseInstructions(input.difficulty) : ''}
 
 ## Teaching Content
 
@@ -734,6 +735,124 @@ function getDifficultyGuidelines(difficulty: string): string {
       return `- Moderate complexity, 2-3 concepts
 - Clear description with examples
 - 6-8 test cases`;
+  }
+}
+
+function getDebugExerciseInstructions(difficulty: string): string {
+  return `
+## Debug Exercise Mode (IMPORTANT — READ CAREFULLY)
+
+This is a DEBUG exercise. The user does NOT write code from scratch.
+Instead, you provide BROKEN code that looks correct but has a subtle bug.
+The user must find and fix the bug.
+
+### File Structure
+
+- **starterFiles**: The BUGGY code the user will see and edit.
+  - Must look like plausible, well-written code — NOT obviously broken.
+  - Add a comment at the top: "// This code has a bug. Find and fix it."
+  - The code should be 80-95% correct. Only the bug is wrong.
+  - Include helpful comments throughout so the user understands the intent.
+
+- **solutionFiles**: The FIXED version of the code. This is what the user
+  should produce after finding and fixing the bug.
+
+- **testFiles**: Tests written against the CORRECT behavior.
+  - These tests MUST FAIL when run against the buggy starter code.
+  - These tests MUST PASS when run against the fixed solution code.
+  - At least one test should directly expose the buggy behavior.
+  - Include a test named something like "test_the_bug_case" or "handles the edge case"
+    that clearly fails with the buggy code so the user can see the symptom.
+
+### Description
+
+The description should:
+- Explain what the code is SUPPOSED to do (its intended purpose)
+- Provide expected input/output examples that demonstrate correct behavior
+- State "This implementation has a bug" but NOT hint at where or what it is
+- The user must read the code, understand the intent, and find the flaw
+
+### Bug Guidelines by Difficulty
+
+${getDebugBugGuidelines(difficulty)}
+
+### Lesson Content for Debug Exercises
+
+The lesson should teach the CONCEPT that the bug violates. For example:
+- Stale closure bug → lesson teaches "How JavaScript Closures Work"
+- Off-by-one error → lesson teaches "Understanding Loop Boundaries"
+- Missing null check → lesson teaches "Defensive Programming Patterns"
+- SQL injection → lesson teaches "Parameterized Queries and SQL Safety"
+
+The user should be able to read the lesson, then apply that understanding
+to find the bug. The lesson should NOT mention the specific bug.
+
+### Critical Rules for Debug Exercises
+
+1. The buggy code must be REALISTIC — something an AI assistant or a
+   competent developer might actually produce. No silly typos or syntax errors.
+2. The bug must require UNDERSTANDING to find, not just proofreading.
+3. The solution diff should be small — typically 1-5 lines changed.
+4. All tests must PASS with the solution and at least one must FAIL with the starter.
+5. The description must NOT reveal the bug location or type.
+6. The starter code should include the SAME function signatures as the solution.
+`;
+}
+
+function getDebugBugGuidelines(difficulty: string): string {
+  switch (difficulty) {
+    case 'beginner':
+      return `**Beginner bugs — one clear logic error:**
+- Wrong comparison operator (< instead of <=, === instead of !==)
+- Off-by-one error in a loop or index
+- Missing return statement in one code path
+- Wrong variable referenced (using the wrong parameter)
+- Incorrect default value
+The bug should be findable by carefully tracing the code with a simple input.`;
+
+    case 'easy':
+      return `**Easy bugs — logic error requiring basic understanding:**
+- Incorrect condition in an if/else chain
+- Wrong sort comparator logic
+- Missing break in a switch statement
+- Array mutation when a copy was needed
+- Incorrect string method (includes vs startsWith, etc.)
+The bug should be apparent when the user traces through a failing test case.`;
+
+    case 'medium':
+      return `**Medium bugs — conceptual misunderstanding:**
+- Stale closure capturing the wrong value
+- Shallow copy when deep copy was needed
+- Incorrect async/await (missing await, unhandled promise)
+- Wrong reduce accumulator logic
+- Modifying an object while iterating over it
+The user needs to understand the underlying concept to find the bug.`;
+
+    case 'hard':
+      return `**Hard bugs — subtle issues only visible in edge cases:**
+- Floating point comparison without epsilon
+- Unicode string handling errors
+- Race condition in async code
+- Integer overflow in accumulation
+- Incorrect handling of negative numbers, zero, or empty inputs
+- Regex that fails on specific input patterns
+The bug only manifests with specific inputs that the tests cover.`;
+
+    case 'expert':
+      return `**Expert bugs — security vulnerabilities or architectural flaws:**
+- SQL injection via string concatenation
+- XSS vulnerability in HTML rendering
+- Prototype pollution through unchecked object merging
+- Memory leak from missing event listener cleanup
+- Time-of-check to time-of-use (TOCTOU) vulnerability
+- Incorrect cryptographic usage (ECB mode, predictable IV)
+The user must understand security principles or system-level behavior to identify the flaw.`;
+
+    default:
+      return `**Medium bugs — conceptual misunderstanding:**
+- The bug should require understanding the underlying concept to find
+- Not a typo or syntax error — a genuine logic or design flaw
+- Only manifests in certain conditions that the tests cover`;
   }
 }
 

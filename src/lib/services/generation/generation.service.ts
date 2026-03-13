@@ -127,6 +127,29 @@ export class ExerciseGenerationService {
         validationResult.tests_failed === 0 &&
         validationResult.tests_total > 0
       ) {
+        // For debug exercises, also verify starter code FAILS at least one test
+        if (input.exerciseType === 'debugging') {
+          const starterResult = await this.validateInSandbox(
+            { ...exerciseOutput, solutionFiles: exerciseOutput.starterFiles },
+            input.language,
+            environment
+          );
+          if (starterResult.tests_failed > 0 || starterResult.status === 'error') {
+            break; // Good: starter is genuinely buggy
+          }
+          // Starter passed all tests — the "bug" isn't real
+          lastError =
+            'Debug exercise validation failed: starter code passes all tests. ' +
+            'The buggy starter must fail at least one test.';
+          lastFailedTests = '';
+          if (attempt === MAX_RETRIES) {
+            throw new GenerationError(
+              'VALIDATION_FAILED',
+              `Debug exercise starter code passed all tests after ${MAX_RETRIES + 1} attempts. The generated bug was not detectable by the tests.`
+            );
+          }
+          continue;
+        }
         break;
       }
 

@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Trash2, ChevronDown } from 'lucide-react';
+import Link from 'next/link';
+import { Trash2, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -18,21 +19,19 @@ import type { ExerciseCardData } from './exercise-card';
 
 type UserExercisesProps = {
   exercises: ExerciseCardData[];
+  totalCount: number;
   showPracticeLibraryHeading?: boolean;
 };
 
-const INITIAL_SHOW = 6;
-const SHOW_MORE_INCREMENT = 6;
-
 export function UserExercises({
   exercises,
+  totalCount,
   showPracticeLibraryHeading,
 }: UserExercisesProps) {
   const [localExercises, setLocalExercises] =
     useState<ExerciseCardData[]>(exercises);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(INITIAL_SHOW);
 
   const handleDelete = useCallback(async (): Promise<void> => {
     if (!deleteTarget) return;
@@ -56,27 +55,28 @@ export function UserExercises({
     }
   }, [deleteTarget]);
 
-  if (localExercises.length === 0) {
+  if (localExercises.length === 0 && totalCount === 0) {
     return null;
   }
-
-  const visible = localExercises.slice(0, visibleCount);
-  const hasMore = visibleCount < localExercises.length;
-  const remaining = localExercises.length - visibleCount;
 
   return (
     <>
       <div className="mb-10">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold">My Exercises</h2>
-          <span className="text-muted-foreground text-sm">
-            {localExercises.length}{' '}
-            {localExercises.length === 1 ? 'exercise' : 'exercises'}
-          </span>
+          {totalCount > localExercises.length && (
+            <Link
+              href="/exercises/my"
+              className="text-muted-foreground hover:text-primary group inline-flex shrink-0 items-center gap-1 text-sm transition-colors"
+            >
+              View all {totalCount}
+              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+            </Link>
+          )}
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {visible.map((exercise, index) => (
+          {localExercises.map((exercise, index) => (
             <div
               key={exercise.id}
               className="animate-fade-in"
@@ -103,22 +103,6 @@ export function UserExercises({
             </div>
           ))}
         </div>
-
-        {hasMore && (
-          <div className="mt-4 flex justify-center">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                setVisibleCount((c) => c + SHOW_MORE_INCREMENT)
-              }
-              className="gap-1.5"
-            >
-              <ChevronDown className="h-4 w-4" />
-              Show more ({remaining} remaining)
-            </Button>
-          </div>
-        )}
       </div>
 
       {showPracticeLibraryHeading && (
