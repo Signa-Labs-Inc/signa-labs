@@ -8,6 +8,7 @@ import {
   integer,
   check,
   index,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core';
 import { promptTemplates } from '../prompt_templates';
 import { exerciseEnvironments } from '../exercise_environments';
@@ -62,6 +63,12 @@ export const exercises = pgTable(
       .default(sql`'{}'`),
     metadata: jsonb().default({}),
 
+    // Sharing
+    slug: text(),
+    isPublic: boolean('is_public').notNull().default(false),
+    sharedAt: timestamp('shared_at', { withTimezone: true }),
+    publicAttemptCount: integer('public_attempt_count').notNull().default(0),
+
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .notNull()
@@ -102,5 +109,12 @@ export const exercises = pgTable(
       .where(sql`${table.deletedAt} IS NULL`),
     index('idx_exercises_environment').on(table.environmentId),
     index('idx_exercises_prompt_template').on(table.promptTemplateId),
+    // Sharing indexes
+    uniqueIndex('idx_exercises_slug_unique')
+      .on(table.slug)
+      .where(sql`${table.slug} IS NOT NULL`),
+    index('idx_exercises_is_public')
+      .on(table.isPublic)
+      .where(sql`${table.isPublic} = true AND ${table.deletedAt} IS NULL`),
   ]
 );

@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useUser } from '@clerk/nextjs';
 import { ArrowRight, AlertTriangle, Route } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -51,6 +52,7 @@ const EXAMPLE_PROMPTS = [
 
 export default function NewPathPage() {
   const router = useRouter();
+  const { user } = useUser();
   const searchParams = useSearchParams();
 
   const [prompt, setPrompt] = useState(searchParams.get('prompt') ?? '');
@@ -67,8 +69,15 @@ export default function NewPathPage() {
 
   const handleCreate = useCallback(async () => {
     if (!prompt.trim() || !level) return;
+    if (!user) {
+      // Encode current form state into the redirect URL so it survives sign-up.
+      // The page already reads prompt/language/level from search params on mount.
+      const target = `/paths/new?prompt=${encodeURIComponent(prompt.trim())}&language=${encodeURIComponent(language)}&level=${encodeURIComponent(level)}`;
+      router.push(`/sign-in?redirect_url=${encodeURIComponent(target)}`);
+      return;
+    }
     await startCreation({ prompt: prompt.trim(), language, startingLevel: level });
-  }, [prompt, language, level, startCreation]);
+  }, [prompt, language, level, startCreation, user, router]);
 
   const isCreating = status !== 'idle' && status !== 'failed' && status !== 'completed';
   const isSubmittable = prompt.trim().length >= 10 && !!level && !isCreating;
