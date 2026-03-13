@@ -14,7 +14,8 @@ export default function PlatformLayout({
 }) {
   const pathname = usePathname();
   const isExerciseWorkspace =
-    /^\/exercises\/[^/]+$/.test(pathname) && pathname !== '/exercises/generate';
+    (/^\/exercises\/[^/]+$/.test(pathname) && pathname !== '/exercises/generate') ||
+    /^\/e\/[^/]+$/.test(pathname);
 
   if (isExerciseWorkspace) {
     return <div className="h-screen flex flex-col bg-background">{children}</div>;

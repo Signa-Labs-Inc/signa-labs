@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Play, Eye, RotateCcw, X, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -18,10 +18,17 @@ import type { SandboxResult } from '@/lib/sandboxes/types';
 import { LessonPanel } from './lesson-panel';
 import { ExplanationPanel } from './explanation-panel';
 import { SynthesisPanel } from './synthesis-panel';
+import { AnonymousSignupCTA } from './anonymous-signup-cta';
 import type { FailureExplanation } from '@/lib/services/teaching/teaching.types';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { fireConfetti, fireBurst } from '@/lib/utils/confetti';
+import { ShareButton } from './share-button';
+import {
+  saveAnonymousExerciseDraft,
+  loadAnonymousExerciseDraft,
+  clearAnonymousExerciseDraft,
+} from '@/lib/utils/anonymous-state';
 
 // ============================================================
 // Constants
@@ -45,20 +52,22 @@ const DIFFICULTY_COLORS: Record<string, string> = {
 
 type ExerciseWorkspaceProps = {
   exercise: ExerciseDetail;
-  attemptId: string;
+  attemptId: string | null;
   draftCode?: Record<string, string> | null;
   pathId?: string | null;
   pathExerciseId?: string | null;
   previouslyCompleted?: boolean;
+  isAnonymous?: boolean;
+  isCreator?: boolean;
 };
 
 type SubmitResponse = {
-  submissionId: string;
+  submissionId?: string;
   isPassing: boolean;
   testsPassed: number;
   testsFailed: number;
   testsTotal: number;
-  testOutput: string | null;
+  testOutput?: string | null;
   executionTimeMs: number;
   results: SandboxResult['results'];
   error: string | null;
@@ -82,6 +91,8 @@ export function ExerciseWorkspace({
   pathId,
   pathExerciseId,
   previouslyCompleted = false,
+  isAnonymous = false,
+  isCreator = false,
 }: ExerciseWorkspaceProps) {
   const router = useRouter();
   const allFiles = [...exercise.starterFiles, ...exercise.supportFiles];
@@ -96,8 +107,11 @@ export function ExerciseWorkspace({
   const [showSynthesis, setShowSynthesis] = useState(false);
   const [showCompletionBanner, setShowCompletionBanner] = useState(previouslyCompleted);
 
+  // Anonymous CTA state
+  const [showAnonymousCTA, setShowAnonymousCTA] = useState<'pass' | 'fail' | null>(null);
+
   // Track user's code edits per file (keyed by file ID)
-  // Prefer saved draft code over original starter content
+  // Initialised from server draft or starter code.
   const [fileContents, setFileContents] = useState<Record<string, string>>(() => {
     const initial: Record<string, string> = {};
     for (const file of allFiles) {
@@ -110,6 +124,56 @@ export function ExerciseWorkspace({
     return initial;
   });
 
+  // Restore draft from localStorage on mount.
+  // Two scenarios:
+  //   1. Anonymous user refreshes the page — restore their edits, keep localStorage.
+  //   2. User just signed up after anonymous session — restore their edits, clear localStorage.
+  // Skipped when a server-side draft exists (it takes priority).
+  const [anonDraftRestored, setAnonDraftRestored] = useState(false);
+  useEffect(() => {
+    if (draftCode || anonDraftRestored) return;
+
+    const anonDraft = loadAnonymousExerciseDraft(exercise.id);
+    if (anonDraft) {
+      setFileContents((prev) => {
+        const next = { ...prev };
+        for (const file of allFiles) {
+          if (file.filePath in anonDraft) {
+            next[file.id] = anonDraft[file.filePath];
+          }
+        }
+        return next;
+      });
+    }
+    // For authenticated users, clear so it doesn't resurface on future visits.
+    // For anonymous users, keep it — the save effect will overwrite it anyway.
+    if (!isAnonymous) {
+      clearAnonymousExerciseDraft();
+    }
+    setAnonDraftRestored(true);
+  }, [isAnonymous, draftCode, anonDraftRestored, exercise.id, allFiles]);
+
+  // For anonymous users, persist code to localStorage on every change
+  // so it survives the sign-up redirect.
+  useEffect(() => {
+    if (!isAnonymous) return;
+
+    const editableSnapshot: Record<string, string> = {};
+    let hasEdits = false;
+    for (const file of allFiles) {
+      if (file.isEditable) {
+        const current = fileContents[file.id] ?? file.content;
+        editableSnapshot[file.filePath] = current;
+        if (current !== file.content) {
+          hasEdits = true;
+        }
+      }
+    }
+    if (hasEdits) {
+      saveAnonymousExerciseDraft(exercise.id, editableSnapshot);
+    }
+  }, [isAnonymous, fileContents, allFiles, exercise.id]);
+
   // Build a filePath -> content map for auto-save (only editable files)
   const draftFiles: Record<string, string> = {};
   for (const file of allFiles) {
@@ -121,13 +185,15 @@ export function ExerciseWorkspace({
   // Auto-save drafts on debounce + tab blur + page close
   const { saveStatus, cancelPendingSaves } = useAutoSave({
     exerciseId: exercise.id,
-    attemptId,
+    attemptId: attemptId ?? '',
     fileContents: draftFiles,
+    enabled: !isAnonymous && !!attemptId,
   });
 
   useTimeTracking({
     exerciseId: exercise.id,
-    attemptId,
+    attemptId: attemptId ?? '',
+    enabled: !isAnonymous && !!attemptId,
   });
 
   const [synthesisContent, setSynthesisContent] = useState(exercise.synthesisContent);
@@ -161,16 +227,21 @@ export function ExerciseWorkspace({
     }
     setFileContents(initial);
 
-    try {
-      await fetch(`/api/exercises/${exercise.id}/draft`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ attemptId, files: {} }),
-      });
-    } catch {
-      // Best effort
+    if (isAnonymous) {
+      // Clear localStorage so the old draft doesn't restore on refresh.
+      clearAnonymousExerciseDraft();
+    } else if (attemptId) {
+      try {
+        await fetch(`/api/exercises/${exercise.id}/draft`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ attemptId, files: {} }),
+        });
+      } catch {
+        // Best effort
+      }
     }
-  }, [allFiles, exercise.id, attemptId, cancelPendingSaves]);
+  }, [allFiles, exercise.id, attemptId, cancelPendingSaves, isAnonymous]);
 
   /**
    * Record path exercise completion after all tests pass.
@@ -223,6 +294,9 @@ export function ExerciseWorkspace({
     async (submissionData: SubmitResponse) => {
       if (submissionData.isPassing) return;
 
+      // Anonymous users don't get AI explanations
+      if (isAnonymous) return;
+
       setIsExplaining(true);
       setExplanation(null);
 
@@ -261,7 +335,7 @@ export function ExerciseWorkspace({
         setIsExplaining(false);
       }
     },
-    [allFiles, fileContents, exercise]
+    [allFiles, fileContents, exercise, isAnonymous]
   );
 
   const handleSubmit = useCallback(async (): Promise<void> => {
@@ -272,6 +346,7 @@ export function ExerciseWorkspace({
     setExplanation(null);
     setIsExplaining(false);
     setShowSynthesis(false);
+    setShowAnonymousCTA(null);
 
     try {
       const editableFiles = allFiles
@@ -281,13 +356,19 @@ export function ExerciseWorkspace({
           content: fileContents[f.id] ?? f.content,
         }));
 
-      const response = await fetch(`/api/exercises/${exercise.id}/submit`, {
+      // Anonymous users use the /try endpoint (no DB writes)
+      const url = isAnonymous
+        ? `/api/exercises/${exercise.id}/try`
+        : `/api/exercises/${exercise.id}/submit`;
+
+      const payload = isAnonymous
+        ? { files: editableFiles }
+        : { attemptId, files: editableFiles };
+
+      const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          attemptId,
-          files: editableFiles,
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
@@ -326,16 +407,22 @@ export function ExerciseWorkspace({
         toast.error(`${data.testsFailed} of ${data.testsTotal} tests failed`, {
           description: 'Check the results panel for details.',
         });
+        if (isAnonymous) {
+          setShowAnonymousCTA('fail');
+        }
       } else {
         setExplanation(null);
         toast.success('All tests passed!', {
           description: `${data.testsPassed} of ${data.testsTotal} tests passed in ${data.executionTimeMs}ms`,
         });
         fireConfetti();
+        if (isAnonymous) {
+          setShowAnonymousCTA('pass');
+        }
       }
 
       // If this is a path exercise and all tests passed, record completion
-      if (isPathExercise && data.isPassing) {
+      if (!isAnonymous && isPathExercise && data.isPassing) {
         const pathRes = await recordPathCompletion(data);
         if (pathRes?.pathCompleted) {
           fireBurst();
@@ -362,6 +449,7 @@ export function ExerciseWorkspace({
     exercise.id,
     attemptId,
     isPathExercise,
+    isAnonymous,
     recordPathCompletion,
     fetchExplanation,
     synthesisContent,
@@ -386,12 +474,25 @@ export function ExerciseWorkspace({
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Save status indicator */}
-            {saveStatus === 'saving' && (
-              <span className="text-muted-foreground animate-pulse text-xs">Saving...</span>
+            {/* Share button (only for exercise creator) */}
+            {isCreator && (
+              <ShareButton
+                exerciseId={exercise.id}
+                initialIsPublic={exercise.isPublic}
+                initialSlug={exercise.slug}
+              />
             )}
-            {saveStatus === 'saved' && <span className="text-muted-foreground text-xs">Saved</span>}
-            {saveStatus === 'error' && <span className="text-xs text-red-500">Save failed</span>}
+
+            {/* Save status indicator (hidden for anonymous) */}
+            {!isAnonymous && (
+              <>
+                {saveStatus === 'saving' && (
+                  <span className="text-muted-foreground animate-pulse text-xs">Saving...</span>
+                )}
+                {saveStatus === 'saved' && <span className="text-muted-foreground text-xs">Saved</span>}
+                {saveStatus === 'error' && <span className="text-xs text-red-500">Save failed</span>}
+              </>
+            )}
 
             {/* Reset button */}
             <Button
@@ -513,7 +614,11 @@ export function ExerciseWorkspace({
               <InstructionsPanel description={exercise.description} tags={exercise.tags} />
             )}
             {leftTab === 'hints' && (
-              <HintPanel exerciseId={exercise.id} hintCount={exercise.hintCount} />
+              <HintPanel
+                exerciseId={exercise.id}
+                hintCount={exercise.hintCount}
+                isAnonymous={isAnonymous}
+              />
             )}
           </div>
 
@@ -579,17 +684,20 @@ export function ExerciseWorkspace({
               )}
             </div>
 
-            {/* Results + Explanation + Synthesis */}
+            {/* Results + Explanation + Synthesis + Anonymous CTA */}
             <div>
               <ResultsPanel result={result} isSubmitting={isSubmitting} error={submitError} />
-              {(explanation || isExplaining) && !showSynthesis && (
+              {isAnonymous && showAnonymousCTA && (
+                <AnonymousSignupCTA variant={showAnonymousCTA} />
+              )}
+              {!isAnonymous && (explanation || isExplaining) && !showSynthesis && (
                 <ExplanationPanel
                   explanation={explanation}
                   isLoading={isExplaining}
                   onViewLesson={lessonContent ? () => setLeftTab('lesson') : undefined}
                 />
               )}
-              {showSynthesis && synthesisContent && (
+              {!isAnonymous && showSynthesis && synthesisContent && (
                 <SynthesisPanel
                   synthesis={synthesisContent}
                   pathId={pathId}

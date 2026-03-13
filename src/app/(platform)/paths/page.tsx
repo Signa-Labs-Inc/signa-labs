@@ -10,7 +10,7 @@ import {
   ArrowRight,
   Route,
 } from 'lucide-react';
-import { requireCurrentUser } from '@/lib/services/auth/auth.service';
+import { getCurrentUser } from '@/lib/services/auth/auth.service';
 import { PathService } from '@/lib/services/paths/paths.service';
 import { Button } from '@/components/ui/button';
 import { PathCard } from '@/components/paths/path-card';
@@ -79,14 +79,24 @@ const FEATURES = [
 // ============================================================
 
 export default async function PathsPage() {
-  const user = await requireCurrentUser();
+  const user = await getCurrentUser();
 
-  const pathService = new PathService();
+  // Anonymous users see the empty-state/marketing UI
+  const isAnonymous = !user;
 
-  let paths;
-  try {
-    paths = await pathService.getUserPaths(user.id);
-  } catch {
+  let paths: Awaited<ReturnType<PathService['getUserPaths']>> = [];
+  let pathsError = false;
+
+  if (user) {
+    const pathService = new PathService();
+    try {
+      paths = await pathService.getUserPaths(user.id);
+    } catch {
+      pathsError = true;
+    }
+  }
+
+  if (pathsError) {
     return (
       <div className="mx-auto max-w-5xl px-6 py-10">
         <h1 className="text-3xl font-bold tracking-tight">Learning Paths</h1>
@@ -99,6 +109,20 @@ export default async function PathsPage() {
 
   const activePaths = paths.filter((p) => p.status === 'active');
   const otherPaths = paths.filter((p) => p.status !== 'active');
+  const showEmptyState = isAnonymous || paths.length === 0;
+
+  // For anonymous users, the "Create New Path" button links to sign-in
+  const createPathHref = isAnonymous
+    ? '/sign-in?redirect_url=/paths/new'
+    : '/paths/new';
+
+  // For anonymous users, quick-start links go through sign-in
+  function getQuickStartHref(qs: (typeof QUICK_STARTS)[number]) {
+    const target = `/paths/new?prompt=${encodeURIComponent(qs.prompt)}&language=${qs.language}&level=${qs.level}`;
+    return isAnonymous
+      ? `/sign-in?redirect_url=${encodeURIComponent(target)}`
+      : target;
+  }
 
   return (
     <div className="animate-fade-in">
@@ -123,7 +147,7 @@ export default async function PathsPage() {
                 milestones, and help you master any topic.
               </p>
             </div>
-            <Link href="/paths/new" className="shrink-0" data-onboarding="paths-create">
+            <Link href={createPathHref} className="shrink-0" data-onboarding="paths-create">
               <Button size="lg" className="gap-2 text-base">
                 <FlaskConical className="h-5 w-5" />
                 Create New Path
@@ -133,10 +157,10 @@ export default async function PathsPage() {
         </div>
       </div>
 
-      <PageHint hintId="paths-create" />
+      {!isAnonymous && <PageHint hintId="paths-create" />}
 
       <div className="mx-auto max-w-5xl px-6 py-10">
-        {paths.length === 0 ? (
+        {showEmptyState ? (
           /* ── Empty State ── */
           <div className="space-y-12">
             {/* Feature pitch */}
@@ -174,7 +198,7 @@ export default async function PathsPage() {
                 {QUICK_STARTS.map((qs) => (
                   <Link
                     key={qs.title}
-                    href={`/paths/new?prompt=${encodeURIComponent(qs.prompt)}&language=${qs.language}&level=${qs.level}`}
+                    href={getQuickStartHref(qs)}
                     className="bg-card group flex items-center gap-4 rounded-xl border p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
                   >
                     <div className="bg-muted flex h-11 w-11 shrink-0 items-center justify-center rounded-lg">
