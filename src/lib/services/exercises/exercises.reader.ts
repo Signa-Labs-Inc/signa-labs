@@ -20,7 +20,35 @@ export async function getExerciseById(exerciseId: string): Promise<Exercise | nu
     .where(and(eq(exercises.id, exerciseId), isNull(exercises.deletedAt)));
   if (!exercise) return null;
 
-  return { ...exercise.exercise, environment: exercise.environment };
+  return {
+    ...exercise.exercise,
+    isPublic: exercise.exercise.isPublic ?? false,
+    slug: exercise.exercise.slug ?? null,
+    environment: exercise.environment,
+  };
+}
+
+/** Get a public exercise by its sharing slug */
+export async function getExerciseBySlug(slug: string): Promise<Exercise | null> {
+  const [exercise] = await db
+    .select({ exercise: exercises, environment: exerciseEnvironments })
+    .from(exercises)
+    .innerJoin(exerciseEnvironments, eq(exercises.environmentId, exerciseEnvironments.id))
+    .where(
+      and(
+        eq(exercises.slug, slug),
+        eq(exercises.isPublic, true),
+        isNull(exercises.deletedAt)
+      )
+    );
+  if (!exercise) return null;
+
+  return {
+    ...exercise.exercise,
+    isPublic: true,
+    slug: exercise.exercise.slug ?? null,
+    environment: exercise.environment,
+  };
 }
 
 // --- Exercise Files ----------------------------------------------------------
@@ -123,6 +151,8 @@ export async function listPlatformExercises(
       difficulty: exercises.difficulty,
       language: exercises.language,
       tags: exercises.tags,
+      isPublic: exercises.isPublic,
+      slug: exercises.slug,
       environmentName: exerciseEnvironments.displayName,
       environment: {
         id: exerciseEnvironments.id,
@@ -190,6 +220,8 @@ export async function listExercisesByTags(
         difficulty: exercises.difficulty,
         language: exercises.language,
         tags: exercises.tags,
+        isPublic: exercises.isPublic,
+        slug: exercises.slug,
         environmentName: exerciseEnvironments.displayName,
         environment: {
           id: exerciseEnvironments.id,
@@ -270,6 +302,8 @@ export async function getUserExercises(
       difficulty: exercises.difficulty,
       language: exercises.language,
       tags: exercises.tags,
+      isPublic: exercises.isPublic,
+      slug: exercises.slug,
       environmentName: exerciseEnvironments.displayName,
       environment: {
         id: exerciseEnvironments.id,

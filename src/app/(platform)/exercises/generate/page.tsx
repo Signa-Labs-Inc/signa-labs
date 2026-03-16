@@ -2,7 +2,9 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useUser } from '@clerk/nextjs';
 import { FlaskConical, AlertTriangle, ArrowRight, Bug, Hammer } from 'lucide-react';
+import { saveGenerateFormState, loadGenerateFormState, clearGenerateFormState } from '@/lib/utils/anonymous-state';
 import { Button } from '@/components/ui/button';
 import { LanguageIcon } from '@/components/ui/language-icon';
 import { cn } from '@/lib/utils/helpers';
@@ -68,11 +70,21 @@ const DIFFICULTY_COLORS: Record<string, string> = {
 
 export default function GenerateExercisePage() {
   const router = useRouter();
+  const { user } = useUser();
 
-  const [prompt, setPrompt] = useState<string>('');
-  const [language, setLanguage] = useState<Language>('python');
-  const [difficulty, setDifficulty] = useState<Difficulty>('medium');
-  const [mode, setMode] = useState<ExerciseMode>('build');
+  // Restore form state that was saved before a sign-up redirect.
+  // Uses lazy initialisers so state is set once before the first render.
+  const savedFormRef = (() => {
+    if (typeof window === 'undefined') return null;
+    const s = loadGenerateFormState();
+    if (s) clearGenerateFormState();
+    return s;
+  })();
+
+  const [prompt, setPrompt] = useState<string>(savedFormRef?.prompt ?? '');
+  const [language, setLanguage] = useState<Language>((savedFormRef?.language as Language) ?? 'python');
+  const [difficulty, setDifficulty] = useState<Difficulty>((savedFormRef?.difficulty as Difficulty) ?? 'medium');
+  const [mode, setMode] = useState<ExerciseMode>((savedFormRef?.mode as ExerciseMode) ?? 'build');
 
   const { status, progress, error, result, startGeneration } = useGenerationJob();
 
@@ -83,13 +95,19 @@ export default function GenerateExercisePage() {
   }, [result, router]);
 
   const handleGenerate = useCallback(async (): Promise<void> => {
+    if (!user) {
+      // Save form state so it survives the sign-up redirect
+      saveGenerateFormState({ prompt, language, difficulty, mode });
+      router.push(`/sign-in?redirect_url=${encodeURIComponent(window.location.pathname)}`);
+      return;
+    }
     await startGeneration({
       prompt,
       language,
       difficulty,
       exerciseType: mode === 'debugging' ? 'debugging' : undefined,
     });
-  }, [prompt, language, difficulty, mode, startGeneration]);
+  }, [prompt, language, difficulty, mode, startGeneration, user, router]);
 
   const isGenerating = status !== 'idle' && status !== 'failed' && status !== 'completed';
   const isSubmittable = prompt.trim().length >= 10 && !isGenerating;

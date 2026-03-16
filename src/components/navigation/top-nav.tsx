@@ -21,7 +21,7 @@ export function TopNav() {
     <header className="sticky top-0 z-40 border-b border-border bg-card/80 backdrop-blur-xl">
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6">
         {/* Logo */}
-        <Link href="/dashboard" className="flex items-center gap-2">
+        <Link href="/discover" className="flex items-center gap-2">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-primary to-violet-400 text-white font-bold text-sm">
             S
           </div>

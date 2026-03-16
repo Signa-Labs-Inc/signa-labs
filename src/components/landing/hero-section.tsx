@@ -25,28 +25,33 @@ export function HeroSection() {
           className="animate-fade-in mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-zinc-400 sm:text-xl"
           style={{ animationDelay: '0.1s' }}
         >
-          AI-powered exercises that adapt to your skill level. Get personalized
-          lessons, real-time feedback, and structured learning paths.
+          AI-powered exercises that adapt to your skill level. Write code, run
+          tests, and get instant feedback — no sign-up required.
         </p>
 
         <div
           className="animate-fade-in mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row"
           style={{ animationDelay: '0.2s' }}
         >
-          <SignUpButton>
-            <Button size="lg" className="h-12 px-8 text-base">
-              Get Started Free
-              <ArrowRight className="ml-2 size-4" />
-            </Button>
-          </SignUpButton>
           <Button
             asChild
-            variant="outline"
             size="lg"
-            className="h-12 border-zinc-700 bg-transparent px-8 text-base text-zinc-300 hover:bg-white/5 hover:text-white"
+            className="h-12 px-8 text-base"
           >
-            <Link href="/exercises">Browse Exercises</Link>
+            <Link href="/exercises">
+              Try an Exercise
+              <ArrowRight className="ml-2 size-4" />
+            </Link>
           </Button>
+          <SignUpButton forceRedirectUrl="/discover">
+            <Button
+              variant="outline"
+              size="lg"
+              className="h-12 border-zinc-700 bg-transparent px-8 text-base text-zinc-300 hover:bg-white/5 hover:text-white"
+            >
+              Create Free Account
+            </Button>
+          </SignUpButton>
         </div>
 
         {/* Code block mockup */}

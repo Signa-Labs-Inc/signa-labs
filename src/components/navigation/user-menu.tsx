@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useUser, useClerk } from '@clerk/nextjs';
 import Link from 'next/link';
 import { LogOut, User } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export function UserMenu() {
   const { user } = useUser();
@@ -21,7 +22,13 @@ export function UserMenu() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  if (!user) return null;
+  if (!user) {
+    return (
+      <Link href="/sign-in?redirect_url=%2Fdashboard">
+        <Button variant="outline" size="sm">Sign In</Button>
+      </Link>
+    );
+  }
 
   const displayName = user.fullName || user.primaryEmailAddress?.emailAddress || 'User';
   const initials = displayName

@@ -1,11 +1,17 @@
-import { FlaskConical, Route, Play, BarChart3 } from 'lucide-react';
+import { FlaskConical, Route, Play, Share2 } from 'lucide-react';
 
 const features = [
+  {
+    icon: Play,
+    title: 'Try Instantly — No Sign-Up',
+    description:
+      'Jump straight into any exercise and run your code in a live sandbox. Create an account when you\'re ready to save your progress.',
+  },
   {
     icon: FlaskConical,
     title: 'Custom-Crafted Exercises',
     description:
-      'Every exercise is uniquely crafted and tailored to your skill level and learning goals.',
+      'Every exercise is uniquely generated and tailored to your skill level and learning goals.',
   },
   {
     icon: Route,
@@ -14,16 +20,10 @@ const features = [
       'Follow guided curriculums that adapt based on your performance and demonstrated skills.',
   },
   {
-    icon: Play,
-    title: 'Real-Time Code Execution',
+    icon: Share2,
+    title: 'Share Your Exercises',
     description:
-      'Write code and run tests instantly in secure sandboxes. Get immediate feedback on your solutions.',
-  },
-  {
-    icon: BarChart3,
-    title: 'Track Your Progress',
-    description:
-      'Monitor your streaks, time spent, and skills mastered with detailed analytics.',
+      'Create exercises and share them with a link. Anyone can try your challenge — no account needed.',
   },
 ];
 

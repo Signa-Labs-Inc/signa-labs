@@ -42,12 +42,15 @@ export function LandingNav() {
             </Button>
           ) : (
             <>
-              <SignInButton>
+              <Button asChild variant="ghost" size="sm" className="text-zinc-300 hover:text-white">
+                <Link href="/discover">Explore</Link>
+              </Button>
+              <SignInButton forceRedirectUrl="/dashboard">
                 <Button variant="ghost" size="sm" className="text-zinc-300 hover:text-white">
                   Sign In
                 </Button>
               </SignInButton>
-              <SignUpButton>
+              <SignUpButton forceRedirectUrl="/discover">
                 <Button variant="default" size="sm">
                   Get Started
                 </Button>

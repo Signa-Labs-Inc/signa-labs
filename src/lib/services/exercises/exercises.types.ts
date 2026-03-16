@@ -9,6 +9,8 @@ export type Exercise = {
   language: ExerciseLanguage;
   tags: string[] | null;
   hints?: string[] | null;
+  isPublic: boolean;
+  slug: string | null;
   environment: ExerciseEnvironment;
   lessonContent?: LessonContent | null;
   synthesisContent?: SynthesisContent | null;
@@ -31,6 +33,10 @@ export type ExerciseDetail = {
   difficulty: ExerciseDifficulty;
   language: ExerciseLanguage;
   tags: string[];
+  origin: string;
+  isPublic: boolean;
+  slug: string | null;
+  createdBy: string | null;
   hintCount: number;
   environment: ExerciseEnvironment;
   starterFiles: ExerciseFile[];

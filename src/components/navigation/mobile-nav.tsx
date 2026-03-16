@@ -28,7 +28,7 @@ export function MobileNav() {
     <div className="md:hidden">
       {/* Top bar */}
       <div className="flex h-14 items-center justify-between border-b border-border bg-card px-4">
-        <Link href="/dashboard" className="flex items-center gap-2">
+        <Link href="/discover" className="flex items-center gap-2">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-primary to-violet-400 text-white font-bold text-sm">
             S
           </div>

@@ -4,21 +4,33 @@
 import { useState } from 'react';
 import { Lightbulb, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { AnonymousSignupCTA } from './anonymous-signup-cta';
 
 type HintPanelProps = {
   exerciseId: string;
   hintCount: number;
+  isAnonymous?: boolean;
 };
 
-export function HintPanel({ exerciseId, hintCount }: HintPanelProps) {
+export function HintPanel({ exerciseId, hintCount, isAnonymous = false }: HintPanelProps) {
   const [revealedHints, setRevealedHints] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
+  const [showSignupCTA, setShowSignupCTA] = useState(false);
 
   const hasMoreHints = revealedHints.length < hintCount;
+  // Anonymous users get the first hint free
+  const canRevealMore = isAnonymous ? revealedHints.length < 1 : true;
 
   async function revealNextHint() {
     if (!hasMoreHints || isLoading) return;
+
+    // Anonymous users: first hint free, CTA for more
+    if (isAnonymous && revealedHints.length >= 1) {
+      setShowSignupCTA(true);
+      return;
+    }
+
     setIsLoading(true);
     try {
       const nextIndex = revealedHints.length;
@@ -63,18 +75,24 @@ export function HintPanel({ exerciseId, hintCount }: HintPanelProps) {
             </div>
           )}
 
-          {hasMoreHints && (
-            <Button variant="outline" size="sm" onClick={revealNextHint} disabled={isLoading}>
-              {isLoading
-                ? 'Loading...'
-                : revealedHints.length === 0
-                  ? 'Show first hint'
-                  : 'Show next hint'}
-            </Button>
-          )}
+          {showSignupCTA ? (
+            <AnonymousSignupCTA variant="hint" />
+          ) : (
+            <>
+              {hasMoreHints && (
+                <Button variant="outline" size="sm" onClick={revealNextHint} disabled={isLoading}>
+                  {isLoading
+                    ? 'Loading...'
+                    : revealedHints.length === 0
+                      ? 'Show first hint'
+                      : 'Show next hint'}
+                </Button>
+              )}
 
-          {!hasMoreHints && revealedHints.length > 0 && (
-            <p className="text-muted-foreground text-xs">All hints revealed.</p>
+              {!hasMoreHints && revealedHints.length > 0 && (
+                <p className="text-muted-foreground text-xs">All hints revealed.</p>
+              )}
+            </>
           )}
         </div>
       )}

@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { SignUpButton } from '@clerk/nextjs';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -21,19 +22,30 @@ export function CTASection() {
       />
       <div className="relative mx-auto max-w-3xl text-center">
         <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-          Start Your Coding Journey Today
+          Ready to Start Coding?
         </h2>
         <p className="mx-auto mt-4 max-w-xl text-lg text-white/80">
-          Join developers who are building real skills through hands-on practice.
+          Try any exercise right now — no account needed. Sign up to save your
+          progress, craft custom exercises, and build learning paths.
         </p>
-        <div className="mt-8">
-          <SignUpButton>
+        <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
+          <Button
+            asChild
+            size="lg"
+            className="h-12 bg-white px-8 text-base font-semibold text-violet-700 hover:bg-zinc-100"
+          >
+            <Link href="/exercises">
+              Try an Exercise
+              <ArrowRight className="ml-2 size-4" />
+            </Link>
+          </Button>
+          <SignUpButton forceRedirectUrl="/discover">
             <Button
+              variant="outline"
               size="lg"
-              className="h-12 bg-white px-8 text-base font-semibold text-violet-700 hover:bg-zinc-100"
+              className="h-12 border-white/30 bg-transparent px-8 text-base text-white hover:bg-white/10"
             >
               Create Free Account
-              <ArrowRight className="ml-2 size-4" />
             </Button>
           </SignUpButton>
         </div>
