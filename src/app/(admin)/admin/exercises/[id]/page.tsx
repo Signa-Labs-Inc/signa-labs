@@ -269,9 +269,10 @@ export default function AdminExerciseDetailPage() {
       });
       if (!res.ok) throw new Error('Save failed');
       const data = await res.json();
-      if (data.files) {
+      const returnedFiles: ExerciseFile[] = Array.isArray(data) ? data : data.files ?? [];
+      if (returnedFiles.length > 0) {
         setFiles(
-          data.files.map((f: ExerciseFile) => ({
+          returnedFiles.map((f: ExerciseFile) => ({
             id: f.id,
             fileType: f.fileType,
             filePath: f.filePath,
@@ -339,9 +340,21 @@ export default function AdminExerciseDetailPage() {
     setFiles((prev) => prev.map((f, i) => (i === index ? { ...f, [field]: value } : f)));
   }
 
+  const [deleteError, setDeleteError] = useState('');
+
   async function handleDelete() {
-    await fetch(`/api/admin/exercises/${id}`, { method: 'DELETE' });
-    router.push('/admin/exercises');
+    setDeleteError('');
+    try {
+      const res = await fetch(`/api/admin/exercises/${id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setDeleteError(data?.error ?? `Delete failed (${res.status})`);
+        return;
+      }
+      router.push('/admin/exercises');
+    } catch {
+      setDeleteError('Network error — could not delete exercise.');
+    }
   }
 
   async function handleRestore() {
@@ -628,6 +641,7 @@ export default function AdminExerciseDetailPage() {
                         size="sm"
                         className="h-8 w-8 p-0 text-destructive hover:text-destructive"
                         onClick={() => removeFile(file._index)}
+                        aria-label={`Remove ${file.fileName || fileType} file`}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -739,14 +753,19 @@ export default function AdminExerciseDetailPage() {
                     Delete Exercise
                   </Button>
                 ) : (
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm text-destructive font-medium">Are you sure?</span>
-                    <Button variant="destructive" onClick={handleDelete}>
-                      Yes, Delete
-                    </Button>
-                    <Button variant="outline" onClick={() => setDeleteConfirm(false)}>
-                      Cancel
-                    </Button>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm text-destructive font-medium">Are you sure?</span>
+                      <Button variant="destructive" onClick={handleDelete}>
+                        Yes, Delete
+                      </Button>
+                      <Button variant="outline" onClick={() => setDeleteConfirm(false)}>
+                        Cancel
+                      </Button>
+                    </div>
+                    {deleteError && (
+                      <p className="text-sm text-destructive">{deleteError}</p>
+                    )}
                   </div>
                 )}
               </div>

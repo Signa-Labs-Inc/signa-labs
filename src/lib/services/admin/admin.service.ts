@@ -58,7 +58,11 @@ export function getExercise(id: string) {
 
 export async function updateExercise(
   id: string,
-  data: {
+  raw: Record<string, unknown>,
+) {
+  const ALLOWED_DIFFICULTIES = ['beginner', 'easy', 'medium', 'hard', 'expert'];
+
+  const data: {
     title?: string;
     description?: string;
     difficulty?: ExerciseDifficulty;
@@ -66,8 +70,39 @@ export async function updateExercise(
     tags?: string[];
     isPublic?: boolean;
     isValidated?: boolean;
-  },
-) {
+  } = {};
+
+  if (raw.title !== undefined) {
+    if (typeof raw.title !== 'string' || !raw.title.trim()) throw new ValidationError('title must be a non-empty string');
+    data.title = raw.title.trim();
+  }
+  if (raw.description !== undefined) {
+    if (typeof raw.description !== 'string') throw new ValidationError('description must be a string');
+    data.description = raw.description;
+  }
+  if (raw.difficulty !== undefined) {
+    if (!ALLOWED_DIFFICULTIES.includes(raw.difficulty as string)) throw new ValidationError(`difficulty must be one of: ${ALLOWED_DIFFICULTIES.join(', ')}`);
+    data.difficulty = raw.difficulty as ExerciseDifficulty;
+  }
+  if (raw.language !== undefined) {
+    if (!SUPPORTED_LANGUAGES.includes(raw.language as string)) throw new ValidationError(`language must be one of: ${SUPPORTED_LANGUAGES.join(', ')}`);
+    data.language = raw.language as ExerciseLanguage;
+  }
+  if (raw.tags !== undefined) {
+    if (!Array.isArray(raw.tags) || !raw.tags.every((t) => typeof t === 'string')) throw new ValidationError('tags must be an array of strings');
+    data.tags = raw.tags;
+  }
+  if (raw.isPublic !== undefined) {
+    if (typeof raw.isPublic !== 'boolean') throw new ValidationError('isPublic must be a boolean');
+    data.isPublic = raw.isPublic;
+  }
+  if (raw.isValidated !== undefined) {
+    if (typeof raw.isValidated !== 'boolean') throw new ValidationError('isValidated must be a boolean');
+    data.isValidated = raw.isValidated;
+  }
+
+  if (Object.keys(data).length === 0) throw new ValidationError('No valid fields provided');
+
   const result = await writer.adminUpdateExercise(id, data);
   if (!result) throw new NotFoundError('Exercise not found');
   return result;
@@ -184,30 +219,80 @@ export function createExerciseManually(
 
 // --- Exercise Files ----------------------------------------------------------
 
+const ALLOWED_FILE_TYPES = ['starter', 'solution', 'test', 'support'];
+
+function validateExerciseFileInput(raw: Record<string, unknown>) {
+  if (typeof raw.fileType !== 'string' || !ALLOWED_FILE_TYPES.includes(raw.fileType)) {
+    throw new ValidationError(`fileType must be one of: ${ALLOWED_FILE_TYPES.join(', ')}`);
+  }
+  if (typeof raw.filePath !== 'string' || !raw.filePath.trim()) {
+    throw new ValidationError('filePath must be a non-empty string');
+  }
+  if (typeof raw.fileName !== 'string' || !raw.fileName.trim()) {
+    throw new ValidationError('fileName must be a non-empty string');
+  }
+  if (typeof raw.content !== 'string') {
+    throw new ValidationError('content must be a string');
+  }
+  if (typeof raw.isEditable !== 'boolean') {
+    throw new ValidationError('isEditable must be a boolean');
+  }
+  if (typeof raw.sortOrder !== 'number' || !Number.isFinite(raw.sortOrder)) {
+    throw new ValidationError('sortOrder must be a finite number');
+  }
+  return {
+    fileType: raw.fileType,
+    filePath: raw.filePath.trim(),
+    fileName: raw.fileName.trim(),
+    content: raw.content,
+    isEditable: raw.isEditable,
+    sortOrder: raw.sortOrder,
+  };
+}
+
 export function createExerciseFile(
   exerciseId: string,
-  data: {
-    fileType: string;
-    filePath: string;
-    fileName: string;
-    content: string;
-    isEditable: boolean;
-    sortOrder: number;
-  },
+  raw: Record<string, unknown>,
 ) {
+  const data = validateExerciseFileInput(raw);
   return writer.createExerciseFile(exerciseId, data);
 }
 
 export async function updateExerciseFile(
   fileId: string,
-  data: {
+  raw: Record<string, unknown>,
+) {
+  const data: {
     content?: string;
     filePath?: string;
     fileName?: string;
     isEditable?: boolean;
     sortOrder?: number;
-  },
-) {
+  } = {};
+
+  if (raw.filePath !== undefined) {
+    if (typeof raw.filePath !== 'string' || !raw.filePath.trim()) throw new ValidationError('filePath must be a non-empty string');
+    data.filePath = raw.filePath.trim();
+  }
+  if (raw.fileName !== undefined) {
+    if (typeof raw.fileName !== 'string' || !raw.fileName.trim()) throw new ValidationError('fileName must be a non-empty string');
+    data.fileName = raw.fileName.trim();
+  }
+  if (raw.content !== undefined) {
+    if (typeof raw.content !== 'string') throw new ValidationError('content must be a string');
+    data.content = raw.content;
+  }
+  if (raw.isEditable !== undefined) {
+    if (typeof raw.isEditable !== 'boolean') throw new ValidationError('isEditable must be a boolean');
+    data.isEditable = raw.isEditable;
+  }
+  if (raw.sortOrder !== undefined) {
+    if (typeof raw.sortOrder !== 'number' || !Number.isFinite(raw.sortOrder)) throw new ValidationError('sortOrder must be a finite number');
+    data.sortOrder = raw.sortOrder;
+  }
+
+  if (Object.keys(data).length === 0) throw new ValidationError('No valid fields provided');
+
   const result = await writer.updateExerciseFile(fileId, data);
   if (!result) throw new NotFoundError('Exercise file not found');
   return result;
@@ -221,15 +306,13 @@ export async function deleteExerciseFile(fileId: string) {
 
 export function replaceExerciseFiles(
   exerciseId: string,
-  files: {
-    fileType: string;
-    filePath: string;
-    fileName: string;
-    content: string;
-    isEditable: boolean;
-    sortOrder: number;
-  }[],
+  rawFiles: unknown,
 ) {
+  if (!Array.isArray(rawFiles)) throw new ValidationError('files must be an array');
+  const files = rawFiles.map((f: unknown, i: number) => {
+    if (typeof f !== 'object' || f === null) throw new ValidationError(`files[${i}] must be an object`);
+    return validateExerciseFileInput(f as Record<string, unknown>);
+  });
   return writer.replaceExerciseFiles(exerciseId, files);
 }
 
@@ -239,11 +322,64 @@ export function listCategories() {
   return reader.listAllCategories();
 }
 
-export function createCategory(input: CategoryInput) {
+function validateCategoryInput(raw: Record<string, unknown>, partial: false): CategoryInput;
+function validateCategoryInput(raw: Record<string, unknown>, partial: true): Partial<CategoryInput>;
+function validateCategoryInput(raw: Record<string, unknown>, partial: boolean) {
+  const data: Partial<CategoryInput> = {};
+
+  if (raw.slug !== undefined) {
+    if (typeof raw.slug !== 'string' || !raw.slug.trim()) throw new ValidationError('slug must be a non-empty string');
+    data.slug = raw.slug.trim();
+  } else if (!partial) {
+    throw new ValidationError('slug is required');
+  }
+  if (raw.label !== undefined) {
+    if (typeof raw.label !== 'string' || !raw.label.trim()) throw new ValidationError('label must be a non-empty string');
+    data.label = raw.label.trim();
+  } else if (!partial) {
+    throw new ValidationError('label is required');
+  }
+  if (raw.description !== undefined) {
+    if (typeof raw.description !== 'string') throw new ValidationError('description must be a string');
+    data.description = raw.description;
+  } else if (!partial) {
+    throw new ValidationError('description is required');
+  }
+  if (raw.icon !== undefined) {
+    if (typeof raw.icon !== 'string' || !raw.icon.trim()) throw new ValidationError('icon must be a non-empty string');
+    data.icon = raw.icon.trim();
+  } else if (!partial) {
+    throw new ValidationError('icon is required');
+  }
+  if (raw.tags !== undefined) {
+    if (!Array.isArray(raw.tags) || !raw.tags.every((t) => typeof t === 'string')) throw new ValidationError('tags must be an array of strings');
+    data.tags = raw.tags;
+  } else if (!partial) {
+    throw new ValidationError('tags is required');
+  }
+  if (raw.sortOrder !== undefined) {
+    if (typeof raw.sortOrder !== 'number' || !Number.isFinite(raw.sortOrder)) throw new ValidationError('sortOrder must be a finite number');
+    data.sortOrder = raw.sortOrder;
+  } else if (!partial) {
+    throw new ValidationError('sortOrder is required');
+  }
+  if (raw.isActive !== undefined) {
+    if (typeof raw.isActive !== 'boolean') throw new ValidationError('isActive must be a boolean');
+    data.isActive = raw.isActive;
+  }
+
+  if (partial && Object.keys(data).length === 0) throw new ValidationError('No valid fields provided');
+
+  return data;
+}
+
+export function createCategory(raw: Record<string, unknown>) {
+  const input = validateCategoryInput(raw, false);
   return writer.createCategory(input);
 }
 
-export async function updateCategory(id: string, input: Partial<CategoryInput>) {
+export async function updateCategory(id: string, raw: Record<string, unknown>) {
+  const input = validateCategoryInput(raw, true);
   const result = await writer.updateCategory(id, input);
   if (!result) throw new NotFoundError('Category not found');
   return result;
@@ -265,12 +401,59 @@ export function listTemplates(filters?: { search?: string }) {
   return reader.listAllPromptTemplates(filters);
 }
 
-export function createTemplate(input: PromptTemplateInput) {
+export function createTemplate(raw: Record<string, unknown>) {
+  if (typeof raw.name !== 'string' || !raw.name.trim()) throw new ValidationError('name is required');
+  if (typeof raw.templateText !== 'string' || !raw.templateText.trim()) throw new ValidationError('templateText is required');
+  if (typeof raw.exerciseType !== 'string' || !raw.exerciseType.trim()) throw new ValidationError('exerciseType is required');
+  if (!Array.isArray(raw.supportedLanguages) || !raw.supportedLanguages.every((l) => typeof l === 'string')) {
+    throw new ValidationError('supportedLanguages must be an array of strings');
+  }
+
+  const input: PromptTemplateInput = {
+    name: raw.name.trim(),
+    templateText: raw.templateText,
+    exerciseType: raw.exerciseType.trim(),
+    supportedLanguages: raw.supportedLanguages,
+    description: typeof raw.description === 'string' ? raw.description : undefined,
+    environmentId: typeof raw.environmentId === 'string' ? raw.environmentId : undefined,
+  };
+
   return writer.createPromptTemplate(input);
 }
 
-export async function updateTemplate(id: string, input: Partial<PromptTemplateInput>) {
-  const result = await writer.updatePromptTemplate(id, input);
+export async function updateTemplate(id: string, raw: Record<string, unknown>) {
+  const data: Partial<PromptTemplateInput> = {};
+
+  if (raw.name !== undefined) {
+    if (typeof raw.name !== 'string' || !raw.name.trim()) throw new ValidationError('name must be a non-empty string');
+    data.name = raw.name.trim();
+  }
+  if (raw.description !== undefined) {
+    if (typeof raw.description !== 'string') throw new ValidationError('description must be a string');
+    data.description = raw.description;
+  }
+  if (raw.templateText !== undefined) {
+    if (typeof raw.templateText !== 'string' || !raw.templateText.trim()) throw new ValidationError('templateText must be a non-empty string');
+    data.templateText = raw.templateText;
+  }
+  if (raw.exerciseType !== undefined) {
+    if (typeof raw.exerciseType !== 'string' || !raw.exerciseType.trim()) throw new ValidationError('exerciseType must be a non-empty string');
+    data.exerciseType = raw.exerciseType.trim();
+  }
+  if (raw.supportedLanguages !== undefined) {
+    if (!Array.isArray(raw.supportedLanguages) || !raw.supportedLanguages.every((l) => typeof l === 'string')) {
+      throw new ValidationError('supportedLanguages must be an array of strings');
+    }
+    data.supportedLanguages = raw.supportedLanguages;
+  }
+  if (raw.environmentId !== undefined) {
+    if (typeof raw.environmentId !== 'string') throw new ValidationError('environmentId must be a string');
+    data.environmentId = raw.environmentId;
+  }
+
+  if (Object.keys(data).length === 0) throw new ValidationError('No valid fields provided');
+
+  const result = await writer.updatePromptTemplate(id, data);
   if (!result) throw new NotFoundError('Prompt template not found');
   return result;
 }

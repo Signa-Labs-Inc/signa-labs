@@ -21,6 +21,8 @@ type FileEntry = {
   filePath: string;
   fileName: string;
   content: string;
+  isEditable: boolean;
+  sortOrder: number;
 };
 
 type Environment = {
@@ -116,7 +118,10 @@ export default function AdminExerciseGeneratePage() {
   }, [tagsInput, categories]);
 
   async function handleGenerate() {
-    if (!prompt.trim()) return;
+    if (prompt.trim().length < 10) {
+      setGenerationError('Prompt must be at least 10 characters.');
+      return;
+    }
     setGenerating(true);
     setGenerationError('');
     setGenerationResult(null);
@@ -144,7 +149,11 @@ export default function AdminExerciseGeneratePage() {
       }
 
       const data = await res.json();
-      setGenerationResult({ runId: data.runId ?? data.id ?? 'unknown' });
+      const runId = data.runId || data.id;
+      if (!runId) {
+        throw new Error('Generation started but no run ID was returned');
+      }
+      setGenerationResult({ runId });
     } catch (err: unknown) {
       setGenerationError(err instanceof Error ? err.message : 'Generation failed');
     } finally {
@@ -160,14 +169,14 @@ export default function AdminExerciseGeneratePage() {
       support: { filePath: 'support/', fileName: 'helper' },
     };
     const d = defaults[fileType] ?? { filePath: '', fileName: '' };
-    setFiles((prev) => [...prev, { fileType, filePath: d.filePath, fileName: d.fileName, content: '' }]);
+    setFiles((prev) => [...prev, { fileType, filePath: d.filePath, fileName: d.fileName, content: '', isEditable: fileType === 'starter', sortOrder: prev.filter((f) => f.fileType === fileType).length }]);
   }
 
   function removeFile(index: number) {
     setFiles((prev) => prev.filter((_, i) => i !== index));
   }
 
-  function updateFile(index: number, field: keyof FileEntry, value: string) {
+  function updateFile(index: number, field: keyof FileEntry, value: string | boolean | number) {
     setFiles((prev) => prev.map((f, i) => (i === index ? { ...f, [field]: value } : f)));
   }
 
@@ -197,7 +206,14 @@ export default function AdminExerciseGeneratePage() {
   }
 
   async function handleCreate() {
-    if (!title.trim()) return;
+    const errors: string[] = [];
+    if (!title.trim()) errors.push('Title is required');
+    if (!description.trim()) errors.push('Description is required');
+    if (!environmentId) errors.push('Environment must be selected');
+    if (errors.length > 0) {
+      setCreateError(errors.join('. '));
+      return;
+    }
     setCreating(true);
     setCreateError('');
 
@@ -320,7 +336,7 @@ export default function AdminExerciseGeneratePage() {
               </div>
             </div>
 
-            <Button onClick={handleGenerate} disabled={generating || !prompt.trim()}>
+            <Button onClick={handleGenerate} disabled={generating || prompt.trim().length < 10}>
               {generating ? 'Generating...' : 'Generate'}
             </Button>
 
@@ -514,6 +530,7 @@ export default function AdminExerciseGeneratePage() {
                             size="sm"
                             className="h-8 w-8 p-0 text-destructive hover:text-destructive"
                             onClick={() => removeFile(file._index)}
+                            aria-label={`Remove ${file.fileName || fileType} file`}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -538,7 +555,7 @@ export default function AdminExerciseGeneratePage() {
             </div>
           )}
 
-          <Button onClick={handleCreate} disabled={creating || !title.trim()}>
+          <Button onClick={handleCreate} disabled={creating || !title.trim() || !description.trim() || !environmentId}>
             {creating ? 'Creating...' : 'Create Exercise'}
           </Button>
         </div>

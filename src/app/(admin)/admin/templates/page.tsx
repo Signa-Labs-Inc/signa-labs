@@ -56,6 +56,7 @@ export default function AdminTemplatesPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<TemplateForm>(emptyForm);
   const [formError, setFormError] = useState<string | null>(null);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -64,8 +65,8 @@ export default function AdminTemplatesPage() {
         fetch('/api/admin/templates'),
         fetch('/api/admin/environments'),
       ]);
-      const tplJson = await tplRes.json();
-      const envJson = await envRes.json();
+      const tplJson = tplRes.ok ? await tplRes.json() : [];
+      const envJson = envRes.ok ? await envRes.json() : [];
       setTemplates(tplJson.templates ?? tplJson ?? []);
       setEnvironments(envJson.environments ?? envJson ?? []);
     } catch {
@@ -145,6 +146,8 @@ export default function AdminTemplatesPage() {
   }
 
   async function handleToggleActive(id: string) {
+    if (togglingId) return;
+    setTogglingId(id);
     try {
       const res = await fetch(`/api/admin/templates/${id}/activate`, { method: 'POST' });
       if (!res.ok) {
@@ -155,6 +158,8 @@ export default function AdminTemplatesPage() {
       fetchData();
     } catch (err) {
       setFormError(err instanceof Error ? err.message : 'Network error — please try again.');
+    } finally {
+      setTogglingId(null);
     }
   }
 
@@ -186,7 +191,7 @@ export default function AdminTemplatesPage() {
               <h3 className="text-sm font-semibold">
                 {editingId ? 'Edit Template' : 'New Template'}
               </h3>
-              <Button variant="ghost" size="sm" onClick={cancelForm}>
+              <Button variant="ghost" size="sm" onClick={cancelForm} aria-label="Close template form">
                 <X className="h-4 w-4" />
               </Button>
             </div>
@@ -313,7 +318,7 @@ export default function AdminTemplatesPage() {
                   </td>
                   <td className="px-4 py-4 text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => startEdit(tpl)}>
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => startEdit(tpl)} aria-label={`Edit ${tpl.name}`}>
                         <Pencil className="h-4 w-4" />
                       </Button>
                       <Button
@@ -321,8 +326,9 @@ export default function AdminTemplatesPage() {
                         size="sm"
                         className="h-8 text-xs"
                         onClick={() => handleToggleActive(tpl.id)}
+                        disabled={togglingId === tpl.id}
                       >
-                        {tpl.isActive ? 'Deactivate' : 'Activate'}
+                        {togglingId === tpl.id ? '...' : tpl.isActive ? 'Deactivate' : 'Activate'}
                       </Button>
                     </div>
                   </td>
