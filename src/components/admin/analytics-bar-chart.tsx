@@ -19,15 +19,15 @@ export function AnalyticsBarChart({ data, height = 160 }: BarChartProps) {
   return (
     <div className="flex items-end gap-[3px]" style={{ height }}>
       {data.map((item, i) => {
-        const barHeight = Math.max((item.value / maxValue) * 100, 2);
+        const barHeight = item.value === 0 ? 0 : Math.max((item.value / maxValue) * 100, 2);
         return (
-          <div key={i} className="group relative flex flex-1 flex-col items-center justify-end">
-            <div className="absolute -top-7 hidden rounded bg-foreground px-1.5 py-0.5 text-xs text-background group-hover:block">
+          <div key={i} className="group relative flex flex-1 flex-col items-center justify-end" tabIndex={0} role="img" aria-label={`${item.label}: ${item.value}`}>
+            <div className="absolute -top-7 hidden rounded bg-foreground px-1.5 py-0.5 text-xs text-background group-hover:block group-focus:block">
               {item.value}
             </div>
             <div
               className="w-full rounded-t bg-primary/70 transition-colors group-hover:bg-primary"
-              style={{ height: `${barHeight}%`, minHeight: 2 }}
+              style={{ height: `${barHeight}%` }}
             />
           </div>
         );

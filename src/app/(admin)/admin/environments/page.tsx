@@ -35,15 +35,23 @@ export default function AdminEnvironmentsPage() {
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editState, setEditState] = useState<EditState | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
+    setFetchError(null);
     try {
       const res = await fetch('/api/admin/environments');
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setFetchError(data?.error ?? `Failed to load environments (${res.status})`);
+        return;
+      }
       const json = await res.json();
       setEnvironments(json.environments ?? json ?? []);
-    } catch {
-      console.error('Failed to fetch environments');
+    } catch (err) {
+      setFetchError(err instanceof Error ? err.message : 'Network error — could not load environments.');
     } finally {
       setLoading(false);
     }
@@ -66,17 +74,31 @@ export default function AdminEnvironmentsPage() {
   function cancelEdit() {
     setEditingId(null);
     setEditState(null);
+    setSaveError(null);
   }
 
   async function handleSave(id: string) {
     if (!editState) return;
-    await fetch(`/api/admin/environments/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(editState),
-    });
-    cancelEdit();
-    fetchData();
+    setSaveError(null);
+
+    try {
+      const res = await fetch(`/api/admin/environments/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editState),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setSaveError(data?.error ?? `Request failed (${res.status})`);
+        return;
+      }
+
+      cancelEdit();
+      fetchData();
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Network error — please try again.');
+    }
   }
 
   return (
@@ -86,6 +108,12 @@ export default function AdminEnvironmentsPage() {
         description={`${environments.length} execution environments`}
         icon={Server}
       />
+
+      {fetchError && (
+        <div className="rounded-lg border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          {fetchError}
+        </div>
+      )}
 
       <div className="overflow-hidden rounded-lg border border-border">
         <table className="w-full text-sm">
@@ -139,10 +167,13 @@ export default function AdminEnvironmentsPage() {
                       {isEditing && editState ? (
                         <Input
                           type="number"
+                          min={1}
+                          step={1}
                           value={editState.maxExecutionSeconds}
-                          onChange={(e) =>
-                            setEditState({ ...editState, maxExecutionSeconds: Number(e.target.value) })
-                          }
+                          onChange={(e) => {
+                            const v = e.currentTarget.valueAsNumber;
+                            if (Number.isFinite(v)) setEditState({ ...editState, maxExecutionSeconds: v });
+                          }}
                           className="h-8 w-20"
                         />
                       ) : (
@@ -153,10 +184,13 @@ export default function AdminEnvironmentsPage() {
                       {isEditing && editState ? (
                         <Input
                           type="number"
+                          min={1}
+                          step={1}
                           value={editState.maxFiles}
-                          onChange={(e) =>
-                            setEditState({ ...editState, maxFiles: Number(e.target.value) })
-                          }
+                          onChange={(e) => {
+                            const v = e.currentTarget.valueAsNumber;
+                            if (Number.isFinite(v)) setEditState({ ...editState, maxFiles: v });
+                          }}
                           className="h-8 w-20"
                         />
                       ) : (
@@ -167,10 +201,13 @@ export default function AdminEnvironmentsPage() {
                       {isEditing && editState ? (
                         <Input
                           type="number"
+                          min={0}
+                          step={1024}
                           value={editState.maxFileSizeBytes}
-                          onChange={(e) =>
-                            setEditState({ ...editState, maxFileSizeBytes: Number(e.target.value) })
-                          }
+                          onChange={(e) => {
+                            const v = e.currentTarget.valueAsNumber;
+                            if (Number.isFinite(v)) setEditState({ ...editState, maxFileSizeBytes: v });
+                          }}
                           className="h-8 w-28"
                         />
                       ) : (
@@ -184,6 +221,7 @@ export default function AdminEnvironmentsPage() {
                           onCheckedChange={(val) =>
                             setEditState({ ...editState, isActive: val })
                           }
+                          aria-label={`Toggle active state for ${env.displayName}`}
                         />
                       ) : (
                         <span className={`inline-flex items-center gap-1.5 text-sm ${env.isActive ? 'text-emerald-600' : 'text-muted-foreground'}`}>
@@ -194,16 +232,21 @@ export default function AdminEnvironmentsPage() {
                     </td>
                     <td className="px-4 py-4 text-right">
                       {isEditing ? (
-                        <div className="flex items-center justify-end gap-1">
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => handleSave(env.id)}>
-                            <Check className="h-4 w-4 text-emerald-600" />
-                          </Button>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={cancelEdit}>
-                            <X className="h-4 w-4" />
-                          </Button>
+                        <div className="flex flex-col items-end gap-1">
+                          <div className="flex items-center gap-1">
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => handleSave(env.id)} aria-label={`Save changes for ${env.displayName}`}>
+                              <Check className="h-4 w-4 text-emerald-600" />
+                            </Button>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={cancelEdit} aria-label="Cancel editing">
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          {saveError && (
+                            <p className="max-w-45 text-xs text-destructive">{saveError}</p>
+                          )}
                         </div>
                       ) : (
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => startEdit(env)}>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => startEdit(env)} aria-label={`Edit ${env.displayName}`}>
                           <Pencil className="h-4 w-4" />
                         </Button>
                       )}

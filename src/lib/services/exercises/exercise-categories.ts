@@ -10,7 +10,7 @@
 
 import { db } from '@/index';
 import { exerciseCategories } from '@/db/schema/tables/exercise_categories';
-import { eq, asc } from 'drizzle-orm';
+import { eq, and, asc } from 'drizzle-orm';
 
 export type ExerciseCategory = {
   id?: string;
@@ -53,7 +53,7 @@ export async function getCategoryBySlug(slug: string): Promise<ExerciseCategory 
       tags: exerciseCategories.tags,
     })
     .from(exerciseCategories)
-    .where(eq(exerciseCategories.slug, slug));
+    .where(and(eq(exerciseCategories.slug, slug), eq(exerciseCategories.isActive, true)));
 
   return row ?? undefined;
 }

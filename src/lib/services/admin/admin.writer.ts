@@ -285,17 +285,19 @@ export async function deleteCategory(id: string) {
 
 /** Reorder categories by setting sortOrder based on array index */
 export async function reorderCategories(orderedIds: string[]) {
-  const results = await Promise.all(
-    orderedIds.map((id, index) =>
-      db
-        .update(exerciseCategories)
-        .set({ sortOrder: index, updatedAt: new Date() })
-        .where(eq(exerciseCategories.id, id))
-        .returning()
-    )
-  );
+  return db.transaction(async (trx) => {
+    const results = await Promise.all(
+      orderedIds.map((id, index) =>
+        trx
+          .update(exerciseCategories)
+          .set({ sortOrder: index, updatedAt: new Date() })
+          .where(eq(exerciseCategories.id, id))
+          .returning()
+      )
+    );
 
-  return results.map(([row]) => row);
+    return results.map(([row]) => row);
+  });
 }
 
 // --- Prompt Templates --------------------------------------------------------

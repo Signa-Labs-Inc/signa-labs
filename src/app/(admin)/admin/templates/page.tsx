@@ -55,6 +55,7 @@ export default function AdminTemplatesPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<TemplateForm>(emptyForm);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -95,9 +96,12 @@ export default function AdminTemplatesPage() {
     setEditingId(null);
     setShowForm(false);
     setForm(emptyForm);
+    setFormError(null);
   }
 
   async function handleSave() {
+    setFormError(null);
+
     const supportedLanguages = form.supportedLanguages
       .split(',')
       .map((l) => l.trim())
@@ -109,22 +113,30 @@ export default function AdminTemplatesPage() {
       environmentId: form.environmentId || null,
     };
 
-    if (editingId) {
-      await fetch(`/api/admin/templates/${editingId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-    } else {
-      await fetch('/api/admin/templates', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-    }
+    try {
+      const res = editingId
+        ? await fetch(`/api/admin/templates/${editingId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+          })
+        : await fetch('/api/admin/templates', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+          });
 
-    cancelForm();
-    fetchData();
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setFormError(data?.error ?? `Request failed (${res.status})`);
+        return;
+      }
+
+      cancelForm();
+      fetchData();
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : 'Network error — please try again.');
+    }
   }
 
   async function handleToggleActive(id: string) {
@@ -227,6 +239,9 @@ export default function AdminTemplatesPage() {
                 </select>
               </div>
             </div>
+            {formError && (
+              <p className="text-sm text-destructive">{formError}</p>
+            )}
             <Button onClick={handleSave}>
               {editingId ? 'Update Template' : 'Create Template'}
             </Button>

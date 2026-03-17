@@ -57,10 +57,18 @@ export function AdminDataTable<T extends Record<string, unknown>>({
                 <tr
                   key={String(row[keyField] ?? rowIndex)}
                   onClick={onRowClick ? () => onRowClick(row) : undefined}
+                  onKeyDown={onRowClick ? (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      onRowClick(row);
+                    }
+                  } : undefined}
+                  role={onRowClick ? 'button' : undefined}
+                  tabIndex={onRowClick ? 0 : undefined}
                   className={cn(
                     'border-b border-border last:border-b-0 transition-colors',
                     rowIndex % 2 === 1 && 'bg-muted/30',
-                    onRowClick && 'cursor-pointer hover:bg-accent/50'
+                    onRowClick && 'cursor-pointer hover:bg-accent/50 focus-visible:outline-2 focus-visible:outline-primary focus-visible:-outline-offset-2'
                   )}
                 >
                   {columns.map((col) => (
