@@ -12,7 +12,7 @@ import { db } from '@/index';
 import { exercises } from '@/db/schema/tables/exercises';
 import { eq, and, sql } from 'drizzle-orm';
 import { generateSlug } from '@/lib/utils/slug';
-import { EXERCISE_CATEGORIES, type ExerciseCategory } from './exercise-categories';
+import { getActiveCategories, getCategoryBySlug, type ExerciseCategory } from './exercise-categories';
 
 export type CategorySection = {
   category: ExerciseCategory;
@@ -24,8 +24,9 @@ export type CategorySection = {
 export async function getCategorizedExercises(
   previewLimit: number = 6
 ): Promise<CategorySection[]> {
+  const categories = await getActiveCategories();
   const sections = await Promise.all(
-    EXERCISE_CATEGORIES.map(async (category) => {
+    categories.map(async (category) => {
       const { exercises, totalCount } = await reader.listExercisesByTags(
         category.tags,
         previewLimit
@@ -56,7 +57,7 @@ export async function getCategoryExercises(
   limit: number = 12,
   offset: number = 0
 ): Promise<{ category: ExerciseCategory; exercises: ExerciseSummary[]; totalCount: number } | null> {
-  const category = EXERCISE_CATEGORIES.find((c) => c.slug === categorySlug);
+  const category = await getCategoryBySlug(categorySlug);
   if (!category) return null;
 
   const { exercises, totalCount } = await reader.listExercisesByTags(
