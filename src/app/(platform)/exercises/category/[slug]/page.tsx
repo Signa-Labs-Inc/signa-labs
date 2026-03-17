@@ -13,7 +13,7 @@ type SearchParams = Promise<{ page?: string }>;
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params;
-  const category = getCategoryBySlug(slug);
+  const category = await getCategoryBySlug(slug);
   return { title: category ? `${category.label} — Exercises` : 'Exercises' };
 }
 

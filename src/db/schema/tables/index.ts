@@ -1,4 +1,5 @@
 export { exerciseAttempts } from './exercise_attempts';
+export { exerciseCategories } from './exercise_categories';
 export { exerciseEnvironments } from './exercise_environments';
 export { exerciseEvents } from './exercise_events';
 export { exerciseFiles } from './exercise_files';
