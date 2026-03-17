@@ -11,7 +11,6 @@ import { exerciseFiles } from '@/db/schema/tables/exercise_files';
 import { exerciseAttempts } from '@/db/schema/tables/exercise_attempts';
 import { exerciseSubmissions } from '@/db/schema/tables/exercise_submissions';
 import { userLearningStats } from '@/db/schema/tables/user_learning_stats';
-import { subscriptions } from '@/db/schema/tables/subscriptions';
 import type {
   AdminDashboardStats,
   AdminExerciseFilters,

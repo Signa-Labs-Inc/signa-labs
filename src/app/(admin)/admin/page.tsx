@@ -13,10 +13,11 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import { AdminPageHeader } from '@/components/admin/admin-page-header';
 import { AdminStatCard } from '@/components/admin/admin-stat-card';
-import * as adminReader from '@/lib/services/admin/admin.reader';
+import { requireAdmin } from '@/lib/services/auth/auth.service';
+import * as adminService from '@/lib/services/admin/admin.service';
 
 export default async function AdminDashboardPage() {
-  const stats = await adminReader.getAdminDashboardStats();
+  const [user, stats] = await Promise.all([requireAdmin(), adminService.getDashboardStats()]);
 
   const quickLinks = [
     { href: '/admin/exercises/generate', label: 'Generate Exercise', icon: FlaskConical, description: 'Create a new platform exercise' },
@@ -25,7 +26,7 @@ export default async function AdminDashboardPage() {
     { href: '/admin/templates', label: 'Templates', icon: FileText, description: 'Prompt templates' },
     { href: '/admin/environments', label: 'Environments', icon: Server, description: 'Execution environments' },
     { href: '/admin/paths', label: 'Learning Paths', icon: Route, description: 'View learning paths' },
-    { href: '/admin/users', label: 'Users', icon: Users, description: 'User management' },
+    ...(user.role === 'super_admin' ? [{ href: '/admin/users', label: 'Users', icon: Users, description: 'User management' }] : []),
   ];
 
   return (

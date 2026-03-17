@@ -18,6 +18,14 @@ interface AdminDataTableProps<T> {
   isLoading?: boolean;
 }
 
+const INTERACTIVE_SELECTOR = 'a,button,input,select,textarea,[role="button"],[tabindex]';
+
+function isFromInteractiveChild(e: React.SyntheticEvent<HTMLTableRowElement>) {
+  const target = e.target as HTMLElement;
+  if (target === e.currentTarget) return false;
+  return !!target.closest?.(INTERACTIVE_SELECTOR);
+}
+
 export function AdminDataTable<T extends Record<string, unknown>>({
   columns,
   data,
@@ -56,9 +64,11 @@ export function AdminDataTable<T extends Record<string, unknown>>({
             : data.map((row, rowIndex) => (
                 <tr
                   key={String(row[keyField] ?? rowIndex)}
-                  onClick={onRowClick ? () => onRowClick(row) : undefined}
+                  onClick={onRowClick ? (e) => {
+                    if (!isFromInteractiveChild(e)) onRowClick(row);
+                  } : undefined}
                   onKeyDown={onRowClick ? (e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
+                    if ((e.key === 'Enter' || e.key === ' ') && !isFromInteractiveChild(e)) {
                       e.preventDefault();
                       onRowClick(row);
                     }

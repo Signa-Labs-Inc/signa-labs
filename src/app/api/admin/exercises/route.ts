@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/lib/services/auth/auth.service';
 import { handleError } from '@/lib/utils/api.handler-errors';
-import * as adminReader from '@/lib/services/admin/admin.reader';
+import * as adminService from '@/lib/services/admin/admin.service';
 import type { AdminExerciseFilters } from '@/lib/services/admin/admin.types';
 
 export async function GET(req: NextRequest) {
@@ -25,14 +25,12 @@ export async function GET(req: NextRequest) {
         : undefined,
       search: searchParams.get('search') ?? undefined,
     };
-    const limit = searchParams.has('limit')
-      ? parseInt(searchParams.get('limit')!, 10)
-      : undefined;
-    const offset = searchParams.has('offset')
-      ? parseInt(searchParams.get('offset')!, 10)
-      : undefined;
+    const { limit, offset } = adminService.parsePagination({
+      limit: searchParams.get('limit'),
+      offset: searchParams.get('offset'),
+    });
 
-    const data = await adminReader.listAllExercises(filters, limit, offset);
+    const data = await adminService.listExercises(filters, limit, offset);
     return Response.json(data);
   } catch (error) {
     return handleError(error);

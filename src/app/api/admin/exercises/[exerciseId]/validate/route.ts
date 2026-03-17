@@ -1,16 +1,16 @@
 import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/lib/services/auth/auth.service';
 import { handleError } from '@/lib/utils/api.handler-errors';
-import * as adminWriter from '@/lib/services/admin/admin.writer';
+import * as adminService from '@/lib/services/admin/admin.service';
 
 export async function POST(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ exerciseId: string }> }
 ) {
   try {
     await requireAdmin();
     const { exerciseId } = await params;
-    const data = await adminWriter.adminToggleValidation(exerciseId);
+    const data = await adminService.toggleExerciseValidation(exerciseId);
     return Response.json(data);
   } catch (error) {
     return handleError(error);

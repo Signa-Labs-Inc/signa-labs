@@ -102,6 +102,11 @@ export default function AdminTemplatesPage() {
   async function handleSave() {
     setFormError(null);
 
+    if (!form.name.trim() || !form.templateText.trim()) {
+      setFormError('Name and template text are required.');
+      return;
+    }
+
     const supportedLanguages = form.supportedLanguages
       .split(',')
       .map((l) => l.trim())
@@ -140,8 +145,17 @@ export default function AdminTemplatesPage() {
   }
 
   async function handleToggleActive(id: string) {
-    await fetch(`/api/admin/templates/${id}/activate`, { method: 'POST' });
-    fetchData();
+    try {
+      const res = await fetch(`/api/admin/templates/${id}/activate`, { method: 'POST' });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setFormError(data?.error ?? `Toggle failed (${res.status})`);
+        return;
+      }
+      fetchData();
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : 'Network error — please try again.');
+    }
   }
 
   const selectClasses = 'w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring';
@@ -242,7 +256,7 @@ export default function AdminTemplatesPage() {
             {formError && (
               <p className="text-sm text-destructive">{formError}</p>
             )}
-            <Button onClick={handleSave}>
+            <Button onClick={handleSave} disabled={!form.name.trim() || !form.templateText.trim()}>
               {editingId ? 'Update Template' : 'Create Template'}
             </Button>
           </CardContent>

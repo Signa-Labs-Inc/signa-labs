@@ -141,6 +141,14 @@ export default function AdminExercisesPage() {
           <option value="platform">Platform</option>
           <option value="user">User</option>
         </select>
+        <select value={language} onChange={(e) => { setLanguage(e.target.value); setPage(1); }} className={selectClasses}>
+          <option value="">All Languages</option>
+          <option value="python">Python</option>
+          <option value="javascript">JavaScript</option>
+          <option value="typescript">TypeScript</option>
+          <option value="sql">SQL</option>
+          <option value="go">Go</option>
+        </select>
         <select value={difficulty} onChange={(e) => { setDifficulty(e.target.value); setPage(1); }} className={selectClasses}>
           <option value="">All Difficulties</option>
           <option value="beginner">Beginner</option>

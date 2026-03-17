@@ -167,7 +167,11 @@ export default function AdminExerciseGeneratePage() {
       }
 
       const data = await res.json();
-      router.push(`/admin/exercises/${data.id ?? data.exercise?.id}`);
+      const exerciseId = data.id ?? data.exercise?.id;
+      if (!exerciseId) {
+        throw new Error('Exercise was created but no ID was returned');
+      }
+      router.push(`/admin/exercises/${exerciseId}`);
     } catch (err: unknown) {
       setCreateError(err instanceof Error ? err.message : 'Creation failed');
     } finally {

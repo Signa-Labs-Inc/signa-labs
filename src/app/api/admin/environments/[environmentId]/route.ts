@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/lib/services/auth/auth.service';
 import { handleError } from '@/lib/utils/api.handler-errors';
-import * as adminWriter from '@/lib/services/admin/admin.writer';
+import * as adminService from '@/lib/services/admin/admin.service';
 
 export async function PATCH(
   req: NextRequest,
@@ -11,7 +11,7 @@ export async function PATCH(
     await requireAdmin();
     const { environmentId } = await params;
     const body = await req.json();
-    const data = await adminWriter.updateEnvironment(environmentId, body);
+    const data = await adminService.updateEnvironment(environmentId, body);
     return Response.json(data);
   } catch (error) {
     return handleError(error);

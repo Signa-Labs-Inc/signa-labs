@@ -24,7 +24,7 @@ import { AdminPageHeader } from '@/components/admin/admin-page-header';
 import { AdminStatCard } from '@/components/admin/admin-stat-card';
 import { AnalyticsBarChart, AnalyticsBarChartLabels } from '@/components/admin/analytics-bar-chart';
 import { AnalyticsBreakdownCard } from '@/components/admin/analytics-breakdown-card';
-import * as adminReader from '@/lib/services/admin/admin.reader';
+import * as adminService from '@/lib/services/admin/admin.service';
 
 export const dynamic = 'force-dynamic';
 
@@ -50,7 +50,7 @@ function formatWeek(dateStr: string) {
 }
 
 export default async function AdminAnalyticsPage() {
-  const data = await adminReader.getAnalyticsData();
+  const data = await adminService.getAnalytics();
 
   const dailyLabels = data.dailyCompletions.map((d) => ({ label: formatDate(d.date), value: d.count }));
   const signupLabels = data.userEngagement.newSignupsLast30d.map((d) => ({ label: formatDate(d.date), value: d.count }));
