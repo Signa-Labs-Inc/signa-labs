@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Code2, Plus, Trash2, Save, ChevronDown, ChevronRight, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Code2, Plus, Trash2, Save, ChevronDown, ChevronRight, AlertTriangle, FolderTree } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -15,6 +15,16 @@ import { cn } from '@/lib/utils/helpers';
 const DIFFICULTIES = ['beginner', 'easy', 'medium', 'hard', 'expert'];
 const LANGUAGES = ['python', 'javascript', 'typescript', 'go', 'sql'];
 const FILE_TYPES = ['starter', 'solution', 'test', 'support'] as const;
+
+type Category = {
+  id: string;
+  slug: string;
+  label: string;
+  description: string;
+  icon: string;
+  tags: string[];
+  isActive: boolean;
+};
 
 type ExerciseFile = {
   id?: string;
@@ -103,6 +113,12 @@ export default function AdminExerciseDetailPage() {
   const [savingHints, setSavingHints] = useState(false);
   const [hintsMessage, setHintsMessage] = useState('');
 
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<Set<string>>(new Set());
+  const [savingCategories, setSavingCategories] = useState(false);
+  const [categoriesMessage, setCategoriesMessage] = useState('');
+  const [categoriesOpen, setCategoriesOpen] = useState(true);
+
   const [metaOpen, setMetaOpen] = useState(true);
   const [filesOpen, setFilesOpen] = useState(true);
   const [hintsOpen, setHintsOpen] = useState(true);
@@ -142,9 +158,84 @@ export default function AdminExerciseDetailPage() {
     }
   }, [id]);
 
+  const fetchCategories = useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/categories');
+      if (!res.ok) return;
+      const json = await res.json();
+      const cats: Category[] = json.categories ?? json ?? [];
+      setCategories(cats);
+      return cats;
+    } catch {
+      // non-critical — category picker just won't appear
+    }
+  }, []);
+
   useEffect(() => {
     fetchExercise();
-  }, [fetchExercise]);
+    fetchCategories();
+  }, [fetchExercise, fetchCategories]);
+
+  // Derive which categories the exercise belongs to based on current tags
+  useEffect(() => {
+    if (categories.length === 0) return;
+    const currentTags = new Set(tagsInput.split(',').map((t) => t.trim()).filter(Boolean));
+    const matched = new Set<string>();
+    for (const cat of categories) {
+      if (cat.tags.length > 0 && cat.tags.every((t) => currentTags.has(t))) {
+        matched.add(cat.id);
+      }
+    }
+    setSelectedCategoryIds(matched);
+  }, [tagsInput, categories]);
+
+  function handleToggleCategory(categoryId: string) {
+    const category = categories.find((c) => c.id === categoryId);
+    if (!category) return;
+
+    const currentTags = tagsInput.split(',').map((t) => t.trim()).filter(Boolean);
+    const isSelected = selectedCategoryIds.has(categoryId);
+
+    let newTags: string[];
+    if (isSelected) {
+      // Remove this category's tags (only if not needed by another selected category)
+      const otherSelectedCats = categories.filter(
+        (c) => c.id !== categoryId && selectedCategoryIds.has(c.id)
+      );
+      const tagsNeededByOthers = new Set(otherSelectedCats.flatMap((c) => c.tags));
+      newTags = currentTags.filter(
+        (t) => !category.tags.includes(t) || tagsNeededByOthers.has(t)
+      );
+    } else {
+      // Add this category's tags
+      const tagSet = new Set(currentTags);
+      for (const t of category.tags) tagSet.add(t);
+      newTags = Array.from(tagSet);
+    }
+
+    setTagsInput(newTags.join(', '));
+  }
+
+  async function handleSaveCategories() {
+    setSavingCategories(true);
+    setCategoriesMessage('');
+    try {
+      const tags = tagsInput.split(',').map((t) => t.trim()).filter(Boolean);
+      const res = await fetch(`/api/admin/exercises/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tags }),
+      });
+      if (!res.ok) throw new Error('Save failed');
+      const updated = await res.json();
+      setExercise((prev) => (prev ? { ...prev, ...updated } : prev));
+      setCategoriesMessage('Categories saved successfully.');
+    } catch {
+      setCategoriesMessage('Failed to save categories.');
+    } finally {
+      setSavingCategories(false);
+    }
+  }
 
   async function handleSaveMeta() {
     setSavingMeta(true);
@@ -403,7 +494,79 @@ export default function AdminExerciseDetailPage() {
         )}
       </Card>
 
-      {/* Section 2: Exercise Files */}
+      {/* Section 2: Categories */}
+      {categories.length > 0 && (
+        <Card>
+          <button
+            onClick={() => setCategoriesOpen(!categoriesOpen)}
+            className="flex w-full items-center justify-between p-5 text-left"
+          >
+            <h3 className="flex items-center gap-2 text-base font-semibold">
+              <FolderTree className="h-4 w-4 text-muted-foreground" />
+              Categories
+            </h3>
+            {categoriesOpen ? <ChevronDown className="h-5 w-5 text-muted-foreground" /> : <ChevronRight className="h-5 w-5 text-muted-foreground" />}
+          </button>
+          {categoriesOpen && (
+            <CardContent className="space-y-4 border-t border-border px-5 pb-5 pt-5">
+              <p className="text-sm text-muted-foreground">
+                Select which categories this exercise belongs to. This updates the exercise&apos;s tags to match.
+              </p>
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {categories.filter((c) => c.isActive).map((cat) => {
+                  const isSelected = selectedCategoryIds.has(cat.id);
+                  return (
+                    <button
+                      key={cat.id}
+                      onClick={() => handleToggleCategory(cat.id)}
+                      className={cn(
+                        'flex flex-col gap-1 rounded-lg border p-3 text-left transition-colors',
+                        isSelected
+                          ? 'border-primary bg-primary/5'
+                          : 'border-border hover:border-primary/30 hover:bg-muted/30'
+                      )}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className={cn(
+                          'flex h-5 w-5 shrink-0 items-center justify-center rounded border text-xs',
+                          isSelected
+                            ? 'border-primary bg-primary text-primary-foreground'
+                            : 'border-muted-foreground/30'
+                        )}>
+                          {isSelected && '✓'}
+                        </div>
+                        <span className="text-sm font-medium">{cat.label}</span>
+                      </div>
+                      <p className="pl-7 text-xs text-muted-foreground line-clamp-1">{cat.description}</p>
+                      <div className="flex flex-wrap gap-1 pl-7 pt-1">
+                        {cat.tags.map((t) => (
+                          <Badge key={t} variant="secondary" className="text-[10px] px-1.5 py-0">
+                            {t}
+                          </Badge>
+                        ))}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="flex items-center gap-3 pt-2">
+                <Button onClick={handleSaveCategories} disabled={savingCategories}>
+                  <Save className="mr-1.5 h-4 w-4" />
+                  {savingCategories ? 'Saving...' : 'Save Categories'}
+                </Button>
+                {categoriesMessage && (
+                  <span className={cn('text-sm', categoriesMessage.includes('success') ? 'text-emerald-600' : 'text-destructive')}>
+                    {categoriesMessage}
+                  </span>
+                )}
+              </div>
+            </CardContent>
+          )}
+        </Card>
+      )}
+
+      {/* Section 3: Files */}
       <Card>
         <button
           onClick={() => setFilesOpen(!filesOpen)}

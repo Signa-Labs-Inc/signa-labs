@@ -29,6 +29,15 @@ type Environment = {
   displayName: string;
 };
 
+type Category = {
+  id: string;
+  slug: string;
+  label: string;
+  description: string;
+  tags: string[];
+  isActive: boolean;
+};
+
 const FILE_BADGE_COLORS: Record<string, string> = {
   starter: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
   solution: 'bg-green-500/10 text-green-500 border-green-500/20',
@@ -59,6 +68,8 @@ export default function AdminExerciseGeneratePage() {
   const [isPublic, setIsPublic] = useState(false);
   const [files, setFiles] = useState<FileEntry[]>([]);
   const [environments, setEnvironments] = useState<Environment[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<Set<string>>(new Set());
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState('');
 
@@ -74,9 +85,35 @@ export default function AdminExerciseGeneratePage() {
     }
   }, []);
 
+  const fetchCategories = useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/categories');
+      if (res.ok) {
+        const data = await res.json();
+        setCategories((data.categories ?? data ?? []).filter((c: Category) => c.isActive));
+      }
+    } catch {
+      // non-critical
+    }
+  }, []);
+
   useEffect(() => {
     fetchEnvironments();
-  }, [fetchEnvironments]);
+    fetchCategories();
+  }, [fetchEnvironments, fetchCategories]);
+
+  // Sync selected categories with tags input
+  useEffect(() => {
+    if (categories.length === 0) return;
+    const currentTags = new Set(tagsInput.split(',').map((t) => t.trim()).filter(Boolean));
+    const matched = new Set<string>();
+    for (const cat of categories) {
+      if (cat.tags.length > 0 && cat.tags.every((t) => currentTags.has(t))) {
+        matched.add(cat.id);
+      }
+    }
+    setSelectedCategoryIds(matched);
+  }, [tagsInput, categories]);
 
   async function handleGenerate() {
     if (!prompt.trim()) return;
@@ -132,6 +169,31 @@ export default function AdminExerciseGeneratePage() {
 
   function updateFile(index: number, field: keyof FileEntry, value: string) {
     setFiles((prev) => prev.map((f, i) => (i === index ? { ...f, [field]: value } : f)));
+  }
+
+  function handleToggleCategory(categoryId: string) {
+    const category = categories.find((c) => c.id === categoryId);
+    if (!category) return;
+
+    const currentTags = tagsInput.split(',').map((t) => t.trim()).filter(Boolean);
+    const isSelected = selectedCategoryIds.has(categoryId);
+
+    let newTags: string[];
+    if (isSelected) {
+      const otherSelectedCats = categories.filter(
+        (c) => c.id !== categoryId && selectedCategoryIds.has(c.id)
+      );
+      const tagsNeededByOthers = new Set(otherSelectedCats.flatMap((c) => c.tags));
+      newTags = currentTags.filter(
+        (t) => !category.tags.includes(t) || tagsNeededByOthers.has(t)
+      );
+    } else {
+      const tagSet = new Set(currentTags);
+      for (const t of category.tags) tagSet.add(t);
+      newTags = Array.from(tagSet);
+    }
+
+    setTagsInput(newTags.join(', '));
   }
 
   async function handleCreate() {
@@ -337,6 +399,41 @@ export default function AdminExerciseGeneratePage() {
                   ))}
                 </select>
               </div>
+
+              {categories.length > 0 && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Categories</label>
+                  <p className="text-xs text-muted-foreground">Select categories to auto-populate tags.</p>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {categories.map((cat) => {
+                      const isSelected = selectedCategoryIds.has(cat.id);
+                      return (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          onClick={() => handleToggleCategory(cat.id)}
+                          className={cn(
+                            'flex items-center gap-2 rounded-lg border p-2.5 text-left text-sm transition-colors',
+                            isSelected
+                              ? 'border-primary bg-primary/5'
+                              : 'border-border hover:border-primary/30 hover:bg-muted/30'
+                          )}
+                        >
+                          <div className={cn(
+                            'flex h-4 w-4 shrink-0 items-center justify-center rounded border text-[10px]',
+                            isSelected
+                              ? 'border-primary bg-primary text-primary-foreground'
+                              : 'border-muted-foreground/30'
+                          )}>
+                            {isSelected && '✓'}
+                          </div>
+                          <span className="font-medium">{cat.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-1.5">
                 <label className="text-sm font-medium">Tags (comma-separated)</label>
