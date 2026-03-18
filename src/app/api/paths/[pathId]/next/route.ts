@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { tasks } from '@trigger.dev/sdk/v3';
 import { requireCurrentUser } from '@/lib/services/auth/auth.service';
+import { requireUsageLimit } from '@/lib/services/subscriptions/subscriptions.gate';
 import { handleError } from '@/lib/utils/api.handler-errors';
 import type { generatePathExerciseTask } from '@/trigger/generate-path-exercise';
 
@@ -11,6 +12,7 @@ interface RouteParams {
 export async function POST(_request: NextRequest, { params }: RouteParams) {
   try {
     const user = await requireCurrentUser();
+    await requireUsageLimit(user.id, 'exercises');
     const { pathId } = await params;
 
     const handle = await tasks.trigger<typeof generatePathExerciseTask>('generate-path-exercise', {

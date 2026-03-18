@@ -12,7 +12,7 @@ export const paymentRecords = pgTable(
       .references(() => users.id),
     subscriptionId: uuid('subscription_id').references(() => subscriptions.id),
     stripePaymentIntentId: text('stripe_payment_intent_id').unique(),
-    stripeInvoiceId: text('stripe_invoice_id'),
+    stripeInvoiceId: text('stripe_invoice_id').unique(),
     amountCents: integer('amount_cents').notNull(),
     currency: text().notNull().default('usd'),
     status: text().notNull(),

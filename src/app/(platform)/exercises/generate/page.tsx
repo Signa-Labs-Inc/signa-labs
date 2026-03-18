@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { LanguageIcon } from '@/components/ui/language-icon';
 import { cn } from '@/lib/utils/helpers';
 import { useGenerationJob } from '@/hooks/use-generation-job';
+import { UpgradeBanner } from '@/components/upgrade-banner';
 
 // ============================================================
 // Types
@@ -86,7 +87,7 @@ export default function GenerateExercisePage() {
   const [difficulty, setDifficulty] = useState<Difficulty>((savedFormRef?.difficulty as Difficulty) ?? 'medium');
   const [mode, setMode] = useState<ExerciseMode>((savedFormRef?.mode as ExerciseMode) ?? 'build');
 
-  const { status, progress, error, result, startGeneration } = useGenerationJob();
+  const { status, progress, error, code, result, startGeneration } = useGenerationJob();
 
   useEffect(() => {
     if (result) {
@@ -282,26 +283,30 @@ export default function GenerateExercisePage() {
 
         {/* Error state */}
         {status === 'failed' && error && (
-          <div className="mt-4 overflow-hidden rounded-xl border border-red-500/20 bg-linear-to-r from-red-500/5 via-card to-red-500/5">
-            <div className="flex items-start gap-3 p-5">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-500/10">
-                <AlertTriangle className="h-5 w-5 text-red-400" />
-              </div>
-              <div>
-                <p className="font-medium text-red-300">Crafting failed</p>
-                <p className="mt-1 text-sm text-red-300/80">{error}</p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleGenerate}
-                  className="mt-3"
-                  disabled={prompt.trim().length < 10}
-                >
-                  Try Again
-                </Button>
+          code === 'FORBIDDEN' ? (
+            <UpgradeBanner message={error} className="mt-4" />
+          ) : (
+            <div className="mt-4 overflow-hidden rounded-xl border border-red-500/20 bg-linear-to-r from-red-500/5 via-card to-red-500/5">
+              <div className="flex items-start gap-3 p-5">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-500/10">
+                  <AlertTriangle className="h-5 w-5 text-red-400" />
+                </div>
+                <div>
+                  <p className="font-medium text-red-300">Crafting failed</p>
+                  <p className="mt-1 text-sm text-red-300/80">{error}</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleGenerate}
+                    className="mt-3"
+                    disabled={prompt.trim().length < 10}
+                  >
+                    Try Again
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
+          )
         )}
 
         {/* ── Example prompts — always visible ── */}

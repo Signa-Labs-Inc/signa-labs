@@ -25,6 +25,7 @@ import { LanguageIcon } from '@/components/ui/language-icon';
 import { LANGUAGE_LABELS } from '@/components/ui/language-icon';
 import { SkillsBadges } from '@/components/paths/skills-badges';
 import { usePathExercise } from '@/hooks/use-path-exercise';
+import { UpgradeBanner } from '@/components/upgrade-banner';
 import { toast } from 'sonner';
 import type { PathProgress, MilestoneProgress } from '@/lib/services/paths/paths.types';
 
@@ -56,6 +57,7 @@ export function PathDashboard({ progress }: PathDashboardProps) {
     status: exerciseStatus,
     progress: exerciseProgress,
     error: exerciseError,
+    code: exerciseCode,
     result: exerciseResult,
     generateNext,
   } = usePathExercise();
@@ -255,9 +257,13 @@ export function PathDashboard({ progress }: PathDashboardProps) {
       <div className="mx-auto max-w-4xl px-6 py-8">
         {/* Error message */}
         {exerciseError && (
-          <div className="bg-destructive/10 text-destructive mb-6 rounded-lg border border-destructive/20 px-4 py-3 text-center text-sm">
-            {exerciseError}
-          </div>
+          exerciseCode === 'FORBIDDEN' ? (
+            <UpgradeBanner message={exerciseError} className="mb-6" />
+          ) : (
+            <div className="bg-destructive/10 text-destructive mb-6 rounded-lg border border-destructive/20 px-4 py-3 text-center text-sm">
+              {exerciseError}
+            </div>
+          )
         )}
 
         {/* ── Continue CTA ── */}

@@ -59,6 +59,15 @@ export async function updateUser(clerkId: string, params: UpdateUserParams): Pro
   return user ?? null;
 }
 
+export async function setStripeCustomerId(userId: string, stripeCustomerId: string): Promise<boolean> {
+  const result = await db
+    .update(users)
+    .set({ stripeCustomerId })
+    .where(and(eq(users.id, userId), isNull(users.stripeCustomerId)))
+    .returning({ id: users.id });
+  return result.length > 0;
+}
+
 export async function deleteUser(clerkId: string): Promise<void> {
   await db
     .update(users)

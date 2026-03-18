@@ -20,6 +20,8 @@ import { LanguageBreakdown } from '@/components/dashboard/language-breakdown';
 import { ActivityFeed } from '@/components/dashboard/activity-feed';
 import { PathCard } from '@/components/paths/path-card';
 import { DailyGoalProgress } from '@/components/dashboard/daily-goal-progress';
+import { PlanUsageCard } from '@/components/dashboard/plan-usage-card';
+import { getAllUsageLimits, getUserPlan } from '@/lib/services/subscriptions/subscriptions.service';
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
@@ -27,7 +29,7 @@ export default async function DashboardPage() {
 
   const pathService = new PathService();
 
-  const [stats, heatmap, languages, activity, paths, userProfile, todayTime] = await Promise.all([
+  const [stats, heatmap, languages, activity, paths, userProfile, todayTime, usage, userPlan] = await Promise.all([
     getDashboardStats(user.id),
     getActivityHeatmap(user.id, 365),
     getLanguageBreakdown(user.id),
@@ -35,6 +37,8 @@ export default async function DashboardPage() {
     pathService.getUserPaths(user.id).catch(() => []),
     getUserProfile(user.id),
     getTodayPracticeTimeSeconds(user.id),
+    getAllUsageLimits(user.id),
+    getUserPlan(user.id),
   ]);
 
   const dailyGoalMinutes = userProfile?.preferences?.daily_goal_minutes ?? 30;
@@ -61,7 +65,10 @@ export default async function DashboardPage() {
           {(hasActivity || paths.length > 0) && (
             <div className="mt-6 space-y-4">
               <StatsOverview stats={stats} />
-              <DailyGoalProgress todaySeconds={todayTime} goalMinutes={dailyGoalMinutes} />
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                <DailyGoalProgress todaySeconds={todayTime} goalMinutes={dailyGoalMinutes} />
+                <PlanUsageCard planName={userPlan?.planName ?? 'Free'} usage={usage} />
+              </div>
             </div>
           )}
         </div>

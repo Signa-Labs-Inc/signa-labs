@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { tasks } from '@trigger.dev/sdk/v3';
 import { requireCurrentUser } from '@/lib/services/auth/auth.service';
+import { requireUsageLimit } from '@/lib/services/subscriptions/subscriptions.gate';
 import { PathService } from '@/lib/services/paths/paths.service';
 import { handleError } from '@/lib/utils/api.handler-errors';
 import type { createPathTask } from '@/trigger/create-path';
@@ -11,6 +12,7 @@ const VALID_STARTING_LEVELS = ['beginner', 'some_experience', 'intermediate', 'a
 export async function POST(request: NextRequest) {
   try {
     const user = await requireCurrentUser();
+    await requireUsageLimit(user.id, 'paths');
 
     let body: { prompt?: string; language?: string; startingLevel?: string };
     try {

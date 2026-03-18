@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { LanguageIcon } from '@/components/ui/language-icon';
 import { cn } from '@/lib/utils/helpers';
 import { usePathCreation } from '@/hooks/use-path-creation';
+import { UpgradeBanner } from '@/components/upgrade-banner';
 
 // ============================================================
 // Constants
@@ -59,7 +60,7 @@ export default function NewPathPage() {
   const [language, setLanguage] = useState(searchParams.get('language') ?? 'typescript');
   const [level, setLevel] = useState(searchParams.get('level') ?? '');
 
-  const { status, progress, error, result, startCreation } = usePathCreation();
+  const { status, progress, error, code, result, startCreation } = usePathCreation();
 
   useEffect(() => {
     if (result) {
@@ -233,26 +234,30 @@ export default function NewPathPage() {
 
         {/* Error */}
         {status === 'failed' && error && (
-          <div className="mt-4 overflow-hidden rounded-xl border border-red-500/20 bg-linear-to-r from-red-500/5 via-card to-red-500/5">
-            <div className="flex items-start gap-3 p-5">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-500/10">
-                <AlertTriangle className="h-5 w-5 text-red-400" />
-              </div>
-              <div>
-                <p className="font-medium text-red-300">Path creation failed</p>
-                <p className="mt-1 text-sm text-red-300/80">{error}</p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleCreate}
-                  className="mt-3"
-                  disabled={!prompt.trim() || !level}
-                >
-                  Try Again
-                </Button>
+          code === 'FORBIDDEN' ? (
+            <UpgradeBanner message={error} className="mt-4" />
+          ) : (
+            <div className="mt-4 overflow-hidden rounded-xl border border-red-500/20 bg-linear-to-r from-red-500/5 via-card to-red-500/5">
+              <div className="flex items-start gap-3 p-5">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-500/10">
+                  <AlertTriangle className="h-5 w-5 text-red-400" />
+                </div>
+                <div>
+                  <p className="font-medium text-red-300">Path creation failed</p>
+                  <p className="mt-1 text-sm text-red-300/80">{error}</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCreate}
+                    className="mt-3"
+                    disabled={!prompt.trim() || !level}
+                  >
+                    Try Again
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
+          )
         )}
       </div>
     </div>
