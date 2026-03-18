@@ -47,6 +47,10 @@
     "src/lib/sandboxes/typescript-react",
     "src/lib/sandboxes/typescript-express",
     "src/lib/sandboxes/scripts",
-    "tmp"
+    "tmp",
+    "src/test",
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "src/e2e"
   ]
 }
