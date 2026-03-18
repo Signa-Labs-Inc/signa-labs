@@ -109,7 +109,11 @@ export async function insertIdempotencyKey(key: string, scope: string): Promise<
   } catch (error) {
     // Only treat unique constraint violations as "already claimed"
     // Postgres error code 23505 = unique_violation
-    if (error instanceof Error && 'code' in error && (error as { code: string }).code === '23505') {
+    // Drizzle may wrap the pg error, so check both the error and its cause
+    const pgCode =
+      (error instanceof Error && 'code' in error && (error as { code: string }).code) ||
+      (error instanceof Error && error.cause instanceof Error && 'code' in error.cause && (error.cause as { code: string }).code);
+    if (pgCode === '23505') {
       return false;
     }
     // Re-throw unexpected DB errors so they're not silently swallowed
