@@ -3,7 +3,7 @@ import { PlanUsageCard } from './plan-usage-card';
 import { buildUsageSummary } from '@/test/helpers/component-utils';
 
 vi.mock('next/link', () => ({
-  default: ({ href, children, ...props }: any) => <a href={href} {...props}>{children}</a>,
+  default: ({ href, children, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement> & { href?: string }) => <a href={href} {...props}>{children}</a>,
 }));
 
 describe('PlanUsageCard', () => {

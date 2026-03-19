@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { UpgradeBanner } from './upgrade-banner';
 
 vi.mock('next/link', () => ({
-  default: ({ href, children, ...props }: any) => <a href={href} {...props}>{children}</a>,
+  default: ({ href, children, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement> & { href?: string }) => <a href={href} {...props}>{children}</a>,
 }));
 
 describe('UpgradeBanner', () => {
