@@ -46,6 +46,69 @@ export type AdminPathFilters = {
   language?: string;
 };
 
+// --- Analytics Filters -----------------------------------------------------------
+
+export type AnalyticsTimeRange = '7d' | '30d' | '90d' | '6mo' | '1y' | 'all';
+
+export type AnalyticsFilters = {
+  range: AnalyticsTimeRange;
+  plan: string; // 'all' | plan id
+  status: string; // 'all' | 'active' | 'churned' | 'trial'
+};
+
+export const VALID_TIME_RANGES: AnalyticsTimeRange[] = ['7d', '30d', '90d', '6mo', '1y', 'all'];
+
+export function rangeToLabel(range: AnalyticsTimeRange): string {
+  switch (range) {
+    case '7d':
+      return '7 days';
+    case '30d':
+      return '30 days';
+    case '90d':
+      return '90 days';
+    case '6mo':
+      return '6 months';
+    case '1y':
+      return '1 year';
+    case 'all':
+      return 'all time';
+  }
+}
+
+export function rangeToInterval(range: AnalyticsTimeRange): string | null {
+  switch (range) {
+    case '7d':
+      return '7 days';
+    case '30d':
+      return '30 days';
+    case '90d':
+      return '90 days';
+    case '6mo':
+      return '6 months';
+    case '1y':
+      return '1 year';
+    case 'all':
+      return null;
+  }
+}
+
+// --- Financial Analytics ---------------------------------------------------------
+
+export type RecentPayment = {
+  id: string;
+  userEmail: string;
+  amountCents: number;
+  currency: string;
+  status: string;
+  paidAt: string | null;
+  createdAt: string;
+};
+
+export type MonthlyRevenue = {
+  month: string;
+  totalCents: number;
+};
+
 // --- Analytics ------------------------------------------------------------------
 
 export type BreakdownItem = {
@@ -130,5 +193,31 @@ export type AnalyticsData = {
     solutionViewRate: number;
     avgExecutionTimeMs: number;
     totalSubmissions: number;
+  };
+  revenueMetrics: {
+    mrrCents: number;
+    totalRevenueCents: number;
+    arpuCents: number;
+    revenueTrend: MonthlyRevenue[];
+  };
+  subscriptionHealth: {
+    activeSubscribers: number;
+    churned30d: number;
+    churnRate: number;
+    trialConversionRate: number;
+    upgradeCount30d: number;
+    downgradeCount30d: number;
+  };
+  paymentHistory: {
+    recentPayments: RecentPayment[];
+    failedPayments: number;
+    refundTotalCents: number;
+    paymentSuccessRate: number;
+  };
+  planBreakdown: {
+    subscribersByPlan: BreakdownItem[];
+    freeVsPaidRatio: { free: number; paid: number; paidPercentage: number };
+    mostPopularPlan: string;
+    revenueByPlan: BreakdownItem[];
   };
 };

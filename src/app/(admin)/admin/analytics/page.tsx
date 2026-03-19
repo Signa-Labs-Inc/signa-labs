@@ -1,14 +1,21 @@
+import { Suspense } from 'react';
 import Link from 'next/link';
 import {
+  Activity,
+  ArrowDownRight,
+  ArrowUpRight,
   BarChart3,
   CheckCircle2,
   Clock,
   Code2,
+  CreditCard,
   Crown,
+  DollarSign,
   Eye,
   Flame,
   Languages,
   Lightbulb,
+  RefreshCw,
   Route,
   Send,
   Shield,
@@ -17,6 +24,8 @@ import {
   UserCheck,
   Users,
   Zap,
+  AlertTriangle,
+  PieChart,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -24,7 +33,13 @@ import { AdminPageHeader } from '@/components/admin/admin-page-header';
 import { AdminStatCard } from '@/components/admin/admin-stat-card';
 import { AnalyticsBarChart, AnalyticsBarChartLabels } from '@/components/admin/analytics-bar-chart';
 import { AnalyticsBreakdownCard } from '@/components/admin/analytics-breakdown-card';
+import { AnalyticsFilters } from '@/components/admin/analytics-filters';
 import * as adminService from '@/lib/services/admin/admin.service';
+import {
+  VALID_TIME_RANGES,
+  rangeToLabel,
+  type AnalyticsTimeRange,
+} from '@/lib/services/admin/admin.types';
 
 export const dynamic = 'force-dynamic';
 
@@ -50,8 +65,32 @@ function formatWeek(dateStr: string) {
   return 'W' + date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' });
 }
 
-export default async function AdminAnalyticsPage() {
-  const data = await adminService.getAnalytics();
+function formatCurrency(cents: number): string {
+  return `$${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+const PAYMENT_STATUS_COLORS: Record<string, string> = {
+  succeeded: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
+  failed: 'bg-red-500/10 text-red-600 border-red-500/20',
+  refunded: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+  partial_refund: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+};
+
+export default async function AdminAnalyticsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const rawRange = typeof params.range === 'string' ? params.range : '30d';
+  const range = VALID_TIME_RANGES.includes(rawRange as AnalyticsTimeRange)
+    ? (rawRange as AnalyticsTimeRange)
+    : '30d';
+  const plan = typeof params.plan === 'string' ? params.plan : 'all';
+  const status = typeof params.status === 'string' ? params.status : 'all';
+
+  const data = await adminService.getAnalytics({ range, plan, status });
+  const rangeLabel = rangeToLabel(range);
 
   const dailyLabels = data.dailyCompletions.map((d) => ({
     label: formatDate(d.date),
@@ -73,6 +112,10 @@ export default async function AdminAnalyticsPage() {
     label: formatDate(d.date, 'month'),
     value: d.count,
   }));
+  const revenueTrendLabels = data.revenueMetrics.revenueTrend.map((d) => ({
+    label: d.month.slice(5), // 'MM' from 'YYYY-MM'
+    value: Number(d.totalCents) / 100,
+  }));
 
   return (
     <div className="space-y-10">
@@ -81,6 +124,11 @@ export default async function AdminAnalyticsPage() {
         description="Platform-wide metrics and insights."
         icon={BarChart3}
       />
+
+      {/* Filter Bar */}
+      <Suspense>
+        <AnalyticsFilters />
+      </Suspense>
 
       {/* ── Section 1: Platform Overview ── */}
       <section>
@@ -493,6 +541,183 @@ export default async function AdminAnalyticsPage() {
             title="Total Submissions"
             value={data.submissionPerformance.totalSubmissions.toLocaleString()}
             icon={Send}
+          />
+        </div>
+      </section>
+
+      {/* ── Section 9: Revenue Metrics ── */}
+      <section>
+        <h2 className="mb-4 text-base font-semibold">Revenue Metrics</h2>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <AdminStatCard
+            title="MRR"
+            value={formatCurrency(data.revenueMetrics.mrrCents)}
+            icon={DollarSign}
+          />
+          <AdminStatCard
+            title="Total Revenue"
+            value={formatCurrency(data.revenueMetrics.totalRevenueCents)}
+            icon={DollarSign}
+          />
+          <AdminStatCard
+            title="ARPU"
+            value={formatCurrency(data.revenueMetrics.arpuCents)}
+            icon={DollarSign}
+            description="Avg revenue per paying user"
+          />
+        </div>
+        <Card className="mt-4">
+          <CardContent className="p-5">
+            <h3 className="mb-4 text-sm font-semibold">Monthly Revenue (Last 6 Months)</h3>
+            <AnalyticsBarChart data={revenueTrendLabels} />
+            <AnalyticsBarChartLabels data={revenueTrendLabels} />
+          </CardContent>
+        </Card>
+      </section>
+
+      {/* ── Section 10: Subscription Health ── */}
+      <section>
+        <h2 className="mb-4 text-base font-semibold">Subscription Health</h2>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <AdminStatCard
+            title="Active Subscribers"
+            value={data.subscriptionHealth.activeSubscribers.toLocaleString()}
+            icon={Users}
+          />
+          <AdminStatCard
+            title={`Churned (${rangeLabel})`}
+            value={data.subscriptionHealth.churned30d}
+            icon={AlertTriangle}
+          />
+          <AdminStatCard
+            title="Churn Rate"
+            value={`${data.subscriptionHealth.churnRate}%`}
+            icon={Activity}
+          />
+        </div>
+        <div className="mt-4 grid gap-4 sm:grid-cols-3">
+          <AdminStatCard
+            title="Trial Conversion"
+            value={`${data.subscriptionHealth.trialConversionRate}%`}
+            icon={RefreshCw}
+          />
+          <AdminStatCard
+            title={`Upgrades (${rangeLabel})`}
+            value={data.subscriptionHealth.upgradeCount30d}
+            icon={ArrowUpRight}
+          />
+          <AdminStatCard
+            title={`Downgrades (${rangeLabel})`}
+            value={data.subscriptionHealth.downgradeCount30d}
+            icon={ArrowDownRight}
+          />
+        </div>
+      </section>
+
+      {/* ── Section 11: Payment History ── */}
+      <section>
+        <h2 className="mb-4 text-base font-semibold">Payment History</h2>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <AdminStatCard
+            title={`Failed Payments (${rangeLabel})`}
+            value={data.paymentHistory.failedPayments}
+            icon={AlertTriangle}
+          />
+          <AdminStatCard
+            title="Refund Total"
+            value={formatCurrency(data.paymentHistory.refundTotalCents)}
+            icon={CreditCard}
+          />
+          <AdminStatCard
+            title="Success Rate"
+            value={`${data.paymentHistory.paymentSuccessRate}%`}
+            icon={Target}
+          />
+        </div>
+
+        <Card className="mt-4">
+          <CardContent className="p-5">
+            <h3 className="mb-3 text-sm font-semibold">Recent Payments</h3>
+            {data.paymentHistory.recentPayments.length === 0 ? (
+              <p className="text-muted-foreground text-sm">No payments recorded yet.</p>
+            ) : (
+              <div className="border-border overflow-hidden rounded-lg border">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-border bg-muted/50 border-b">
+                      <th className="text-muted-foreground px-4 py-2.5 text-left text-xs font-medium tracking-wider uppercase">
+                        User
+                      </th>
+                      <th className="text-muted-foreground px-4 py-2.5 text-right text-xs font-medium tracking-wider uppercase">
+                        Amount
+                      </th>
+                      <th className="text-muted-foreground px-4 py-2.5 text-center text-xs font-medium tracking-wider uppercase">
+                        Status
+                      </th>
+                      <th className="text-muted-foreground px-4 py-2.5 text-right text-xs font-medium tracking-wider uppercase">
+                        Date
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-border divide-y">
+                    {data.paymentHistory.recentPayments.map((payment) => (
+                      <tr key={payment.id} className="hover:bg-muted/30 transition-colors">
+                        <td className="px-4 py-3 text-sm">{payment.userEmail}</td>
+                        <td className="px-4 py-3 text-right font-medium tabular-nums">
+                          {formatCurrency(payment.amountCents)}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <Badge
+                            variant="outline"
+                            className={`text-xs ${PAYMENT_STATUS_COLORS[payment.status] ?? ''}`}
+                          >
+                            {payment.status}
+                          </Badge>
+                        </td>
+                        <td className="text-muted-foreground px-4 py-3 text-right">
+                          {payment.paidAt ?? payment.createdAt}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </section>
+
+      {/* ── Section 12: Plan Breakdown ── */}
+      <section>
+        <h2 className="mb-4 text-base font-semibold">Plan Breakdown</h2>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <AdminStatCard
+            title="Most Popular Plan"
+            value={data.planBreakdown.mostPopularPlan}
+            icon={Crown}
+            description="By subscriber count"
+          />
+          <AdminStatCard
+            title="Free Users"
+            value={data.planBreakdown.freeVsPaidRatio.free.toLocaleString()}
+            icon={Users}
+          />
+          <AdminStatCard
+            title="Paid Users"
+            value={`${data.planBreakdown.freeVsPaidRatio.paid.toLocaleString()} (${data.planBreakdown.freeVsPaidRatio.paidPercentage}%)`}
+            icon={CreditCard}
+          />
+        </div>
+        <div className="mt-4 grid gap-4 lg:grid-cols-2">
+          <AnalyticsBreakdownCard
+            title="Subscribers by Plan"
+            items={data.planBreakdown.subscribersByPlan}
+            icon={PieChart}
+          />
+          <AnalyticsBreakdownCard
+            title="Revenue by Plan"
+            items={data.planBreakdown.revenueByPlan}
+            icon={DollarSign}
           />
         </div>
       </section>
