@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { Menu, X, LayoutDashboard, Code2, Route, FlaskConical, Crown, Compass } from 'lucide-react';
 import { UserMenu } from './user-menu';
 import { ThemeToggle } from './theme-toggle';
+import { NotificationBell } from './notification-bell';
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -34,12 +35,15 @@ export function MobileNav() {
           </div>
           <span className="text-lg font-bold text-foreground">Signa Labs</span>
         </Link>
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="rounded-md p-2 text-muted-foreground hover:bg-accent/50 transition-colors"
-        >
-          {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+        <div className="flex items-center gap-1">
+          <NotificationBell />
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="rounded-md p-2 text-muted-foreground hover:bg-accent/50 transition-colors"
+          >
+            {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </div>
 
       {/* Overlay + Drawer */}

@@ -2,6 +2,14 @@ import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { NotificationBell } from './notification-bell';
 
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn() }),
+}));
+
+vi.mock('@/stores/notification-store', () => ({
+  useNotificationStore: () => 0,
+}));
+
 function makeNotification(overrides?: Partial<{
   id: string;
   type: string;

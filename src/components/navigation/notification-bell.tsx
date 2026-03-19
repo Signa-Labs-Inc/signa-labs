@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { Bell, Check, Loader2 } from 'lucide-react';
+import { useNotificationStore } from '@/stores/notification-store';
 
 type Notification = {
   id: string;
@@ -14,6 +16,7 @@ type Notification = {
 };
 
 export function NotificationBell() {
+  const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
@@ -21,6 +24,7 @@ export function NotificationBell() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [markingAll, setMarkingAll] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const refreshKey = useNotificationStore((s) => s.refreshKey);
 
   const PAGE_SIZE = 10;
 
@@ -42,7 +46,7 @@ export function NotificationBell() {
     fetchNotifications();
     const interval = setInterval(() => fetchNotifications(), 120_000);
     return () => clearInterval(interval);
-  }, [fetchNotifications]);
+  }, [fetchNotifications, refreshKey]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -143,7 +147,13 @@ export function NotificationBell() {
               {notifications.map((n) => (
                 <button
                   key={n.id}
-                  onClick={() => !n.readAt && handleMarkRead(n.id)}
+                  onClick={() => {
+                    if (!n.readAt) handleMarkRead(n.id);
+                    if (n.metadata.url) {
+                      router.push(n.metadata.url as string);
+                      setIsOpen(false);
+                    }
+                  }}
                   className={`w-full px-4 py-3 text-left transition-colors hover:bg-accent/30 ${
                     n.readAt ? 'opacity-60' : ''
                   }`}

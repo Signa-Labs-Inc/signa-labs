@@ -6,19 +6,21 @@ import { MobileNav } from '@/components/navigation/mobile-nav';
 import { Footer } from '@/components/navigation/footer';
 import { OnboardingProvider } from '@/components/onboarding/onboarding-provider';
 import { GuidedTour } from '@/components/onboarding/guided-tour';
+import { JobTracker } from '@/components/job-tracker/job-tracker';
 
-export default function PlatformLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function PlatformLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isExerciseWorkspace =
     (/^\/exercises\/[^/]+$/.test(pathname) && pathname !== '/exercises/generate') ||
     /^\/e\/[^/]+$/.test(pathname);
 
   if (isExerciseWorkspace) {
-    return <div className="h-screen flex flex-col bg-background">{children}</div>;
+    return (
+      <>
+        <JobTracker />
+        <div className="bg-background flex h-screen flex-col">{children}</div>
+      </>
+    );
   }
 
   return (
@@ -34,6 +36,7 @@ export default function PlatformLayout({
         <Footer />
       </div>
       <GuidedTour />
+      <JobTracker />
     </OnboardingProvider>
   );
 }
