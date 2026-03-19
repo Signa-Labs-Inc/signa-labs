@@ -109,18 +109,13 @@ export function ActivityHeatmap({ data }: ActivityHeatmapProps) {
       <div className="overflow-x-auto">
         <div className="inline-flex flex-col gap-1" style={{ minWidth: 'max-content' }}>
           {/* Month labels */}
-          <div className="ml-8 flex">
+          <div className="ml-8 relative h-4">
             {monthLabels.map(({ label, weekIndex }, i) => (
               <span
                 key={`${label}-${i}`}
-                className="text-muted-foreground text-xs"
+                className="text-muted-foreground text-xs absolute"
                 style={{
-                  position: 'relative',
-                  left: `${weekIndex * 14}px`,
-                  marginRight:
-                    i < monthLabels.length - 1
-                      ? `${((monthLabels[i + 1]?.weekIndex ?? weekIndex) - weekIndex) * 14 - 28}px`
-                      : 0,
+                  left: `${weekIndex * (12 + 2)}px`,
                 }}
               >
                 {label}

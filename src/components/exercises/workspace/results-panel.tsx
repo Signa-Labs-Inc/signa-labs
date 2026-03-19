@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { CheckCircle2, XCircle, AlertTriangle, Clock, ChevronDown } from 'lucide-react';
+import { CheckCircle2, XCircle, AlertTriangle, Clock, ChevronDown, X } from 'lucide-react';
 import { cn } from '@/lib/utils/helpers';
 import type { SandboxResult, SandboxTestResult } from '@/lib/sandboxes/types';
 
@@ -14,13 +14,14 @@ type ResultsPanelProps = {
   isSubmitting: boolean;
   error: string | null;
   className?: string;
+  onCollapse?: () => void;
 };
 
 // ============================================================
 // Component
 // ============================================================
 
-export function ResultsPanel({ result, isSubmitting, error, className }: ResultsPanelProps) {
+export function ResultsPanel({ result, isSubmitting, error, className, onCollapse }: ResultsPanelProps) {
   if (isSubmitting) {
     return (
       <div className={cn('border-t p-4', className)}>
@@ -35,9 +36,16 @@ export function ResultsPanel({ result, isSubmitting, error, className }: Results
   if (error && !result) {
     return (
       <div className={cn('border-t border-red-900/50 bg-red-950/20 p-4', className)}>
-        <div className="flex items-center gap-2 text-red-400">
-          <AlertTriangle className="h-4 w-4" />
-          <span className="text-sm font-medium">Execution Error</span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-red-400">
+            <AlertTriangle className="h-4 w-4" />
+            <span className="text-sm font-medium">Execution Error</span>
+          </div>
+          {onCollapse && (
+            <button onClick={onCollapse} className="text-muted-foreground hover:text-foreground rounded p-0.5 transition-colors" aria-label="Close results">
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
         <p className="mt-2 font-mono text-sm text-red-300/80">{error}</p>
       </div>
@@ -52,7 +60,7 @@ export function ResultsPanel({ result, isSubmitting, error, className }: Results
   return (
     <div className={cn('border-t', className)}>
       {/* Summary banner */}
-      <ResultsBanner result={result} allPassed={allPassed} isError={isError} />
+      <ResultsBanner result={result} allPassed={allPassed} isError={isError} onCollapse={onCollapse} />
 
       {/* Error message for execution errors */}
       {isError && result.error_message && (
@@ -83,10 +91,12 @@ function ResultsBanner({
   result,
   allPassed,
   isError,
+  onCollapse,
 }: {
   result: SandboxResult;
   allPassed: boolean;
   isError: boolean;
+  onCollapse?: () => void;
 }) {
   return (
     <div
@@ -117,9 +127,16 @@ function ResultsBanner({
         </span>
       </div>
 
-      <div className="text-muted-foreground flex items-center gap-1">
-        <Clock className="h-3.5 w-3.5" />
-        <span className="text-xs">{result.execution_time_ms}ms</span>
+      <div className="flex items-center gap-2">
+        <div className="text-muted-foreground flex items-center gap-1">
+          <Clock className="h-3.5 w-3.5" />
+          <span className="text-xs">{result.execution_time_ms}ms</span>
+        </div>
+        {onCollapse && (
+          <button onClick={onCollapse} className="text-muted-foreground hover:text-foreground rounded p-0.5 transition-colors" aria-label="Close results">
+            <X className="h-4 w-4" />
+          </button>
+        )}
       </div>
     </div>
   );
