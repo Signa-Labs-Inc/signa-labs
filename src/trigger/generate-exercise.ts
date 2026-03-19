@@ -10,6 +10,7 @@
 import { task, metadata } from '@trigger.dev/sdk/v3';
 import { ExerciseGenerationService } from '@/lib/services/generation/generation.service';
 import type { GenerateExerciseInput } from '@/lib/services/generation/generation.types';
+import { insertNotification } from '@/lib/services/notifications/notifications.writer';
 
 export type GenerateExercisePayload = GenerateExerciseInput;
 
@@ -45,6 +46,15 @@ export const generateExerciseTask = task({
 
     metadata.set('step', 'completed');
     metadata.set('progress', 'Exercise created!');
+
+    await insertNotification({
+      userId,
+      type: 'job_completed',
+      channel: 'in_app',
+      subject: 'Exercise ready!',
+      body: `Your exercise "${result.title}" has been generated.`,
+      metadata: { url: `/exercises/${result.exerciseId}`, jobType: 'generate-exercise' },
+    }).catch(() => {}); // Best-effort — don't fail the task if notification insert fails
 
     return {
       exerciseId: result.exerciseId,

@@ -6,10 +6,11 @@
 
 'use client';
 
-import { useReducer, useCallback, useMemo } from 'react';
+import { useReducer, useCallback, useMemo, useEffect } from 'react';
 import { useRealtimeRun } from '@trigger.dev/react-hooks';
 import type { createPathTask } from '@/trigger/create-path';
 import { parseApiError } from '@/lib/utils/parse-api-error';
+import { useJobStore } from '@/stores/job-store';
 
 // ============================================================
 // Types
@@ -197,6 +198,14 @@ export function usePathCreation(): UsePathCreationReturn {
 
         const data = (await response.json()) as { runId: string; publicAccessToken: string };
         dispatch({ type: 'QUEUED', runId: data.runId, accessToken: data.publicAccessToken });
+
+        useJobStore.getState().registerJob({
+          runId: data.runId,
+          accessToken: data.publicAccessToken,
+          jobType: 'create-path',
+          label: 'Path Creation',
+          createdAt: Date.now(),
+        });
       } catch {
         dispatch({ type: 'FAIL', error: 'Network error — please try again', code: null });
       }
@@ -204,7 +213,27 @@ export function usePathCreation(): UsePathCreationReturn {
     []
   );
 
-  const reset = useCallback(() => dispatch({ type: 'RESET' }), []);
+  // Only remove the job when the *server* confirms a terminal run status — NOT on
+  // transient realtime connection errors (where run is null but derived.status is 'failed').
+  const isTerminalRun =
+    run?.status === 'COMPLETED' ||
+    run?.status === 'FAILED' ||
+    run?.status === 'CRASHED' ||
+    run?.status === 'SYSTEM_FAILURE' ||
+    run?.status === 'CANCELED' ||
+    run?.status === 'EXPIRED' ||
+    run?.status === 'TIMED_OUT';
+
+  useEffect(() => {
+    if (isTerminalRun && state.runId) {
+      useJobStore.getState().removeJob(state.runId);
+    }
+  }, [isTerminalRun, state.runId]);
+
+  const reset = useCallback(() => {
+    if (state.runId) useJobStore.getState().removeJob(state.runId);
+    dispatch({ type: 'RESET' });
+  }, [state.runId]);
 
   return {
     status: derived.status,

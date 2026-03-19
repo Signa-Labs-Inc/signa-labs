@@ -6,6 +6,7 @@ import { LayoutDashboard, Code2, Route, FlaskConical, Crown, Compass } from 'luc
 import { UserMenu } from './user-menu';
 import { ThemeToggle } from './theme-toggle';
 import { NotificationBell } from './notification-bell';
+import { ActiveJobIndicator } from './active-job-indicator';
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -70,6 +71,7 @@ export function TopNav() {
 
         {/* User Menu + Theme Toggle (desktop) */}
         <div className="hidden items-center gap-2 md:flex">
+          <ActiveJobIndicator />
           <NotificationBell />
           <ThemeToggle />
           <UserMenu />
