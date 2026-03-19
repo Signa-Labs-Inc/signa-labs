@@ -53,11 +53,11 @@ export function AnalyticsFilters() {
   );
 
   return (
-    <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card/50 px-4 py-3">
+    <div className="border-border bg-card/50 flex flex-wrap items-center gap-3 rounded-lg border px-4 py-3">
       {/* Time range */}
       <div className="flex items-center gap-2">
-        <Calendar className="h-4 w-4 text-muted-foreground" />
-        <div className="flex rounded-md border border-border">
+        <Calendar className="text-muted-foreground h-4 w-4" />
+        <div className="border-border flex rounded-md border">
           {TIME_RANGES.map(({ value, label }) => (
             <button
               key={value}
@@ -74,15 +74,15 @@ export function AnalyticsFilters() {
         </div>
       </div>
 
-      <div className="h-5 w-px bg-border" />
+      <div className="bg-border h-5 w-px" />
 
       {/* Plan filter */}
       <div className="flex items-center gap-2">
-        <Filter className="h-3.5 w-3.5 text-muted-foreground" />
+        <Filter className="text-muted-foreground h-3.5 w-3.5" />
         <select
           value={currentPlan}
           onChange={(e) => updateParam('plan', e.target.value)}
-          className="rounded-md border border-border bg-background px-2.5 py-1.5 text-xs font-medium text-foreground"
+          className="border-border bg-background text-foreground rounded-md border px-2.5 py-1.5 text-xs font-medium"
         >
           {PLAN_OPTIONS.map(({ value, label }) => (
             <option key={value} value={value}>
@@ -96,7 +96,7 @@ export function AnalyticsFilters() {
       <select
         value={currentStatus}
         onChange={(e) => updateParam('status', e.target.value)}
-        className="rounded-md border border-border bg-background px-2.5 py-1.5 text-xs font-medium text-foreground"
+        className="border-border bg-background text-foreground rounded-md border px-2.5 py-1.5 text-xs font-medium"
       >
         {STATUS_OPTIONS.map(({ value, label }) => (
           <option key={value} value={value}>

@@ -52,7 +52,7 @@ export type AnalyticsTimeRange = '7d' | '30d' | '90d' | '6mo' | '1y' | 'all';
 
 export type AnalyticsFilters = {
   range: AnalyticsTimeRange;
-  plan: string;   // 'all' | plan id
+  plan: string; // 'all' | plan id
   status: string; // 'all' | 'active' | 'churned' | 'trial'
 };
 
@@ -60,12 +60,18 @@ export const VALID_TIME_RANGES: AnalyticsTimeRange[] = ['7d', '30d', '90d', '6mo
 
 export function rangeToInterval(range: AnalyticsTimeRange): string | null {
   switch (range) {
-    case '7d': return '7 days';
-    case '30d': return '30 days';
-    case '90d': return '90 days';
-    case '6mo': return '6 months';
-    case '1y': return '1 year';
-    case 'all': return null;
+    case '7d':
+      return '7 days';
+    case '30d':
+      return '30 days';
+    case '90d':
+      return '90 days';
+    case '6mo':
+      return '6 months';
+    case '1y':
+      return '1 year';
+    case 'all':
+      return null;
   }
 }
 
