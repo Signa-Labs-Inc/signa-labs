@@ -207,6 +207,7 @@ export function ExerciseWorkspace({
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [result, setResult] = useState<SandboxResult | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [resultsCollapsed, setResultsCollapsed] = useState(false);
 
   // Path completion state
   const [pathResult, setPathResult] = useState<PathCompletionResult | null>(null);
@@ -346,6 +347,7 @@ export function ExerciseWorkspace({
     setExplanation(null);
     setIsExplaining(false);
     setShowSynthesis(false);
+    setResultsCollapsed(false);
     setShowAnonymousCTA(null);
 
     try {
@@ -686,11 +688,18 @@ export function ExerciseWorkspace({
 
             {/* Results + Explanation + Synthesis + Anonymous CTA */}
             <div>
-              <ResultsPanel result={result} isSubmitting={isSubmitting} error={submitError} />
+              {!resultsCollapsed && (
+                <ResultsPanel
+                  result={result}
+                  isSubmitting={isSubmitting}
+                  error={submitError}
+                  onCollapse={() => setResultsCollapsed(true)}
+                />
+              )}
               {isAnonymous && showAnonymousCTA && (
                 <AnonymousSignupCTA variant={showAnonymousCTA} />
               )}
-              {!isAnonymous && (explanation || isExplaining) && !showSynthesis && (
+              {!resultsCollapsed && !isAnonymous && (explanation || isExplaining) && !showSynthesis && (
                 <ExplanationPanel
                   explanation={explanation}
                   isLoading={isExplaining}
