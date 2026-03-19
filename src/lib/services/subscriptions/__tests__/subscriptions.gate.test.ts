@@ -13,7 +13,12 @@ vi.mock('@/lib/services/notifications/notifications.service', () => ({
 
 import * as reader from '../subscriptions.reader';
 import { createUsageAlertIfNeeded } from '@/lib/services/notifications/notifications.service';
-import { getPlanFeatures, checkUsageLimit, requireUsageLimit, getAllUsageLimits } from '../subscriptions.gate';
+import {
+  getPlanFeatures,
+  checkUsageLimit,
+  requireUsageLimit,
+  getAllUsageLimits,
+} from '../subscriptions.gate';
 import { buildSubscription, buildPlan } from '@/test/helpers/factories';
 
 const mockReader = vi.mocked(reader);
@@ -47,13 +52,17 @@ describe('getPlanFeatures', () => {
 
   it('returns DEFAULT_FREE_FEATURES when features is null', async () => {
     mockReader.getActiveSubscriptionByUserId.mockResolvedValue(buildSubscription() as never);
-    mockReader.getPlanById.mockResolvedValue(buildPlan({ features: null as unknown as Record<string, unknown> }));
+    mockReader.getPlanById.mockResolvedValue(
+      buildPlan({ features: null as unknown as Record<string, unknown> })
+    );
     expect(await getPlanFeatures('user1')).toEqual(DEFAULT_FREE);
   });
 
   it('returns DEFAULT_FREE_FEATURES when features is non-object', async () => {
     mockReader.getActiveSubscriptionByUserId.mockResolvedValue(buildSubscription() as never);
-    mockReader.getPlanById.mockResolvedValue(buildPlan({ features: 'invalid' as unknown as Record<string, unknown> }));
+    mockReader.getPlanById.mockResolvedValue(
+      buildPlan({ features: 'invalid' as unknown as Record<string, unknown> })
+    );
     expect(await getPlanFeatures('user1')).toEqual(DEFAULT_FREE);
   });
 
@@ -179,7 +188,12 @@ describe('getAllUsageLimits', () => {
 
     const result = await getAllUsageLimits('user1');
     expect(result).toHaveLength(4);
-    expect(result.map((r) => r.feature)).toEqual(['exercises', 'paths', 'aiGenerations', 'submissions']);
+    expect(result.map((r) => r.feature)).toEqual([
+      'exercises',
+      'paths',
+      'aiGenerations',
+      'submissions',
+    ]);
     expect(result.find((r) => r.feature === 'paths')!.current).toBe(1);
     expect(result.find((r) => r.feature === 'submissions')!.current).toBe(3);
   });

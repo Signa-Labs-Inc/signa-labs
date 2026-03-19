@@ -1,8 +1,16 @@
 import * as reader from './notifications.reader';
 import * as writer from './notifications.writer';
-import type { UserNotification, NotificationChannel, NotificationStatus } from './notifications.types';
+import type {
+  UserNotification,
+  NotificationChannel,
+  NotificationStatus,
+} from './notifications.types';
 
-export async function getUserNotifications(userId: string, limit = 20, offset = 0): Promise<UserNotification[]> {
+export async function getUserNotifications(
+  userId: string,
+  limit = 20,
+  offset = 0
+): Promise<UserNotification[]> {
   const rows = await reader.getRecentNotificationsByUserId(userId, limit, offset);
   return rows.map((r) => ({
     id: r.id,

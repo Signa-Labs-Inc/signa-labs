@@ -51,7 +51,9 @@ export default function AdminEnvironmentsPage() {
       const json = await res.json();
       setEnvironments(json.environments ?? json ?? []);
     } catch (err) {
-      setFetchError(err instanceof Error ? err.message : 'Network error — could not load environments.');
+      setFetchError(
+        err instanceof Error ? err.message : 'Network error — could not load environments.'
+      );
     } finally {
       setLoading(false);
     }
@@ -110,26 +112,42 @@ export default function AdminEnvironmentsPage() {
       />
 
       {fetchError && (
-        <div className="rounded-lg border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+        <div className="border-destructive/50 bg-destructive/10 text-destructive rounded-lg border px-4 py-3 text-sm">
           {fetchError}
         </div>
       )}
 
-      <div className="overflow-hidden rounded-lg border border-border">
+      <div className="border-border overflow-hidden rounded-lg border">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-border bg-muted/50">
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Name</th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Base Image</th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Languages</th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Max Exec (s)</th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Max Files</th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Max File Size</th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Status</th>
-              <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">Actions</th>
+            <tr className="border-border bg-muted/50 border-b">
+              <th className="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider uppercase">
+                Name
+              </th>
+              <th className="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider uppercase">
+                Base Image
+              </th>
+              <th className="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider uppercase">
+                Languages
+              </th>
+              <th className="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider uppercase">
+                Max Exec (s)
+              </th>
+              <th className="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider uppercase">
+                Max Files
+              </th>
+              <th className="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider uppercase">
+                Max File Size
+              </th>
+              <th className="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider uppercase">
+                Status
+              </th>
+              <th className="text-muted-foreground px-4 py-3 text-right text-xs font-medium tracking-wider uppercase">
+                Actions
+              </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border">
+          <tbody className="divide-border divide-y">
             {loading ? (
               <AdminTableSkeleton columns={8} rows={3} />
             ) : environments.length === 0 ? (
@@ -142,15 +160,15 @@ export default function AdminEnvironmentsPage() {
               environments.map((env) => {
                 const isEditing = editingId === env.id;
                 return (
-                  <tr key={env.id} className="transition-colors hover:bg-muted/30">
+                  <tr key={env.id} className="hover:bg-muted/30 transition-colors">
                     <td className="px-4 py-4">
                       <div>
                         <p className="font-medium">{env.displayName}</p>
-                        <p className="text-xs text-muted-foreground">{env.name}</p>
+                        <p className="text-muted-foreground text-xs">{env.name}</p>
                       </div>
                     </td>
                     <td className="px-4 py-4">
-                      <code className="rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
+                      <code className="bg-muted text-muted-foreground rounded px-1.5 py-0.5 text-xs">
                         {env.baseImage}
                       </code>
                     </td>
@@ -172,7 +190,8 @@ export default function AdminEnvironmentsPage() {
                           value={editState.maxExecutionSeconds}
                           onChange={(e) => {
                             const v = e.currentTarget.valueAsNumber;
-                            if (Number.isFinite(v)) setEditState({ ...editState, maxExecutionSeconds: v });
+                            if (Number.isFinite(v))
+                              setEditState({ ...editState, maxExecutionSeconds: v });
                           }}
                           className="h-8 w-20"
                         />
@@ -206,26 +225,31 @@ export default function AdminEnvironmentsPage() {
                           value={editState.maxFileSizeBytes}
                           onChange={(e) => {
                             const v = e.currentTarget.valueAsNumber;
-                            if (Number.isFinite(v)) setEditState({ ...editState, maxFileSizeBytes: v });
+                            if (Number.isFinite(v))
+                              setEditState({ ...editState, maxFileSizeBytes: v });
                           }}
                           className="h-8 w-28"
                         />
                       ) : (
-                        <span className="text-muted-foreground">{(env.maxFileSizeBytes / 1024).toFixed(0)} KB</span>
+                        <span className="text-muted-foreground">
+                          {(env.maxFileSizeBytes / 1024).toFixed(0)} KB
+                        </span>
                       )}
                     </td>
                     <td className="px-4 py-4">
                       {isEditing && editState ? (
                         <Switch
                           checked={editState.isActive}
-                          onCheckedChange={(val) =>
-                            setEditState({ ...editState, isActive: val })
-                          }
+                          onCheckedChange={(val) => setEditState({ ...editState, isActive: val })}
                           aria-label={`Toggle active state for ${env.displayName}`}
                         />
                       ) : (
-                        <span className={`inline-flex items-center gap-1.5 text-sm ${env.isActive ? 'text-emerald-600' : 'text-muted-foreground'}`}>
-                          <span className={`h-1.5 w-1.5 rounded-full ${env.isActive ? 'bg-emerald-500' : 'bg-muted-foreground/50'}`} />
+                        <span
+                          className={`inline-flex items-center gap-1.5 text-sm ${env.isActive ? 'text-emerald-600' : 'text-muted-foreground'}`}
+                        >
+                          <span
+                            className={`h-1.5 w-1.5 rounded-full ${env.isActive ? 'bg-emerald-500' : 'bg-muted-foreground/50'}`}
+                          />
                           {env.isActive ? 'Active' : 'Inactive'}
                         </span>
                       )}
@@ -234,19 +258,37 @@ export default function AdminEnvironmentsPage() {
                       {isEditing ? (
                         <div className="flex flex-col items-end gap-1">
                           <div className="flex items-center gap-1">
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => handleSave(env.id)} aria-label={`Save changes for ${env.displayName}`}>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              onClick={() => handleSave(env.id)}
+                              aria-label={`Save changes for ${env.displayName}`}
+                            >
                               <Check className="h-4 w-4 text-emerald-600" />
                             </Button>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={cancelEdit} aria-label="Cancel editing">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              onClick={cancelEdit}
+                              aria-label="Cancel editing"
+                            >
                               <X className="h-4 w-4" />
                             </Button>
                           </div>
                           {saveError && (
-                            <p className="max-w-45 text-xs text-destructive">{saveError}</p>
+                            <p className="text-destructive max-w-45 text-xs">{saveError}</p>
                           )}
                         </div>
                       ) : (
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => startEdit(env)} aria-label={`Edit ${env.displayName}`}>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={() => startEdit(env)}
+                          aria-label={`Edit ${env.displayName}`}
+                        >
                           <Pencil className="h-4 w-4" />
                         </Button>
                       )}

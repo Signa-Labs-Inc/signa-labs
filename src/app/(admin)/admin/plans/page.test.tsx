@@ -11,16 +11,18 @@ vi.mock('@/components/admin/admin-page-header', () => ({
   ),
 }));
 
-function makePlan(overrides?: Partial<{
-  id: string;
-  name: string;
-  description: string | null;
-  features: Record<string, { limit: number; window: string }>;
-  displayFeatures: string[];
-  isActive: boolean;
-  sortOrder: number;
-  prices: { id: string; stripePriceId: string; currency: string; interval: string }[];
-}>) {
+function makePlan(
+  overrides?: Partial<{
+    id: string;
+    name: string;
+    description: string | null;
+    features: Record<string, { limit: number; window: string }>;
+    displayFeatures: string[];
+    isActive: boolean;
+    sortOrder: number;
+    prices: { id: string; stripePriceId: string; currency: string; interval: string }[];
+  }>
+) {
   return {
     id: 'pro',
     name: 'Pro',
@@ -91,7 +93,8 @@ describe('AdminPlansPage', () => {
   });
 
   it('retry re-fetches', async () => {
-    const fetchSpy = vi.spyOn(globalThis, 'fetch')
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
       .mockResolvedValueOnce(new Response(JSON.stringify({}), { status: 500 }))
       .mockResolvedValueOnce(plansResponse([makePlan({ name: 'Pro' })]));
 
@@ -131,10 +134,15 @@ describe('AdminPlansPage', () => {
   });
 
   it('create plan submits', async () => {
-    const fetchSpy = vi.spyOn(globalThis, 'fetch')
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
       .mockResolvedValueOnce(plansResponse([]))
       // POST create
-      .mockResolvedValueOnce(new Response(JSON.stringify({ plan: makePlan({ id: 'starter', name: 'Starter' }) }), { status: 201 }))
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ plan: makePlan({ id: 'starter', name: 'Starter' }) }), {
+          status: 201,
+        })
+      )
       // re-fetch plans
       .mockResolvedValueOnce(plansResponse([makePlan({ id: 'starter', name: 'Starter' })]));
 
@@ -154,20 +162,17 @@ describe('AdminPlansPage', () => {
     await user.click(screen.getByRole('button', { name: /^create$/i }));
 
     await waitFor(() => {
-      const postCall = fetchSpy.mock.calls.find(
-        (c) => (c[1] as RequestInit)?.method === 'POST'
-      );
+      const postCall = fetchSpy.mock.calls.find((c) => (c[1] as RequestInit)?.method === 'POST');
       expect(postCall).toBeTruthy();
     });
   });
 
   it('edit rate limits flow', async () => {
-    const fetchSpy = vi.spyOn(globalThis, 'fetch')
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
       .mockResolvedValueOnce(plansResponse([makePlan()]))
       // PATCH save
-      .mockResolvedValueOnce(
-        new Response(JSON.stringify({ plan: makePlan() }), { status: 200 })
-      );
+      .mockResolvedValueOnce(new Response(JSON.stringify({ plan: makePlan() }), { status: 200 }));
 
     const user = userEvent.setup();
 
@@ -190,19 +195,21 @@ describe('AdminPlansPage', () => {
     await user.click(screen.getByRole('button', { name: /save/i }));
 
     await waitFor(() => {
-      const patchCall = fetchSpy.mock.calls.find(
-        (c) => (c[1] as RequestInit)?.method === 'PATCH'
-      );
+      const patchCall = fetchSpy.mock.calls.find((c) => (c[1] as RequestInit)?.method === 'PATCH');
       expect(patchCall).toBeTruthy();
     });
   });
 
   it('edit display features', async () => {
-    const fetchSpy = vi.spyOn(globalThis, 'fetch')
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
       .mockResolvedValueOnce(plansResponse([makePlan({ displayFeatures: ['Feature A'] })]))
       // PATCH save features
       .mockResolvedValueOnce(
-        new Response(JSON.stringify({ plan: makePlan({ displayFeatures: ['Feature A', 'New Feature'] }) }), { status: 200 })
+        new Response(
+          JSON.stringify({ plan: makePlan({ displayFeatures: ['Feature A', 'New Feature'] }) }),
+          { status: 200 }
+        )
       );
 
     const user = userEvent.setup();
@@ -229,29 +236,33 @@ describe('AdminPlansPage', () => {
     await user.click(screen.getByRole('button', { name: /save/i }));
 
     await waitFor(() => {
-      const patchCall = fetchSpy.mock.calls.find(
-        (c) => (c[1] as RequestInit)?.method === 'PATCH'
-      );
+      const patchCall = fetchSpy.mock.calls.find((c) => (c[1] as RequestInit)?.method === 'PATCH');
       expect(patchCall).toBeTruthy();
     });
   });
 
   it('expand prices', async () => {
-    const fetchSpy = vi.spyOn(globalThis, 'fetch')
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
       .mockResolvedValueOnce(plansResponse([makePlan()]))
       // GET prices
       .mockResolvedValueOnce(
-        new Response(JSON.stringify({
-          prices: [{
-            id: 'p1',
-            planId: 'pro',
-            stripePriceId: 'price_123',
-            currency: 'usd',
-            interval: 'month',
-            isActive: true,
-            unitAmount: 1999,
-          }],
-        }), { status: 200 })
+        new Response(
+          JSON.stringify({
+            prices: [
+              {
+                id: 'p1',
+                planId: 'pro',
+                stripePriceId: 'price_123',
+                currency: 'usd',
+                interval: 'month',
+                isActive: true,
+                unitAmount: 1999,
+              },
+            ],
+          }),
+          { status: 200 }
+        )
       );
 
     const user = userEvent.setup();
@@ -266,30 +277,36 @@ describe('AdminPlansPage', () => {
     await user.click(screen.getByRole('button', { name: /manage/i }));
 
     await waitFor(() => {
-      expect(fetchSpy.mock.calls.some(
-        (c) => typeof c[0] === 'string' && c[0].includes('/prices')
-      )).toBe(true);
+      expect(
+        fetchSpy.mock.calls.some((c) => typeof c[0] === 'string' && c[0].includes('/prices'))
+      ).toBe(true);
     });
   });
 
   it('delete price with confirmation', async () => {
     const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
 
-    const fetchSpy = vi.spyOn(globalThis, 'fetch')
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
       .mockResolvedValueOnce(plansResponse([makePlan()]))
       // GET prices
       .mockResolvedValueOnce(
-        new Response(JSON.stringify({
-          prices: [{
-            id: 'p1',
-            planId: 'pro',
-            stripePriceId: 'price_123',
-            currency: 'usd',
-            interval: 'month',
-            isActive: true,
-            unitAmount: 1999,
-          }],
-        }), { status: 200 })
+        new Response(
+          JSON.stringify({
+            prices: [
+              {
+                id: 'p1',
+                planId: 'pro',
+                stripePriceId: 'price_123',
+                currency: 'usd',
+                interval: 'month',
+                isActive: true,
+                unitAmount: 1999,
+              },
+            ],
+          }),
+          { status: 200 }
+        )
       )
       // DELETE price
       .mockResolvedValueOnce(new Response(JSON.stringify({ success: true }), { status: 200 }))
@@ -312,9 +329,9 @@ describe('AdminPlansPage', () => {
     await waitFor(() => expect(screen.getByText('price_123')).toBeInTheDocument());
 
     // Find and click the delete button (trash icon button)
-    const deleteButtons = screen.getAllByRole('button').filter(
-      (btn) => btn.querySelector('.text-destructive')
-    );
+    const deleteButtons = screen
+      .getAllByRole('button')
+      .filter((btn) => btn.querySelector('.text-destructive'));
     expect(deleteButtons.length).toBeGreaterThan(0);
     await user.click(deleteButtons[0]);
 

@@ -39,12 +39,7 @@ export async function markAllNotificationsRead(userId: string): Promise<number> 
   const result = await db
     .update(notifications)
     .set({ readAt: new Date() })
-    .where(
-      and(
-        eq(notifications.userId, userId),
-        isNull(notifications.readAt)
-      )
-    )
+    .where(and(eq(notifications.userId, userId), isNull(notifications.readAt)))
     .returning({ id: notifications.id });
   return result.length;
 }

@@ -10,7 +10,10 @@ export function AnalyticsBarChart({ data, height = 160 }: BarChartProps) {
 
   if (data.length === 0) {
     return (
-      <div className="flex items-center justify-center text-sm text-muted-foreground" style={{ height }}>
+      <div
+        className="text-muted-foreground flex items-center justify-center text-sm"
+        style={{ height }}
+      >
         No data available
       </div>
     );
@@ -21,12 +24,18 @@ export function AnalyticsBarChart({ data, height = 160 }: BarChartProps) {
       {data.map((item, i) => {
         const barHeight = item.value === 0 ? 0 : Math.max((item.value / maxValue) * 100, 2);
         return (
-          <div key={i} className="group relative flex flex-1 flex-col items-center justify-end" tabIndex={0} role="img" aria-label={`${item.label}: ${item.value}`}>
-            <div className="absolute -top-7 hidden rounded bg-foreground px-1.5 py-0.5 text-xs text-background group-hover:block group-focus:block">
+          <div
+            key={i}
+            className="group relative flex flex-1 flex-col items-center justify-end"
+            tabIndex={0}
+            role="img"
+            aria-label={`${item.label}: ${item.value}`}
+          >
+            <div className="bg-foreground text-background absolute -top-7 hidden rounded px-1.5 py-0.5 text-xs group-hover:block group-focus:block">
               {item.value}
             </div>
             <div
-              className="w-full rounded-t bg-primary/70 transition-colors group-hover:bg-primary"
+              className="bg-primary/70 group-hover:bg-primary w-full rounded-t transition-colors"
               style={{ height: `${barHeight}%` }}
             />
           </div>
@@ -36,7 +45,13 @@ export function AnalyticsBarChart({ data, height = 160 }: BarChartProps) {
   );
 }
 
-export function AnalyticsBarChartLabels({ data, maxLabels = 6 }: { data: { label: string }[]; maxLabels?: number }) {
+export function AnalyticsBarChartLabels({
+  data,
+  maxLabels = 6,
+}: {
+  data: { label: string }[];
+  maxLabels?: number;
+}) {
   if (data.length === 0) return null;
 
   const step = Math.max(1, Math.floor(data.length / maxLabels));
@@ -45,7 +60,7 @@ export function AnalyticsBarChartLabels({ data, maxLabels = 6 }: { data: { label
       {data.map((item, i) => {
         if (i % step !== 0 && i !== data.length - 1) return null;
         return (
-          <span key={i} className="text-[10px] text-muted-foreground">
+          <span key={i} className="text-muted-foreground text-[10px]">
             {item.label}
           </span>
         );

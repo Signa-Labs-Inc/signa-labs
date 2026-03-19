@@ -10,13 +10,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="bg-background flex h-screen">
       <AdminSidebar userRole={user.role} />
       <div className="flex-1 overflow-auto">
-        <div className="border-b border-border bg-card/50 px-8 py-3">
+        <div className="border-border bg-card/50 border-b px-8 py-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-muted-foreground">Admin Portal</span>
-            <span className="text-sm text-muted-foreground">{user.email}</span>
+            <span className="text-muted-foreground text-sm font-medium">Admin Portal</span>
+            <span className="text-muted-foreground text-sm">{user.email}</span>
           </div>
         </div>
         <main className="p-8">{children}</main>

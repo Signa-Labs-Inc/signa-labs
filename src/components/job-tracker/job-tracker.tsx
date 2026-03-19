@@ -10,7 +10,10 @@ import type { generateExerciseTask } from '@/trigger/generate-exercise';
 import type { createPathTask } from '@/trigger/create-path';
 import type { generatePathExerciseTask } from '@/trigger/generate-path-exercise';
 
-type AnyTaskType = typeof generateExerciseTask | typeof createPathTask | typeof generatePathExerciseTask;
+type AnyTaskType =
+  | typeof generateExerciseTask
+  | typeof createPathTask
+  | typeof generatePathExerciseTask;
 
 const TERMINAL_STATUSES = new Set([
   'COMPLETED',
@@ -77,10 +80,7 @@ function getSuccessMessage(job: TrackedJob): string {
   }
 }
 
-function getSuccessDescription(
-  job: TrackedJob,
-  output?: Record<string, string>
-): string {
+function getSuccessDescription(job: TrackedJob, output?: Record<string, string>): string {
   if (!output) return '';
   switch (job.jobType) {
     case 'generate-exercise':
@@ -92,10 +92,7 @@ function getSuccessDescription(
   }
 }
 
-function getSuccessUrl(
-  job: TrackedJob,
-  output?: Record<string, string>
-): string | null {
+function getSuccessUrl(job: TrackedJob, output?: Record<string, string>): string | null {
   if (!output) return null;
   switch (job.jobType) {
     case 'generate-exercise':

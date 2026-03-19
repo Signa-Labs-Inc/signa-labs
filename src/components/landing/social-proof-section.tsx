@@ -37,9 +37,7 @@ export function SocialProofSection() {
         <div className="mb-20 grid grid-cols-2 gap-8 border-y border-white/10 py-10 md:grid-cols-4">
           {stats.map((stat) => (
             <div key={stat.label} className="text-center">
-              <p className="text-3xl font-bold tracking-tight text-white">
-                {stat.value}
-              </p>
+              <p className="text-3xl font-bold tracking-tight text-white">{stat.value}</p>
               <p className="mt-1 text-sm text-zinc-400">{stat.label}</p>
             </div>
           ))}
@@ -59,11 +57,9 @@ export function SocialProofSection() {
               key={t.name}
               className="rounded-xl border border-white/10 bg-zinc-950 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-violet-500/30"
             >
-              <p className="leading-relaxed text-zinc-300">
-                &ldquo;{t.quote}&rdquo;
-              </p>
+              <p className="leading-relaxed text-zinc-300">&ldquo;{t.quote}&rdquo;</p>
               <div className="mt-5 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-primary to-violet-400 text-sm font-bold text-white">
+                <div className="from-primary flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br to-violet-400 text-sm font-bold text-white">
                   {t.initials}
                 </div>
                 <div>

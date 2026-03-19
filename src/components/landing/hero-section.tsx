@@ -25,19 +25,15 @@ export function HeroSection() {
           className="animate-fade-in mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-zinc-400 sm:text-xl"
           style={{ animationDelay: '0.1s' }}
         >
-          AI-powered exercises that adapt to your skill level. Write code, run
-          tests, and get instant feedback — no sign-up required.
+          AI-powered exercises that adapt to your skill level. Write code, run tests, and get
+          instant feedback — no sign-up required.
         </p>
 
         <div
           className="animate-fade-in mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row"
           style={{ animationDelay: '0.2s' }}
         >
-          <Button
-            asChild
-            size="lg"
-            className="h-12 px-8 text-base"
-          >
+          <Button asChild size="lg" className="h-12 px-8 text-base">
             <Link href="/exercises">
               Try an Exercise
               <ArrowRight className="ml-2 size-4" />
@@ -71,11 +67,11 @@ export function HeroSection() {
               <span className="text-blue-300">two_sum</span>
               <span className="text-zinc-300">(nums, target):</span>
             </div>
-            <div className="text-zinc-500">
-              {'    '}# Find two numbers that add up to target
-            </div>
+            <div className="text-zinc-500">{'    '}# Find two numbers that add up to target</div>
             <div>
-              <span className="text-zinc-300">{'    '}seen = {'{}'}</span>
+              <span className="text-zinc-300">
+                {'    '}seen = {'{}'}
+              </span>
             </div>
             <div>
               <span className="text-violet-400">{'    '}for</span>{' '}

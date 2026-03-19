@@ -9,9 +9,9 @@ type ExerciseGridProps = {
 export function ExerciseGrid({ exercises }: ExerciseGridProps) {
   if (exercises.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-xl border bg-card py-20 text-center">
-        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
-          <Search className="h-6 w-6 text-primary" />
+      <div className="bg-card flex flex-col items-center justify-center rounded-xl border py-20 text-center">
+        <div className="bg-primary/10 mb-4 flex h-14 w-14 items-center justify-center rounded-full">
+          <Search className="text-primary h-6 w-6" />
         </div>
         <h3 className="text-lg font-semibold">No exercises found</h3>
         <p className="text-muted-foreground mt-1 max-w-sm text-sm">
@@ -24,7 +24,11 @@ export function ExerciseGrid({ exercises }: ExerciseGridProps) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {exercises.map((exercise, index) => (
-        <div key={exercise.id} className="animate-fade-in" style={{ animationDelay: `${index * 60}ms` }}>
+        <div
+          key={exercise.id}
+          className="animate-fade-in"
+          style={{ animationDelay: `${index * 60}ms` }}
+        >
           <ExerciseCard exercise={exercise} />
         </div>
       ))}

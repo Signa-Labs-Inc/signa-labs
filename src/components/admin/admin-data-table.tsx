@@ -36,15 +36,12 @@ export function AdminDataTable<T extends Record<string, unknown>>({
   const skeletonRows = 5;
 
   return (
-    <div className="overflow-hidden rounded-lg border border-border">
+    <div className="border-border overflow-hidden rounded-lg border">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-border bg-muted/50">
+          <tr className="border-border bg-muted/50 border-b">
             {columns.map((col) => (
-              <th
-                key={col.key}
-                className="px-4 py-3 text-left font-medium text-muted-foreground"
-              >
+              <th key={col.key} className="text-muted-foreground px-4 py-3 text-left font-medium">
                 {col.label}
               </th>
             ))}
@@ -53,7 +50,7 @@ export function AdminDataTable<T extends Record<string, unknown>>({
         <tbody>
           {isLoading
             ? Array.from({ length: skeletonRows }).map((_, i) => (
-                <tr key={i} className="border-b border-border last:border-b-0">
+                <tr key={i} className="border-border border-b last:border-b-0">
                   {columns.map((col) => (
                     <td key={col.key} className="px-4 py-3">
                       <Skeleton className="h-4 w-3/4" />
@@ -64,38 +61,42 @@ export function AdminDataTable<T extends Record<string, unknown>>({
             : data.map((row, rowIndex) => (
                 <tr
                   key={String(row[keyField] ?? rowIndex)}
-                  onClick={onRowClick ? (e) => {
-                    if (!isFromInteractiveChild(e)) onRowClick(row);
-                  } : undefined}
-                  onKeyDown={onRowClick ? (e) => {
-                    if ((e.key === 'Enter' || e.key === ' ') && !isFromInteractiveChild(e)) {
-                      e.preventDefault();
-                      onRowClick(row);
-                    }
-                  } : undefined}
+                  onClick={
+                    onRowClick
+                      ? (e) => {
+                          if (!isFromInteractiveChild(e)) onRowClick(row);
+                        }
+                      : undefined
+                  }
+                  onKeyDown={
+                    onRowClick
+                      ? (e) => {
+                          if ((e.key === 'Enter' || e.key === ' ') && !isFromInteractiveChild(e)) {
+                            e.preventDefault();
+                            onRowClick(row);
+                          }
+                        }
+                      : undefined
+                  }
                   role={onRowClick ? 'button' : undefined}
                   tabIndex={onRowClick ? 0 : undefined}
                   className={cn(
-                    'border-b border-border last:border-b-0 transition-colors',
+                    'border-border border-b transition-colors last:border-b-0',
                     rowIndex % 2 === 1 && 'bg-muted/30',
-                    onRowClick && 'cursor-pointer hover:bg-accent/50 focus-visible:outline-2 focus-visible:outline-primary focus-visible:-outline-offset-2'
+                    onRowClick &&
+                      'hover:bg-accent/50 focus-visible:outline-primary cursor-pointer focus-visible:outline-2 focus-visible:-outline-offset-2'
                   )}
                 >
                   {columns.map((col) => (
-                    <td key={col.key} className="px-4 py-3 text-foreground">
-                      {col.render
-                        ? col.render(row)
-                        : String(row[col.key] ?? '')}
+                    <td key={col.key} className="text-foreground px-4 py-3">
+                      {col.render ? col.render(row) : String(row[col.key] ?? '')}
                     </td>
                   ))}
                 </tr>
               ))}
           {!isLoading && data.length === 0 && (
             <tr>
-              <td
-                colSpan={columns.length}
-                className="px-4 py-8 text-center text-muted-foreground"
-              >
+              <td colSpan={columns.length} className="text-muted-foreground px-4 py-8 text-center">
                 No data found.
               </td>
             </tr>

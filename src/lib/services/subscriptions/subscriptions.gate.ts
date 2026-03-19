@@ -45,10 +45,16 @@ export async function getPlanFeatures(userId: string): Promise<PlanFeatures> {
 
   // Merge with defaults to handle plans missing newer feature keys (e.g. submissions)
   return {
-    exercises: isValidRateLimit(raw.exercises) ? raw.exercises as RateLimit : DEFAULT_FREE_FEATURES.exercises,
-    paths: isValidRateLimit(raw.paths) ? raw.paths as RateLimit : DEFAULT_FREE_FEATURES.paths,
-    aiGenerations: isValidRateLimit(raw.aiGenerations) ? raw.aiGenerations as RateLimit : DEFAULT_FREE_FEATURES.aiGenerations,
-    submissions: isValidRateLimit(raw.submissions) ? raw.submissions as RateLimit : DEFAULT_FREE_FEATURES.submissions,
+    exercises: isValidRateLimit(raw.exercises)
+      ? (raw.exercises as RateLimit)
+      : DEFAULT_FREE_FEATURES.exercises,
+    paths: isValidRateLimit(raw.paths) ? (raw.paths as RateLimit) : DEFAULT_FREE_FEATURES.paths,
+    aiGenerations: isValidRateLimit(raw.aiGenerations)
+      ? (raw.aiGenerations as RateLimit)
+      : DEFAULT_FREE_FEATURES.aiGenerations,
+    submissions: isValidRateLimit(raw.submissions)
+      ? (raw.submissions as RateLimit)
+      : DEFAULT_FREE_FEATURES.submissions,
   };
 }
 
@@ -95,15 +101,13 @@ function getWindowEnd(window: 'day' | 'week' | 'month'): Date {
   }
 }
 
-const countFunctions: Record<
-  keyof PlanFeatures,
-  (userId: string, since: Date) => Promise<number>
-> = {
-  exercises: reader.countUserExercisesSince,
-  paths: reader.countUserPathsSince,
-  aiGenerations: reader.countUserAiGenerationsSince,
-  submissions: reader.countUserSubmissionsSince,
-};
+const countFunctions: Record<keyof PlanFeatures, (userId: string, since: Date) => Promise<number>> =
+  {
+    exercises: reader.countUserExercisesSince,
+    paths: reader.countUserPathsSince,
+    aiGenerations: reader.countUserAiGenerationsSince,
+    submissions: reader.countUserSubmissionsSince,
+  };
 
 const FEATURE_LABELS: Record<keyof PlanFeatures, string> = {
   exercises: 'Exercises Created',

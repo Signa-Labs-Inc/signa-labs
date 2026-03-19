@@ -19,10 +19,10 @@ export function AnalyticsBreakdownCard({ title, items, icon: Icon }: AnalyticsBr
       <Card>
         <CardContent className="p-5">
           <div className="mb-4 flex items-center gap-2">
-            {Icon && <Icon className="h-4 w-4 text-muted-foreground" />}
+            {Icon && <Icon className="text-muted-foreground h-4 w-4" />}
             <h3 className="text-sm font-semibold">{title}</h3>
           </div>
-          <p className="text-sm text-muted-foreground">No data available</p>
+          <p className="text-muted-foreground text-sm">No data available</p>
         </CardContent>
       </Card>
     );
@@ -34,21 +34,21 @@ export function AnalyticsBreakdownCard({ title, items, icon: Icon }: AnalyticsBr
     <Card>
       <CardContent className="p-5">
         <div className="mb-4 flex items-center gap-2">
-          {Icon && <Icon className="h-4 w-4 text-muted-foreground" />}
+          {Icon && <Icon className="text-muted-foreground h-4 w-4" />}
           <h3 className="text-sm font-semibold">{title}</h3>
         </div>
         <div className="space-y-3">
           {items.map((item) => (
             <div key={item.label} className="space-y-1">
               <div className="flex items-center justify-between text-sm">
-                <span className="capitalize text-foreground">{item.label}</span>
-                <span className="tabular-nums text-muted-foreground">
+                <span className="text-foreground capitalize">{item.label}</span>
+                <span className="text-muted-foreground tabular-nums">
                   {item.value} <span className="text-xs">({item.percentage}%)</span>
                 </span>
               </div>
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+              <div className="bg-muted h-1.5 w-full overflow-hidden rounded-full">
                 <div
-                  className="h-full rounded-full bg-primary transition-all"
+                  className="bg-primary h-full rounded-full transition-all"
                   style={{ width: `${(item.value / maxValue) * 100}%` }}
                 />
               </div>

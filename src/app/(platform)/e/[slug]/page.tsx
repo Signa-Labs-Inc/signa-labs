@@ -24,11 +24,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   };
 }
 
-export default async function SharedExercisePage({
-  params,
-}: {
-  params: Params;
-}) {
+export default async function SharedExercisePage({ params }: { params: Params }) {
   const { slug } = await params;
 
   const exercise = await exerciseService.getExerciseDetailBySlug(slug);

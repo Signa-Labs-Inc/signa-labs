@@ -64,14 +64,12 @@ const FEATURES = [
   {
     icon: FlaskConical,
     title: 'Custom Exercises',
-    description:
-      'Craft your own exercises on any topic — just describe what you want to practice.',
+    description: 'Craft your own exercises on any topic — just describe what you want to practice.',
   },
   {
     icon: Brain,
     title: 'Skill Assessment',
-    description:
-      'AI evaluates your code to identify strengths and target areas for growth.',
+    description: 'AI evaluates your code to identify strengths and target areas for growth.',
   },
 ];
 
@@ -86,10 +84,10 @@ export default async function DiscoverPage() {
     <div className="animate-fade-in">
       {/* ── Hero Banner ── */}
       <div
-        className="relative overflow-hidden border-b border-border bg-linear-to-br from-primary/10 via-background to-violet-500/5"
+        className="border-border from-primary/10 via-background relative overflow-hidden border-b bg-linear-to-br to-violet-500/5"
         data-onboarding="discover-hero"
       >
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent" />
+        <div className="from-primary/5 absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] via-transparent to-transparent" />
         <div className="relative mx-auto max-w-6xl px-6 py-12 md:py-16">
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div className="max-w-xl">
@@ -99,8 +97,9 @@ export default async function DiscoverPage() {
               </div>
               <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
                 Discover what you can
-                <span className="bg-linear-to-r from-primary to-violet-400 bg-clip-text text-transparent">
-                  {' '}build
+                <span className="from-primary bg-linear-to-r to-violet-400 bg-clip-text text-transparent">
+                  {' '}
+                  build
                 </span>
               </h1>
               <p className="text-muted-foreground mt-3 text-lg">
@@ -120,8 +119,8 @@ export default async function DiscoverPage() {
       </div>
 
       {/* ── Stats Strip ── */}
-      <div className="border-b border-border bg-card/50">
-        <div className="mx-auto grid max-w-6xl grid-cols-3 divide-x divide-border">
+      <div className="border-border bg-card/50 border-b">
+        <div className="divide-border mx-auto grid max-w-6xl grid-cols-3 divide-x">
           <div className="px-6 py-5 text-center">
             <p className="text-2xl font-bold tabular-nums">{exerciseCount}</p>
             <p className="text-muted-foreground text-sm">Exercises</p>
@@ -142,7 +141,7 @@ export default async function DiscoverPage() {
         <section className="mb-12">
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <div className="bg-primary/10 text-primary flex h-9 w-9 items-center justify-center rounded-lg">
                 <Route className="h-4.5 w-4.5" />
               </div>
               <div>
@@ -165,7 +164,7 @@ export default async function DiscoverPage() {
               <Link
                 key={qs.title}
                 href={`/paths/new?prompt=${encodeURIComponent(qs.prompt)}&language=${qs.language}&level=${qs.level}`}
-                className="animate-fade-in bg-card group flex items-center gap-4 rounded-xl border p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
+                className="animate-fade-in bg-card group hover:border-primary/30 flex items-center gap-4 rounded-xl border p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
                 style={{ animationDelay: `${i * 60}ms` }}
               >
                 <div className="bg-muted flex h-11 w-11 shrink-0 items-center justify-center rounded-lg">
@@ -186,7 +185,7 @@ export default async function DiscoverPage() {
           <section className="mb-12">
             <div className="mb-6 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <div className="bg-primary/10 text-primary flex h-9 w-9 items-center justify-center rounded-lg">
                   <Code2 className="h-4.5 w-4.5" />
                 </div>
                 <div>
@@ -220,20 +219,18 @@ export default async function DiscoverPage() {
 
         {/* ── Craft CTA ── */}
         <section className="mb-12">
-          <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-linear-to-br from-primary/5 via-card to-violet-500/5 p-8 md:p-10">
-            <div className="absolute right-0 top-0 h-64 w-64 translate-x-1/3 -translate-y-1/3 rounded-full bg-primary/5 blur-3xl" />
+          <div className="border-primary/20 from-primary/5 via-card relative overflow-hidden rounded-2xl border bg-linear-to-br to-violet-500/5 p-8 md:p-10">
+            <div className="bg-primary/5 absolute top-0 right-0 h-64 w-64 translate-x-1/3 -translate-y-1/3 rounded-full blur-3xl" />
             <div className="relative flex flex-col items-start gap-6 md:flex-row md:items-center md:justify-between">
               <div className="max-w-lg">
-                <div className="mb-2 flex items-center gap-2 text-primary">
+                <div className="text-primary mb-2 flex items-center gap-2">
                   <Sparkles className="h-5 w-5" />
                   <span className="text-sm font-semibold">AI-Powered</span>
                 </div>
-                <h2 className="text-2xl font-bold tracking-tight">
-                  Craft your own exercise
-                </h2>
+                <h2 className="text-2xl font-bold tracking-tight">Craft your own exercise</h2>
                 <p className="text-muted-foreground mt-2">
-                  Describe any topic you want to practice and our AI will generate a custom
-                  exercise with tests, hints, and a solution — in seconds.
+                  Describe any topic you want to practice and our AI will generate a custom exercise
+                  with tests, hints, and a solution — in seconds.
                 </p>
               </div>
               <Link href="/exercises/generate" className="shrink-0">
@@ -248,9 +245,7 @@ export default async function DiscoverPage() {
 
         {/* ── Feature Highlights ── */}
         <section>
-          <h2 className="mb-6 text-center text-lg font-semibold">
-            Why developers love Signa Labs
-          </h2>
+          <h2 className="mb-6 text-center text-lg font-semibold">Why developers love Signa Labs</h2>
           <div className="grid gap-6 sm:grid-cols-3">
             {FEATURES.map((feature, i) => (
               <div

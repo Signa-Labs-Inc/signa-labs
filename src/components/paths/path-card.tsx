@@ -63,7 +63,7 @@ export function PathCard({ path, spotlight = false }: PathCardProps) {
       href={`/paths/${path.id}`}
       className={`group block rounded-xl border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
         spotlight
-          ? 'bg-linear-to-br from-card via-card to-primary/5 border-primary/20 hover:border-primary/40'
+          ? 'from-card via-card to-primary/5 border-primary/20 hover:border-primary/40 bg-linear-to-br'
           : 'bg-card hover:border-foreground/20'
       }`}
     >
@@ -131,16 +131,12 @@ export function PathCard({ path, spotlight = false }: PathCardProps) {
                 <div className="bg-muted h-2.5 flex-1 overflow-hidden rounded-full">
                   <div
                     className={`h-full rounded-full transition-all duration-500 ${
-                      isCompleted
-                        ? 'bg-emerald-500'
-                        : 'bg-linear-to-r from-primary to-violet-400'
+                      isCompleted ? 'bg-emerald-500' : 'from-primary bg-linear-to-r to-violet-400'
                     }`}
                     style={{ width: `${path.percentComplete}%` }}
                   />
                 </div>
-                <span className="text-sm font-semibold tabular-nums">
-                  {path.percentComplete}%
-                </span>
+                <span className="text-sm font-semibold tabular-nums">{path.percentComplete}%</span>
               </div>
 
               {/* Exercise count */}

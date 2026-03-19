@@ -2,7 +2,10 @@ import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/lib/services/auth/auth.service';
 import { handleError } from '@/lib/utils/api.handler-errors';
 import { getAllPlansWithPrices } from '@/lib/services/subscriptions/subscriptions.reader';
-import { createPlanWithStripeProducts, validatePlanFeatures } from '@/lib/services/subscriptions/subscriptions.service';
+import {
+  createPlanWithStripeProducts,
+  validatePlanFeatures,
+} from '@/lib/services/subscriptions/subscriptions.service';
 import { ValidationError } from '@/lib/utils/errors';
 
 export async function GET() {
@@ -57,7 +60,9 @@ export async function POST(request: NextRequest) {
       body.yearlyPriceCents !== undefined ||
       body.currency !== undefined;
 
-    let pricing: { currency: string; monthlyPriceCents?: number; yearlyPriceCents?: number } | undefined;
+    let pricing:
+      | { currency: string; monthlyPriceCents?: number; yearlyPriceCents?: number }
+      | undefined;
 
     if (hasPricing) {
       if (!body.currency || typeof body.currency !== 'string') {

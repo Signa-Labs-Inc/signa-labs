@@ -5,7 +5,8 @@ import { sql } from 'drizzle-orm';
 vi.mock('@/env', () => ({
   env: {
     NODE_ENV: 'test',
-    DATABASE_URL: process.env.TEST_DATABASE_URL ?? 'postgresql://postgres:postgres@localhost:5432/signa_test',
+    DATABASE_URL:
+      process.env.TEST_DATABASE_URL ?? 'postgresql://postgres:postgres@localhost:5432/signa_test',
     STRIPE_SECRET_KEY: 'sk_test_fake_key_for_integration_tests',
     STRIPE_WEBHOOK_SECRET: 'whsec_test_fake_secret_for_integration_tests',
     NEXT_PUBLIC_POSTHOG_KEY: 'phk_test',

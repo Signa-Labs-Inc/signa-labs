@@ -22,8 +22,7 @@ export function OnboardingPopover({
 }: OnboardingPopoverProps) {
   const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
   const virtualRef = useRef({
-    getBoundingClientRect: () =>
-      anchorRect ?? new DOMRect(0, 0, 0, 0),
+    getBoundingClientRect: () => anchorRect ?? new DOMRect(0, 0, 0, 0),
   });
 
   useEffect(() => {
@@ -63,7 +62,7 @@ export function OnboardingPopover({
           avoidCollisions
           collisionPadding={16}
           className={cn(
-            'z-50 w-72 max-w-[calc(100vw-2rem)] rounded-xl border border-border border-l-2 border-l-primary bg-popover p-4 shadow-lg',
+            'border-border border-l-primary bg-popover z-50 w-72 max-w-[calc(100vw-2rem)] rounded-xl border border-l-2 p-4 shadow-lg',
             'data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95',
             'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95'
           )}
@@ -72,7 +71,7 @@ export function OnboardingPopover({
         >
           <button
             onClick={onClose}
-            className="absolute right-2 top-2 rounded-md p-1 text-muted-foreground/60 transition-colors hover:text-foreground"
+            className="text-muted-foreground/60 hover:text-foreground absolute top-2 right-2 rounded-md p-1 transition-colors"
             aria-label="Dismiss"
           >
             <X className="h-3.5 w-3.5" />

@@ -23,26 +23,19 @@ function getInvoiceSubscriptionId(invoice: Stripe.Invoice): string | null {
   if (!subDetails) return null;
   return typeof subDetails.subscription === 'string'
     ? subDetails.subscription
-    : subDetails.subscription?.id ?? null;
+    : (subDetails.subscription?.id ?? null);
 }
 
 // Helper: extract period from subscription item (clover API moved period to items)
 function getSubscriptionPeriod(sub: Stripe.Subscription) {
   const item = sub.items.data[0];
   return {
-    currentPeriodStart: item
-      ? new Date(item.current_period_start * 1000)
-      : undefined,
-    currentPeriodEnd: item
-      ? new Date(item.current_period_end * 1000)
-      : undefined,
+    currentPeriodStart: item ? new Date(item.current_period_start * 1000) : undefined,
+    currentPeriodEnd: item ? new Date(item.current_period_end * 1000) : undefined,
   };
 }
 
-export async function getOrCreateStripeCustomer(
-  userId: string,
-  email: string
-): Promise<string> {
+export async function getOrCreateStripeCustomer(userId: string, email: string): Promise<string> {
   const existing = await getStripeCustomerId(userId);
   if (existing) {
     return existing;
@@ -90,11 +83,15 @@ export async function createCheckoutSession(
   try {
     stripePrice = await stripe.prices.retrieve(price.stripePriceId);
   } catch {
-    throw new ValidationError('This price is no longer available. Please try a different plan or contact support.');
+    throw new ValidationError(
+      'This price is no longer available. Please try a different plan or contact support.'
+    );
   }
 
   if (!stripePrice.active) {
-    throw new ValidationError('This price is no longer available. Please try a different plan or contact support.');
+    throw new ValidationError(
+      'This price is no longer available. Please try a different plan or contact support.'
+    );
   }
 
   const customerId = await getOrCreateStripeCustomer(userId, email);
@@ -121,10 +118,7 @@ export async function createCheckoutSession(
   return session.url;
 }
 
-export async function createBillingPortalSession(
-  userId: string,
-  email: string
-): Promise<string> {
+export async function createBillingPortalSession(userId: string, email: string): Promise<string> {
   const customerId = await getOrCreateStripeCustomer(userId, email);
 
   const session = await stripe.billingPortal.sessions.create({
@@ -312,9 +306,7 @@ export async function createPlanWithStripeProducts(params: CreatePlanWithStripeP
     const { currency, monthlyPriceCents, yearlyPriceCents } = params.pricing;
 
     if (!currency || !SUPPORTED_CURRENCIES.includes(currency)) {
-      throw new ValidationError(
-        `Currency must be one of: ${SUPPORTED_CURRENCIES.join(', ')}`
-      );
+      throw new ValidationError(`Currency must be one of: ${SUPPORTED_CURRENCIES.join(', ')}`);
     }
 
     if (monthlyPriceCents === undefined && yearlyPriceCents === undefined) {
@@ -453,19 +445,13 @@ export async function createPlanWithStripeProducts(params: CreatePlanWithStripeP
 
 // Webhook handlers
 
-export async function handleCheckoutCompleted(
-  session: Stripe.Checkout.Session
-) {
+export async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const userId = session.metadata?.userId;
   const planId = session.metadata?.planId;
   const stripeSubId =
-    typeof session.subscription === 'string'
-      ? session.subscription
-      : session.subscription?.id;
+    typeof session.subscription === 'string' ? session.subscription : session.subscription?.id;
   const stripeCustomerId =
-    typeof session.customer === 'string'
-      ? session.customer
-      : session.customer?.id;
+    typeof session.customer === 'string' ? session.customer : session.customer?.id;
 
   if (!userId || !planId || !stripeSubId || !stripeCustomerId) {
     throw new Error(
@@ -486,7 +472,9 @@ export async function handleCheckoutCompleted(
 
   const planPrice = await reader.getPlanPriceByStripePriceId(stripePriceId);
   if (!planPrice) {
-    throw new Error(`Stripe webhook: unknown Stripe price ${stripePriceId} — ensure it's mapped in plan_prices`);
+    throw new Error(
+      `Stripe webhook: unknown Stripe price ${stripePriceId} — ensure it's mapped in plan_prices`
+    );
   }
 
   const period = getSubscriptionPeriod(stripeSub);
@@ -500,9 +488,7 @@ export async function handleCheckoutCompleted(
     status: toSubscriptionStatus(stripeSub.status),
     currentPeriodStart: period.currentPeriodStart,
     currentPeriodEnd: period.currentPeriodEnd,
-    trialEnd: stripeSub.trial_end
-      ? new Date(stripeSub.trial_end * 1000)
-      : undefined,
+    trialEnd: stripeSub.trial_end ? new Date(stripeSub.trial_end * 1000) : undefined,
   });
 
   // Log subscription creation event
@@ -528,17 +514,19 @@ export async function handleSubscriptionUpdated(sub: Stripe.Subscription) {
     // Lock the subscription row to prevent concurrent updates from racing
     const existingSub = await reader.getSubscriptionByStripeIdForUpdate(sub.id, tx);
 
-    await writer.updateSubscriptionByStripeIdTx(sub.id, {
-      status: toSubscriptionStatus(sub.status),
-      currentPeriodStart: period.currentPeriodStart,
-      currentPeriodEnd: period.currentPeriodEnd,
-      trialEnd: sub.trial_end ? new Date(sub.trial_end * 1000) : null,
-      cancelAtPeriodEnd: sub.cancel_at_period_end,
-      canceledAt: sub.canceled_at ? new Date(sub.canceled_at * 1000) : null,
-      ...(planPrice
-        ? { planId: planPrice.planId, planPriceId: planPrice.id }
-        : {}),
-    }, tx);
+    await writer.updateSubscriptionByStripeIdTx(
+      sub.id,
+      {
+        status: toSubscriptionStatus(sub.status),
+        currentPeriodStart: period.currentPeriodStart,
+        currentPeriodEnd: period.currentPeriodEnd,
+        trialEnd: sub.trial_end ? new Date(sub.trial_end * 1000) : null,
+        cancelAtPeriodEnd: sub.cancel_at_period_end,
+        canceledAt: sub.canceled_at ? new Date(sub.canceled_at * 1000) : null,
+        ...(planPrice ? { planId: planPrice.planId, planPriceId: planPrice.id } : {}),
+      },
+      tx
+    );
 
     // Log change events
     if (existingSub) {
@@ -552,33 +540,42 @@ export async function handleSubscriptionUpdated(sub: Stripe.Subscription) {
         const newOrder = newPlan?.sortOrder ?? 0;
         const eventType = newOrder > oldOrder ? 'upgraded' : 'downgraded';
 
-        await writer.insertSubscriptionEventTx({
-          userId,
-          subscriptionId: existingSub.id,
-          type: eventType,
-          description: `${eventType === 'upgraded' ? 'Upgraded' : 'Downgraded'} from ${oldPlan?.name ?? existingSub.planId} to ${newPlan?.name ?? planPrice.planId}`,
-          metadata: { oldPlanId: existingSub.planId, newPlanId: planPrice.planId },
-        }, tx);
+        await writer.insertSubscriptionEventTx(
+          {
+            userId,
+            subscriptionId: existingSub.id,
+            type: eventType,
+            description: `${eventType === 'upgraded' ? 'Upgraded' : 'Downgraded'} from ${oldPlan?.name ?? existingSub.planId} to ${newPlan?.name ?? planPrice.planId}`,
+            metadata: { oldPlanId: existingSub.planId, newPlanId: planPrice.planId },
+          },
+          tx
+        );
       }
 
       // Detect cancellation scheduling
       if (sub.cancel_at_period_end && !existingSub.cancelAtPeriodEnd) {
-        await writer.insertSubscriptionEventTx({
-          userId,
-          subscriptionId: existingSub.id,
-          type: 'cancelled',
-          description: 'Subscription scheduled for cancellation at period end',
-        }, tx);
+        await writer.insertSubscriptionEventTx(
+          {
+            userId,
+            subscriptionId: existingSub.id,
+            type: 'cancelled',
+            description: 'Subscription scheduled for cancellation at period end',
+          },
+          tx
+        );
       }
 
       // Detect reactivation (un-cancel)
       if (!sub.cancel_at_period_end && existingSub.cancelAtPeriodEnd) {
-        await writer.insertSubscriptionEventTx({
-          userId,
-          subscriptionId: existingSub.id,
-          type: 'reactivated',
-          description: 'Subscription cancellation reversed',
-        }, tx);
+        await writer.insertSubscriptionEventTx(
+          {
+            userId,
+            subscriptionId: existingSub.id,
+            type: 'reactivated',
+            description: 'Subscription cancellation reversed',
+          },
+          tx
+        );
       }
     }
   });
@@ -606,14 +603,13 @@ export async function handleSubscriptionDeleted(sub: Stripe.Subscription) {
 export async function handleInvoicePaid(invoice: Stripe.Invoice) {
   const stripeSubId = getInvoiceSubscriptionId(invoice);
 
-  const sub = stripeSubId
-    ? await reader.getSubscriptionByStripeId(stripeSubId)
-    : null;
+  const sub = stripeSubId ? await reader.getSubscriptionByStripeId(stripeSubId) : null;
 
-  const userId =
-    sub?.userId ?? invoice.parent?.subscription_details?.metadata?.userId;
+  const userId = sub?.userId ?? invoice.parent?.subscription_details?.metadata?.userId;
   if (!userId) {
-    throw new Error(`Stripe webhook: invoice.paid — cannot resolve userId for invoice ${invoice.id}`);
+    throw new Error(
+      `Stripe webhook: invoice.paid — cannot resolve userId for invoice ${invoice.id}`
+    );
   }
 
   await writer.insertPaymentRecord({
@@ -631,14 +627,13 @@ export async function handleInvoicePaid(invoice: Stripe.Invoice) {
 export async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
   const stripeSubId = getInvoiceSubscriptionId(invoice);
 
-  const sub = stripeSubId
-    ? await reader.getSubscriptionByStripeId(stripeSubId)
-    : null;
+  const sub = stripeSubId ? await reader.getSubscriptionByStripeId(stripeSubId) : null;
 
-  const userId =
-    sub?.userId ?? invoice.parent?.subscription_details?.metadata?.userId;
+  const userId = sub?.userId ?? invoice.parent?.subscription_details?.metadata?.userId;
   if (!userId) {
-    throw new Error(`Stripe webhook: invoice.payment_failed — cannot resolve userId for invoice ${invoice.id}`);
+    throw new Error(
+      `Stripe webhook: invoice.payment_failed — cannot resolve userId for invoice ${invoice.id}`
+    );
   }
 
   await writer.insertPaymentRecord({

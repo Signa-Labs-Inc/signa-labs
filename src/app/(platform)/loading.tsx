@@ -2,7 +2,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export default function PlatformLoading() {
   return (
-    <div className="mx-auto max-w-5xl px-6 py-10 animate-fade-in">
+    <div className="animate-fade-in mx-auto max-w-5xl px-6 py-10">
       {/* Header skeleton */}
       <div className="mb-8 space-y-2">
         <Skeleton className="h-9 w-48" />

@@ -6,10 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { type ExerciseCatalogFilters } from '@/lib/services/exercises/exercises.types';
-import {
-  ExerciseDifficulty,
-  ExerciseLanguage,
-} from '@/lib/services/exercises/exercises.constants';
+import { ExerciseDifficulty, ExerciseLanguage } from '@/lib/services/exercises/exercises.constants';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
 import { LanguageIcon } from '@/components/ui/language-icon';
 
@@ -36,11 +33,7 @@ type ExerciseFiltersProps = {
   resultCount: number;
 };
 
-export function ExerciseFilters({
-  tags,
-  activeFilters,
-  resultCount,
-}: ExerciseFiltersProps) {
+export function ExerciseFilters({ tags, activeFilters, resultCount }: ExerciseFiltersProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -66,10 +59,7 @@ export function ExerciseFilters({
   }, [router, pathname]);
 
   const hasActiveFilters =
-    activeFilters.language ||
-    activeFilters.difficulty ||
-    activeFilters.tag ||
-    activeFilters.search;
+    activeFilters.language || activeFilters.difficulty || activeFilters.tag || activeFilters.search;
 
   const activeFilterCount = [
     activeFilters.language,
@@ -82,7 +72,7 @@ export function ExerciseFilters({
       {/* Search bar + filter toggle */}
       <div className="flex items-center gap-2">
         <div className="group relative flex-1">
-          <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" />
+          <Search className="text-muted-foreground group-focus-within:text-primary pointer-events-none absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 transition-colors" />
           <Input
             placeholder="Search by title, language, or topic..."
             defaultValue={activeFilters.search ?? ''}
@@ -92,7 +82,7 @@ export function ExerciseFilters({
                 updateFilter('search', value || undefined);
               }
             }}
-            className="h-11 rounded-xl border-border/60 bg-card pl-10 pr-4 text-base shadow-sm transition-all placeholder:text-muted-foreground/60 focus-visible:border-primary/40 focus-visible:shadow-md focus-visible:shadow-primary/5 md:text-sm"
+            className="border-border/60 bg-card placeholder:text-muted-foreground/60 focus-visible:border-primary/40 focus-visible:shadow-primary/5 h-11 rounded-xl pr-4 pl-10 text-base shadow-sm transition-all focus-visible:shadow-md md:text-sm"
           />
         </div>
         <Button
@@ -103,7 +93,7 @@ export function ExerciseFilters({
           <SlidersHorizontal className="h-4 w-4" />
           <span className="hidden sm:inline">Filters</span>
           {activeFilterCount > 0 && (
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
+            <span className="bg-primary text-primary-foreground flex h-5 w-5 items-center justify-center rounded-full text-xs font-semibold">
               {activeFilterCount}
             </span>
           )}
@@ -112,21 +102,17 @@ export function ExerciseFilters({
 
       {/* Expandable filter panel */}
       {filtersOpen && (
-        <div className="animate-fade-in rounded-lg border border-border bg-linear-to-br from-card via-card to-primary/5 p-4 space-y-4">
+        <div className="animate-fade-in border-border from-card via-card to-primary/5 space-y-4 rounded-lg border bg-linear-to-br p-4">
           {/* Language */}
           <div>
-            <span className="text-muted-foreground mb-2 block text-xs font-medium uppercase tracking-wider">
+            <span className="text-muted-foreground mb-2 block text-xs font-medium tracking-wider uppercase">
               Language
             </span>
             <div className="flex flex-wrap gap-1.5">
               {LANGUAGES.map((lang) => (
                 <Badge
                   key={lang.value}
-                  variant={
-                    activeFilters.language === lang.value
-                      ? 'default'
-                      : 'outline'
-                  }
+                  variant={activeFilters.language === lang.value ? 'default' : 'outline'}
                   className="cursor-pointer gap-1.5"
                   onClick={() => updateFilter('language', lang.value)}
                 >
@@ -139,18 +125,14 @@ export function ExerciseFilters({
 
           {/* Difficulty */}
           <div>
-            <span className="text-muted-foreground mb-2 block text-xs font-medium uppercase tracking-wider">
+            <span className="text-muted-foreground mb-2 block text-xs font-medium tracking-wider uppercase">
               Difficulty
             </span>
             <div className="flex flex-wrap gap-1.5">
               {DIFFICULTIES.map((diff) => (
                 <Badge
                   key={diff.value}
-                  variant={
-                    activeFilters.difficulty === diff.value
-                      ? 'default'
-                      : 'outline'
-                  }
+                  variant={activeFilters.difficulty === diff.value ? 'default' : 'outline'}
                   className="cursor-pointer"
                   onClick={() => updateFilter('difficulty', diff.value)}
                 >
@@ -163,16 +145,14 @@ export function ExerciseFilters({
           {/* Tags */}
           {tags.length > 0 && (
             <div>
-              <span className="text-muted-foreground mb-2 block text-xs font-medium uppercase tracking-wider">
+              <span className="text-muted-foreground mb-2 block text-xs font-medium tracking-wider uppercase">
                 Topics
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {tags.map((tag) => (
                   <Badge
                     key={tag}
-                    variant={
-                      activeFilters.tag === tag ? 'default' : 'secondary'
-                    }
+                    variant={activeFilters.tag === tag ? 'default' : 'secondary'}
                     className="cursor-pointer"
                     onClick={() => updateFilter('tag', tag)}
                   >

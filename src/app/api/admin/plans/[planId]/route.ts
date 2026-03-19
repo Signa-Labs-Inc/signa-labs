@@ -2,15 +2,15 @@ import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/lib/services/auth/auth.service';
 import { handleError } from '@/lib/utils/api.handler-errors';
 import { ConflictError, NotFoundError, ValidationError } from '@/lib/utils/errors';
-import { updatePlan, type UpdatePlanParams } from '@/lib/services/subscriptions/subscriptions.writer';
+import {
+  updatePlan,
+  type UpdatePlanParams,
+} from '@/lib/services/subscriptions/subscriptions.writer';
 import { countActiveSubscriptionsForPlan } from '@/lib/services/subscriptions/subscriptions.reader';
 import { validatePlanFeatures } from '@/lib/services/subscriptions/subscriptions.service';
 import { revalidateTag } from 'next/cache';
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: Promise<{ planId: string }> }
-) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ planId: string }> }) {
   try {
     await requireAdmin();
 
@@ -24,7 +24,13 @@ export async function PATCH(
     }
 
     // Reject unknown fields to prevent accidental data leaks
-    const ALLOWED_FIELDS = new Set(['features', 'displayFeatures', 'description', 'name', 'isActive']);
+    const ALLOWED_FIELDS = new Set([
+      'features',
+      'displayFeatures',
+      'description',
+      'name',
+      'isActive',
+    ]);
     const unknownFields = Object.keys(body).filter((k) => !ALLOWED_FIELDS.has(k));
     if (unknownFields.length > 0) {
       throw new ValidationError(`Unknown fields: ${unknownFields.join(', ')}`);
@@ -39,7 +45,10 @@ export async function PATCH(
     }
 
     if (displayFeatures !== undefined) {
-      if (!Array.isArray(displayFeatures) || !displayFeatures.every((f: unknown) => typeof f === 'string')) {
+      if (
+        !Array.isArray(displayFeatures) ||
+        !displayFeatures.every((f: unknown) => typeof f === 'string')
+      ) {
         throw new ValidationError('displayFeatures must be an array of strings');
       }
       set.displayFeatures = displayFeatures;
@@ -70,7 +79,7 @@ export async function PATCH(
         if (activeSubCount > 0) {
           throw new ConflictError(
             `Cannot deactivate plan with ${activeSubCount} active subscriber(s). ` +
-            `Migrate them to another plan first.`
+              `Migrate them to another plan first.`
           );
         }
       }
@@ -89,7 +98,11 @@ export async function PATCH(
     }
 
     // Revalidate cached pricing data when features or active status change
-    if (set.features !== undefined || set.isActive !== undefined || set.displayFeatures !== undefined) {
+    if (
+      set.features !== undefined ||
+      set.isActive !== undefined ||
+      set.displayFeatures !== undefined
+    ) {
       revalidateTag('stripe-prices', 'default');
     }
 

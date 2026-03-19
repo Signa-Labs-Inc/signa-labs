@@ -15,7 +15,8 @@ export function parseApiError(
     if (err && typeof err === 'object' && 'message' in err) {
       const obj = err as Record<string, unknown>;
       return {
-        message: typeof obj.message === 'string' ? obj.message : `Request failed (${fallbackStatus})`,
+        message:
+          typeof obj.message === 'string' ? obj.message : `Request failed (${fallbackStatus})`,
         code: typeof obj.code === 'string' ? obj.code : null,
       };
     }

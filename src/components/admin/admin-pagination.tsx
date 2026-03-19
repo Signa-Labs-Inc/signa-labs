@@ -9,11 +9,7 @@ interface AdminPaginationProps {
   onPageChange: (page: number) => void;
 }
 
-export function AdminPagination({
-  currentPage,
-  totalPages,
-  onPageChange,
-}: AdminPaginationProps) {
+export function AdminPagination({ currentPage, totalPages, onPageChange }: AdminPaginationProps) {
   return (
     <div className="flex items-center justify-center gap-4 pt-4">
       <Button
@@ -26,7 +22,7 @@ export function AdminPagination({
         Previous
       </Button>
 
-      <span className="text-sm text-muted-foreground">
+      <span className="text-muted-foreground text-sm">
         Page {currentPage} of {totalPages}
       </span>
 

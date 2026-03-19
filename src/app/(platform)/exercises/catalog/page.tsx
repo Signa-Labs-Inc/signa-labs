@@ -18,11 +18,7 @@ type SearchParams = Promise<{
   page?: string;
 }>;
 
-export default async function CatalogPage({
-  searchParams,
-}: {
-  searchParams: SearchParams;
-}) {
+export default async function CatalogPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
 
   const filters: ExerciseCatalogFilters = {
@@ -57,8 +53,8 @@ export default async function CatalogPage({
   return (
     <div className="animate-fade-in">
       {/* Header */}
-      <div className="relative overflow-hidden border-b border-border bg-linear-to-br from-primary/10 via-background to-violet-500/5">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent" />
+      <div className="border-border from-primary/10 via-background relative overflow-hidden border-b bg-linear-to-br to-violet-500/5">
+        <div className="from-primary/5 absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] via-transparent to-transparent" />
         <div className="relative mx-auto max-w-6xl px-6 py-8">
           <Link
             href="/exercises"
@@ -73,11 +69,7 @@ export default async function CatalogPage({
           </p>
 
           <div className="mt-5">
-            <ExerciseFilters
-              tags={tags}
-              activeFilters={filters}
-              resultCount={totalCount}
-            />
+            <ExerciseFilters tags={tags} activeFilters={filters} resultCount={totalCount} />
           </div>
         </div>
       </div>
@@ -92,7 +84,7 @@ export default async function CatalogPage({
             {currentPage > 1 && (
               <Link
                 href={pageHref(currentPage - 1)}
-                className="inline-flex items-center rounded-md border px-3 py-1.5 text-sm transition-colors hover:bg-accent"
+                className="hover:bg-accent inline-flex items-center rounded-md border px-3 py-1.5 text-sm transition-colors"
               >
                 Previous
               </Link>
@@ -103,7 +95,7 @@ export default async function CatalogPage({
             {currentPage < totalPages && (
               <Link
                 href={pageHref(currentPage + 1)}
-                className="inline-flex items-center rounded-md border px-3 py-1.5 text-sm transition-colors hover:bg-accent"
+                className="hover:bg-accent inline-flex items-center rounded-md border px-3 py-1.5 text-sm transition-colors"
               >
                 Next
               </Link>

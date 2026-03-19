@@ -20,7 +20,9 @@ describe('BillingActions', () => {
 
   it('success: redirects to portal URL', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      new Response(JSON.stringify({ url: 'https://billing.stripe.com/portal/123' }), { status: 200 })
+      new Response(JSON.stringify({ url: 'https://billing.stripe.com/portal/123' }), {
+        status: 200,
+      })
     );
 
     const user = userEvent.setup();
