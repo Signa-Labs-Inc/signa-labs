@@ -17,7 +17,7 @@ export function SkillsBadges({ skills }: SkillsBadgesProps) {
 
   return (
     <div className="mt-6">
-      <p className="text-muted-foreground mb-2 text-xs font-medium uppercase tracking-wider">
+      <p className="text-muted-foreground mb-2 text-xs font-medium tracking-wider uppercase">
         Skills Acquired
       </p>
       <div className="flex flex-wrap gap-2">
@@ -50,7 +50,7 @@ export function SkillsBadges({ skills }: SkillsBadgesProps) {
         {hasMore && (
           <button
             onClick={() => setExpanded(!expanded)}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card/60 px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-foreground/20 hover:text-foreground"
+            className="border-border bg-card/60 text-muted-foreground hover:border-foreground/20 hover:text-foreground inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm transition-colors"
           >
             {expanded ? (
               <>

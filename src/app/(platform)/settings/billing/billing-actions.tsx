@@ -41,7 +41,11 @@ export function BillingActions() {
         )}
         Change Plan, Cancel, or Update Payment
       </Button>
-      {error && <p role="alert" className="mt-2 text-sm text-destructive">{error}</p>}
+      {error && (
+        <p role="alert" className="text-destructive mt-2 text-sm">
+          {error}
+        </p>
+      )}
     </div>
   );
 }

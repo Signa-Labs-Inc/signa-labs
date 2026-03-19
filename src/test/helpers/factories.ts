@@ -1,15 +1,17 @@
 import { v4 as uuid } from 'uuid';
 
-export function buildUser(overrides?: Partial<{
-  id: string;
-  clerkId: string;
-  email: string;
-  name: string;
-  role: string;
-  stripeCustomerId: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-}>) {
+export function buildUser(
+  overrides?: Partial<{
+    id: string;
+    clerkId: string;
+    email: string;
+    name: string;
+    role: string;
+    stripeCustomerId: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+  }>
+) {
   return {
     id: uuid(),
     clerkId: `clerk_${uuid().slice(0, 8)}`,
@@ -23,18 +25,20 @@ export function buildUser(overrides?: Partial<{
   };
 }
 
-export function buildPlan(overrides?: Partial<{
-  id: string;
-  name: string;
-  description: string | null;
-  features: Record<string, unknown>;
-  displayFeatures: string[];
-  stripeProductId: string | null;
-  isActive: boolean;
-  sortOrder: number;
-  createdAt: Date;
-  updatedAt: Date;
-}>) {
+export function buildPlan(
+  overrides?: Partial<{
+    id: string;
+    name: string;
+    description: string | null;
+    features: Record<string, unknown>;
+    displayFeatures: string[];
+    stripeProductId: string | null;
+    isActive: boolean;
+    sortOrder: number;
+    createdAt: Date;
+    updatedAt: Date;
+  }>
+) {
   return {
     id: 'pro',
     name: 'Pro',
@@ -55,15 +59,17 @@ export function buildPlan(overrides?: Partial<{
   };
 }
 
-export function buildPlanPrice(overrides?: Partial<{
-  id: string;
-  planId: string;
-  stripePriceId: string;
-  currency: string;
-  interval: string;
-  isActive: boolean;
-  createdAt: Date;
-}>) {
+export function buildPlanPrice(
+  overrides?: Partial<{
+    id: string;
+    planId: string;
+    stripePriceId: string;
+    currency: string;
+    interval: string;
+    isActive: boolean;
+    createdAt: Date;
+  }>
+) {
   return {
     id: uuid(),
     planId: 'pro',
@@ -76,25 +82,27 @@ export function buildPlanPrice(overrides?: Partial<{
   };
 }
 
-export function buildSubscription(overrides?: Partial<{
-  id: string;
-  userId: string;
-  orgId: string | null;
-  ownerType: string;
-  planId: string;
-  planPriceId: string;
-  stripeSubscriptionId: string | null;
-  stripeCustomerId: string;
-  status: string;
-  totalSeats: number | null;
-  currentPeriodStart: Date | null;
-  currentPeriodEnd: Date | null;
-  trialEnd: Date | null;
-  cancelAtPeriodEnd: boolean;
-  canceledAt: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
-}>) {
+export function buildSubscription(
+  overrides?: Partial<{
+    id: string;
+    userId: string;
+    orgId: string | null;
+    ownerType: string;
+    planId: string;
+    planPriceId: string;
+    stripeSubscriptionId: string | null;
+    stripeCustomerId: string;
+    status: string;
+    totalSeats: number | null;
+    currentPeriodStart: Date | null;
+    currentPeriodEnd: Date | null;
+    trialEnd: Date | null;
+    cancelAtPeriodEnd: boolean;
+    canceledAt: Date | null;
+    createdAt: Date;
+    updatedAt: Date;
+  }>
+) {
   return {
     id: uuid(),
     userId: uuid(),
@@ -117,19 +125,21 @@ export function buildSubscription(overrides?: Partial<{
   };
 }
 
-export function buildPaymentRecord(overrides?: Partial<{
-  id: string;
-  userId: string;
-  subscriptionId: string | null;
-  stripePaymentIntentId: string | null;
-  stripeInvoiceId: string | null;
-  amountCents: number;
-  currency: string;
-  status: string;
-  description: string | null;
-  paidAt: Date | null;
-  createdAt: Date;
-}>) {
+export function buildPaymentRecord(
+  overrides?: Partial<{
+    id: string;
+    userId: string;
+    subscriptionId: string | null;
+    stripePaymentIntentId: string | null;
+    stripeInvoiceId: string | null;
+    amountCents: number;
+    currency: string;
+    status: string;
+    description: string | null;
+    paidAt: Date | null;
+    createdAt: Date;
+  }>
+) {
   return {
     id: uuid(),
     userId: uuid(),
@@ -146,15 +156,17 @@ export function buildPaymentRecord(overrides?: Partial<{
   };
 }
 
-export function buildSubscriptionEvent(overrides?: Partial<{
-  id: string;
-  userId: string;
-  subscriptionId: string | null;
-  type: string;
-  description: string;
-  metadata: string | null;
-  createdAt: Date;
-}>) {
+export function buildSubscriptionEvent(
+  overrides?: Partial<{
+    id: string;
+    userId: string;
+    subscriptionId: string | null;
+    type: string;
+    description: string;
+    metadata: string | null;
+    createdAt: Date;
+  }>
+) {
   return {
     id: uuid(),
     userId: uuid(),
@@ -167,19 +179,21 @@ export function buildSubscriptionEvent(overrides?: Partial<{
   };
 }
 
-export function buildNotification(overrides?: Partial<{
-  id: string;
-  userId: string;
-  type: string;
-  channel: string;
-  subject: string | null;
-  body: string | null;
-  metadata: Record<string, unknown>;
-  status: string;
-  sentAt: Date | null;
-  readAt: Date | null;
-  createdAt: Date;
-}>) {
+export function buildNotification(
+  overrides?: Partial<{
+    id: string;
+    userId: string;
+    type: string;
+    channel: string;
+    subject: string | null;
+    body: string | null;
+    metadata: Record<string, unknown>;
+    status: string;
+    sentAt: Date | null;
+    readAt: Date | null;
+    createdAt: Date;
+  }>
+) {
   return {
     id: uuid(),
     userId: uuid(),
@@ -196,21 +210,23 @@ export function buildNotification(overrides?: Partial<{
   };
 }
 
-export function buildPlanWithPrices(overrides?: Partial<{
-  id: string;
-  name: string;
-  description: string | null;
-  features: Record<string, unknown>;
-  displayFeatures: string[];
-  sortOrder: number;
-  isActive: boolean;
-  prices: Array<{
+export function buildPlanWithPrices(
+  overrides?: Partial<{
     id: string;
-    stripePriceId: string;
-    currency: string;
-    interval: string;
-  }>;
-}>) {
+    name: string;
+    description: string | null;
+    features: Record<string, unknown>;
+    displayFeatures: string[];
+    sortOrder: number;
+    isActive: boolean;
+    prices: Array<{
+      id: string;
+      stripePriceId: string;
+      currency: string;
+      interval: string;
+    }>;
+  }>
+) {
   const priceId = uuid();
   return {
     id: 'pro',

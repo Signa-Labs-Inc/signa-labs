@@ -1,5 +1,15 @@
 import { db } from '@/index';
-import { subscriptions, plans, planPrices, paymentRecords, exercises, exerciseSubmissions, learningPaths, idempotencyKeys, subscriptionEvents } from '@/db/schema/tables';
+import {
+  subscriptions,
+  plans,
+  planPrices,
+  paymentRecords,
+  exercises,
+  exerciseSubmissions,
+  learningPaths,
+  idempotencyKeys,
+  subscriptionEvents,
+} from '@/db/schema/tables';
 import { eq, and, inArray, sql, gte, isNull } from 'drizzle-orm';
 import type { UserSubscription, PlanWithPrices } from './subscriptions.types';
 
@@ -68,10 +78,7 @@ export async function getActivePlansWithPrices(): Promise<PlanWithPrices[]> {
     .where(eq(plans.isActive, true))
     .orderBy(plans.sortOrder);
 
-  const activePrices = await db
-    .select()
-    .from(planPrices)
-    .where(eq(planPrices.isActive, true));
+  const activePrices = await db.select().from(planPrices).where(eq(planPrices.isActive, true));
 
   return activePlans.map((plan) => ({
     id: plan.id,
@@ -92,10 +99,7 @@ export async function getActivePlansWithPrices(): Promise<PlanWithPrices[]> {
 }
 
 export async function getAllPlansWithPrices(): Promise<PlanWithPrices[]> {
-  const allPlans = await db
-    .select()
-    .from(plans)
-    .orderBy(plans.sortOrder);
+  const allPlans = await db.select().from(plans).orderBy(plans.sortOrder);
 
   const allPrices = await db.select().from(planPrices);
 
@@ -200,10 +204,7 @@ export async function countActiveSubscriptionsForPrice(priceId: string): Promise
 
 // Usage counting queries for feature gating
 
-export async function countUserExercisesSince(
-  userId: string,
-  since: Date
-): Promise<number> {
+export async function countUserExercisesSince(userId: string, since: Date): Promise<number> {
   const [result] = await db
     .select({ count: sql<number>`count(*)::int` })
     .from(exercises)
@@ -217,23 +218,15 @@ export async function countUserExercisesSince(
   return result?.count ?? 0;
 }
 
-export async function countUserPathsSince(
-  userId: string,
-  since: Date
-): Promise<number> {
+export async function countUserPathsSince(userId: string, since: Date): Promise<number> {
   const [result] = await db
     .select({ count: sql<number>`count(*)::int` })
     .from(learningPaths)
-    .where(
-      and(eq(learningPaths.userId, userId), gte(learningPaths.createdAt, since))
-    );
+    .where(and(eq(learningPaths.userId, userId), gte(learningPaths.createdAt, since)));
   return result?.count ?? 0;
 }
 
-export async function countUserAiGenerationsSince(
-  userId: string,
-  since: Date
-): Promise<number> {
+export async function countUserAiGenerationsSince(userId: string, since: Date): Promise<number> {
   const [result] = await db
     .select({ count: sql<number>`count(*)::int` })
     .from(exercises)
@@ -248,18 +241,12 @@ export async function countUserAiGenerationsSince(
   return result?.count ?? 0;
 }
 
-export async function countUserSubmissionsSince(
-  userId: string,
-  since: Date
-): Promise<number> {
+export async function countUserSubmissionsSince(userId: string, since: Date): Promise<number> {
   const [result] = await db
     .select({ count: sql<number>`count(*)::int` })
     .from(exerciseSubmissions)
     .where(
-      and(
-        eq(exerciseSubmissions.userId, userId),
-        gte(exerciseSubmissions.submittedAt, since)
-      )
+      and(eq(exerciseSubmissions.userId, userId), gte(exerciseSubmissions.submittedAt, since))
     );
   return result?.count ?? 0;
 }

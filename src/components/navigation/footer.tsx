@@ -35,11 +35,7 @@ export function Footer({ variant = 'default' }: FooterProps) {
 
   return (
     <footer
-      className={
-        isDark
-          ? 'border-t border-white/10 bg-black'
-          : 'border-t border-border bg-card/50'
-      }
+      className={isDark ? 'border-t border-white/10 bg-black' : 'border-border bg-card/50 border-t'}
     >
       <div className="mx-auto max-w-7xl px-6 py-12">
         {/* Top: Logo + Link columns */}
@@ -48,19 +44,15 @@ export function Footer({ variant = 'default' }: FooterProps) {
           <div className="col-span-2 sm:col-span-1">
             <Link href={homeHref} className="inline-flex items-center gap-2">
               <div
-                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg font-bold text-sm ${
+                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm font-bold ${
                   isDark
                     ? 'bg-linear-to-br from-white to-zinc-300 text-black'
-                    : 'bg-linear-to-br from-primary to-violet-400 text-white'
+                    : 'from-primary bg-linear-to-br to-violet-400 text-white'
                 }`}
               >
                 S
               </div>
-              <span
-                className={`text-lg font-bold ${
-                  isDark ? 'text-white' : 'text-foreground'
-                }`}
-              >
+              <span className={`text-lg font-bold ${isDark ? 'text-white' : 'text-foreground'}`}>
                 Signa Labs
               </span>
             </Link>
@@ -76,11 +68,7 @@ export function Footer({ variant = 'default' }: FooterProps) {
           {/* Link columns */}
           {Object.entries(footerLinks).map(([category, links]) => (
             <div key={category}>
-              <h3
-                className={`text-sm font-semibold ${
-                  isDark ? 'text-white' : 'text-foreground'
-                }`}
-              >
+              <h3 className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-foreground'}`}>
                 {category}
               </h3>
               <ul className="mt-3 space-y-2">
@@ -104,18 +92,11 @@ export function Footer({ variant = 'default' }: FooterProps) {
         </div>
 
         {/* Bottom: Copyright */}
-        <div
-          className={`mt-10 border-t pt-6 ${
-            isDark ? 'border-white/10' : 'border-border'
-          }`}
-        >
+        <div className={`mt-10 border-t pt-6 ${isDark ? 'border-white/10' : 'border-border'}`}>
           <p
-            className={`text-center text-xs ${
-              isDark ? 'text-zinc-500' : 'text-muted-foreground'
-            }`}
+            className={`text-center text-xs ${isDark ? 'text-zinc-500' : 'text-muted-foreground'}`}
           >
-            &copy; {new Date().getFullYear()} Signa Labs Inc. All rights
-            reserved.
+            &copy; {new Date().getFullYear()} Signa Labs Inc. All rights reserved.
           </p>
         </div>
       </div>

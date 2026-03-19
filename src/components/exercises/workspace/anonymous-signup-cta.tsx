@@ -66,13 +66,11 @@ export function AnonymousSignupCTA({ variant }: AnonymousSignupCTAProps) {
   const Icon = config.icon;
 
   return (
-    <div
-      className={`border-t ${config.borderColor} ${config.bgColor} px-4 py-4`}
-    >
+    <div className={`border-t ${config.borderColor} ${config.bgColor} px-4 py-4`}>
       <div className="flex items-start gap-3">
         <Icon className={`mt-0.5 h-5 w-5 shrink-0 ${config.iconColor}`} />
         <div className="flex-1">
-          <p className="text-sm font-semibold text-foreground">{config.title}</p>
+          <p className="text-foreground text-sm font-semibold">{config.title}</p>
           <p className="text-muted-foreground mt-1 text-sm">{config.description}</p>
           <div className="mt-3">
             <Link href={`/sign-in?redirect_url=${encodeURIComponent(pathname)}`}>

@@ -59,7 +59,9 @@ describe('PricingCards', () => {
       buildPlanForPricing({
         id: 'pro',
         name: 'Pro',
-        prices: [{ stripePriceId: 'price_m', currency: 'usd', interval: 'month', unitAmount: 1999 }],
+        prices: [
+          { stripePriceId: 'price_m', currency: 'usd', interval: 'month', unitAmount: 1999 },
+        ],
       }),
     ];
     render(<PricingCards plans={monthlyOnly} userPlan={null} isSignedIn={false} />);
@@ -107,9 +109,11 @@ describe('PricingCards', () => {
   });
 
   it('signed in, no sub: CTA triggers checkout', async () => {
-    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      new Response(JSON.stringify({ url: 'https://checkout.stripe.com/c/123' }), { status: 200 })
-    );
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(
+        new Response(JSON.stringify({ url: 'https://checkout.stripe.com/c/123' }), { status: 200 })
+      );
 
     const user = userEvent.setup();
     render(<PricingCards plans={[proPlan]} userPlan={null} isSignedIn={true} />);
@@ -117,9 +121,12 @@ describe('PricingCards', () => {
     await user.click(screen.getByRole('button', { name: /upgrade to pro/i }));
 
     await waitFor(() => {
-      expect(fetchSpy).toHaveBeenCalledWith('/api/stripe/checkout', expect.objectContaining({
-        method: 'POST',
-      }));
+      expect(fetchSpy).toHaveBeenCalledWith(
+        '/api/stripe/checkout',
+        expect.objectContaining({
+          method: 'POST',
+        })
+      );
     });
   });
 

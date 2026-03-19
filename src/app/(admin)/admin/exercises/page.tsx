@@ -7,7 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { AdminPageHeader } from '@/components/admin/admin-page-header';
-import { AdminTableSkeleton, AdminEmptyState, AdminFilterBar } from '@/components/admin/admin-table-skeleton';
+import {
+  AdminTableSkeleton,
+  AdminEmptyState,
+  AdminFilterBar,
+} from '@/components/admin/admin-table-skeleton';
 
 type Exercise = {
   id: string;
@@ -109,15 +113,12 @@ export default function AdminExercisesPage() {
   }
 
   const totalPages = Math.ceil(totalCount / limit);
-  const selectClasses = 'h-9 rounded-md border border-border bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring';
+  const selectClasses =
+    'h-9 rounded-md border border-border bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring';
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader
-        title="Exercises"
-        description={`${totalCount} exercises total`}
-        icon={Code2}
-      >
+      <AdminPageHeader title="Exercises" description={`${totalCount} exercises total`} icon={Code2}>
         <Link href="/admin/exercises/generate">
           <Button>
             <Plus className="mr-1.5 h-4 w-4" />
@@ -128,7 +129,7 @@ export default function AdminExercisesPage() {
 
       <AdminFilterBar>
         <div className="flex items-center gap-2">
-          <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <Search className="text-muted-foreground h-4 w-4 shrink-0" />
           <Input
             placeholder="Search by title..."
             value={search}
@@ -136,12 +137,26 @@ export default function AdminExercisesPage() {
             className="w-64"
           />
         </div>
-        <select value={origin} onChange={(e) => { setOrigin(e.target.value); setPage(1); }} className={selectClasses}>
+        <select
+          value={origin}
+          onChange={(e) => {
+            setOrigin(e.target.value);
+            setPage(1);
+          }}
+          className={selectClasses}
+        >
           <option value="">All Origins</option>
           <option value="platform">Platform</option>
           <option value="user">User</option>
         </select>
-        <select value={language} onChange={(e) => { setLanguage(e.target.value); setPage(1); }} className={selectClasses}>
+        <select
+          value={language}
+          onChange={(e) => {
+            setLanguage(e.target.value);
+            setPage(1);
+          }}
+          className={selectClasses}
+        >
           <option value="">All Languages</option>
           <option value="python">Python</option>
           <option value="javascript">JavaScript</option>
@@ -149,48 +164,88 @@ export default function AdminExercisesPage() {
           <option value="sql">SQL</option>
           <option value="go">Go</option>
         </select>
-        <select value={difficulty} onChange={(e) => { setDifficulty(e.target.value); setPage(1); }} className={selectClasses}>
+        <select
+          value={difficulty}
+          onChange={(e) => {
+            setDifficulty(e.target.value);
+            setPage(1);
+          }}
+          className={selectClasses}
+        >
           <option value="">All Difficulties</option>
           <option value="beginner">Beginner</option>
           <option value="intermediate">Intermediate</option>
           <option value="advanced">Advanced</option>
         </select>
-        <select value={isValidated} onChange={(e) => { setIsValidated(e.target.value); setPage(1); }} className={selectClasses}>
+        <select
+          value={isValidated}
+          onChange={(e) => {
+            setIsValidated(e.target.value);
+            setPage(1);
+          }}
+          className={selectClasses}
+        >
           <option value="">All Validation</option>
           <option value="true">Validated</option>
           <option value="false">Not Validated</option>
         </select>
-        <select value={isPublic} onChange={(e) => { setIsPublic(e.target.value); setPage(1); }} className={selectClasses}>
+        <select
+          value={isPublic}
+          onChange={(e) => {
+            setIsPublic(e.target.value);
+            setPage(1);
+          }}
+          className={selectClasses}
+        >
           <option value="">All Visibility</option>
           <option value="true">Public</option>
           <option value="false">Private</option>
         </select>
-        <label className="flex items-center gap-2 text-sm text-muted-foreground">
+        <label className="text-muted-foreground flex items-center gap-2 text-sm">
           <input
             type="checkbox"
             checked={includeDeleted}
-            onChange={(e) => { setIncludeDeleted(e.target.checked); setPage(1); }}
+            onChange={(e) => {
+              setIncludeDeleted(e.target.checked);
+              setPage(1);
+            }}
             className="rounded"
           />
           Include deleted
         </label>
       </AdminFilterBar>
 
-      <div className="overflow-hidden rounded-lg border border-border">
+      <div className="border-border overflow-hidden rounded-lg border">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-border bg-muted/50">
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Title</th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Origin</th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Language</th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Difficulty</th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Status</th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Visibility</th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Created</th>
-              <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">Actions</th>
+            <tr className="border-border bg-muted/50 border-b">
+              <th className="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider uppercase">
+                Title
+              </th>
+              <th className="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider uppercase">
+                Origin
+              </th>
+              <th className="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider uppercase">
+                Language
+              </th>
+              <th className="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider uppercase">
+                Difficulty
+              </th>
+              <th className="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider uppercase">
+                Status
+              </th>
+              <th className="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider uppercase">
+                Visibility
+              </th>
+              <th className="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider uppercase">
+                Created
+              </th>
+              <th className="text-muted-foreground px-4 py-3 text-right text-xs font-medium tracking-wider uppercase">
+                Actions
+              </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border">
+          <tbody className="divide-border divide-y">
             {loading ? (
               <AdminTableSkeleton columns={8} />
             ) : exercises.length === 0 ? (
@@ -201,9 +256,15 @@ export default function AdminExercisesPage() {
               </tr>
             ) : (
               exercises.map((ex) => (
-                <tr key={ex.id} className={`transition-colors hover:bg-muted/30 ${ex.deletedAt ? 'opacity-50' : ''}`}>
+                <tr
+                  key={ex.id}
+                  className={`hover:bg-muted/30 transition-colors ${ex.deletedAt ? 'opacity-50' : ''}`}
+                >
                   <td className="px-4 py-4">
-                    <Link href={`/admin/exercises/${ex.id}`} className="font-medium text-foreground hover:text-primary hover:underline">
+                    <Link
+                      href={`/admin/exercises/${ex.id}`}
+                      className="text-foreground hover:text-primary font-medium hover:underline"
+                    >
                       {ex.title}
                     </Link>
                   </td>
@@ -212,7 +273,7 @@ export default function AdminExercisesPage() {
                       {ex.origin}
                     </Badge>
                   </td>
-                  <td className="px-4 py-4 capitalize text-muted-foreground">{ex.language}</td>
+                  <td className="text-muted-foreground px-4 py-4 capitalize">{ex.language}</td>
                   <td className="px-4 py-4">
                     <Badge variant="outline" className={DIFFICULTY_COLORS[ex.difficulty] ?? ''}>
                       {ex.difficulty}
@@ -224,12 +285,16 @@ export default function AdminExercisesPage() {
                     </Badge>
                   </td>
                   <td className="px-4 py-4">
-                    <span className={`inline-flex items-center gap-1.5 text-sm ${ex.isPublic ? 'text-emerald-600' : 'text-muted-foreground'}`}>
-                      <span className={`h-1.5 w-1.5 rounded-full ${ex.isPublic ? 'bg-emerald-500' : 'bg-muted-foreground/50'}`} />
+                    <span
+                      className={`inline-flex items-center gap-1.5 text-sm ${ex.isPublic ? 'text-emerald-600' : 'text-muted-foreground'}`}
+                    >
+                      <span
+                        className={`h-1.5 w-1.5 rounded-full ${ex.isPublic ? 'bg-emerald-500' : 'bg-muted-foreground/50'}`}
+                      />
                       {ex.isPublic ? 'Public' : 'Private'}
                     </span>
                   </td>
-                  <td className="px-4 py-4 text-muted-foreground">
+                  <td className="text-muted-foreground px-4 py-4">
                     {new Date(ex.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-4 py-4 text-right">
@@ -243,14 +308,19 @@ export default function AdminExercisesPage() {
                         {ex.isValidated ? 'Invalidate' : 'Validate'}
                       </Button>
                       {ex.deletedAt ? (
-                        <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => handleRestore(ex.id)}>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 text-xs"
+                          onClick={() => handleRestore(ex.id)}
+                        >
                           Restore
                         </Button>
                       ) : (
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-8 text-xs text-destructive hover:text-destructive"
+                          className="text-destructive hover:text-destructive h-8 text-xs"
                           onClick={() => handleDelete(ex.id)}
                         >
                           Delete
@@ -267,7 +337,7 @@ export default function AdminExercisesPage() {
 
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">
+          <span className="text-muted-foreground text-sm">
             Page {page} of {totalPages} ({totalCount} results)
           </span>
           <div className="flex gap-2">

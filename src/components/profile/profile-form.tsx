@@ -88,12 +88,9 @@ export function ProfileForm({ profile, userEmail }: ProfileFormProps) {
 
   const [isSaving, setIsSaving] = useState<boolean>(false);
 
-  const updateField = useCallback(
-    (field: keyof FormState, value: string | number | boolean) => {
-      setForm((prev) => ({ ...prev, [field]: value }));
-    },
-    []
-  );
+  const updateField = useCallback((field: keyof FormState, value: string | number | boolean) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  }, []);
 
   const handleSave = useCallback(async () => {
     setIsSaving(true);
@@ -188,7 +185,7 @@ export function ProfileForm({ profile, userEmail }: ProfileFormProps) {
       </section>
 
       {/* Coding Preferences Section */}
-      <section className="border-t pt-6 mt-6">
+      <section className="mt-6 border-t pt-6">
         <h2 className="mb-4 text-lg font-semibold">Coding Preferences</h2>
         <div className="max-w-md space-y-4">
           <div>
@@ -254,7 +251,7 @@ export function ProfileForm({ profile, userEmail }: ProfileFormProps) {
       </section>
 
       {/* Goals & Notifications Section */}
-      <section className="border-t pt-6 mt-6">
+      <section className="mt-6 border-t pt-6">
         <h2 className="mb-4 text-lg font-semibold">Goals & Notifications</h2>
         <div className="max-w-md space-y-4">
           <div>

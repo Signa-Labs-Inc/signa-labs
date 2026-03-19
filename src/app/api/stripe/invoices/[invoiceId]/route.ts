@@ -21,9 +21,8 @@ export async function GET(
 
     // Verify the invoice belongs to this user's Stripe customer
     const customerId = await getStripeCustomerId(user.id);
-    const invoiceCustomerId = typeof invoice.customer === 'string'
-      ? invoice.customer
-      : invoice.customer?.id;
+    const invoiceCustomerId =
+      typeof invoice.customer === 'string' ? invoice.customer : invoice.customer?.id;
 
     if (!customerId || invoiceCustomerId !== customerId) {
       throw new ForbiddenError('You do not have access to this invoice');

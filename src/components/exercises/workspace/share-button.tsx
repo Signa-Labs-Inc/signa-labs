@@ -97,33 +97,37 @@ export function ShareButton({ exerciseId, initialIsPublic, initialSlug }: ShareB
             className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
             onClick={() => setShowDialog(false)}
           />
-          <div className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-border/60 bg-card shadow-2xl">
+          <div className="border-border/60 bg-card fixed top-1/2 left-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border shadow-2xl">
             {/* Header with gradient accent */}
-            <div className="relative border-b border-border/40 bg-linear-to-br from-primary/10 via-transparent to-violet-500/5 px-6 py-5">
+            <div className="border-border/40 from-primary/10 relative border-b bg-linear-to-br via-transparent to-violet-500/5 px-6 py-5">
               <button
                 onClick={() => setShowDialog(false)}
-                className="absolute right-4 top-4 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-accent/50 hover:text-foreground"
+                className="text-muted-foreground hover:bg-accent/50 hover:text-foreground absolute top-4 right-4 rounded-lg p-1.5 transition-colors"
               >
                 <X className="h-4 w-4" />
               </button>
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
-                  <Share2 className="h-5 w-5 text-primary" />
+                <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-xl">
+                  <Share2 className="text-primary h-5 w-5" />
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold">Share Exercise</h3>
-                  <p className="text-xs text-muted-foreground">Anyone with the link can try this exercise</p>
+                  <p className="text-muted-foreground text-xs">
+                    Anyone with the link can try this exercise
+                  </p>
                 </div>
               </div>
             </div>
 
-            <div className="px-6 py-5 space-y-5">
+            <div className="space-y-5 px-6 py-5">
               {/* Share URL */}
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Share link</label>
-                <div className="flex items-center gap-2 rounded-xl border border-border/60 bg-muted/30 px-3 py-2.5 transition-colors focus-within:border-primary/40 focus-within:ring-1 focus-within:ring-primary/20">
-                  <Link2 className="h-4 w-4 shrink-0 text-muted-foreground" />
-                  <span className="flex-1 truncate text-sm font-mono">{shareUrl}</span>
+                <label className="text-muted-foreground mb-1.5 block text-xs font-medium">
+                  Share link
+                </label>
+                <div className="border-border/60 bg-muted/30 focus-within:border-primary/40 focus-within:ring-primary/20 flex items-center gap-2 rounded-xl border px-3 py-2.5 transition-colors focus-within:ring-1">
+                  <Link2 className="text-muted-foreground h-4 w-4 shrink-0" />
+                  <span className="flex-1 truncate font-mono text-sm">{shareUrl}</span>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -147,14 +151,21 @@ export function ShareButton({ exerciseId, initialIsPublic, initialSlug }: ShareB
 
               {/* Social share links */}
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Share on social</label>
+                <label className="text-muted-foreground mb-1.5 block text-xs font-medium">
+                  Share on social
+                </label>
                 <div className="flex gap-2">
                   <button
-                    className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-border/60 bg-card px-4 py-2.5 text-sm font-medium transition-all hover:-translate-y-0.5 hover:border-sky-500/30 hover:bg-sky-500/5 hover:text-sky-500 hover:shadow-sm"
+                    className="border-border/60 bg-card flex flex-1 items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all hover:-translate-y-0.5 hover:border-sky-500/30 hover:bg-sky-500/5 hover:text-sky-500 hover:shadow-sm"
                     onClick={() => {
-                      const text = encodeURIComponent(`Can you solve this? Check out this exercise on Signa Labs!`);
+                      const text = encodeURIComponent(
+                        `Can you solve this? Check out this exercise on Signa Labs!`
+                      );
                       const url = encodeURIComponent(shareUrl);
-                      window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
+                      window.open(
+                        `https://twitter.com/intent/tweet?text=${text}&url=${url}`,
+                        '_blank'
+                      );
                     }}
                   >
                     <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
@@ -163,10 +174,13 @@ export function ShareButton({ exerciseId, initialIsPublic, initialSlug }: ShareB
                     Post on X
                   </button>
                   <button
-                    className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-border/60 bg-card px-4 py-2.5 text-sm font-medium transition-all hover:-translate-y-0.5 hover:border-blue-500/30 hover:bg-blue-500/5 hover:text-blue-500 hover:shadow-sm"
+                    className="border-border/60 bg-card flex flex-1 items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all hover:-translate-y-0.5 hover:border-blue-500/30 hover:bg-blue-500/5 hover:text-blue-500 hover:shadow-sm"
                     onClick={() => {
                       const url = encodeURIComponent(shareUrl);
-                      window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, '_blank');
+                      window.open(
+                        `https://www.linkedin.com/sharing/share-offsite/?url=${url}`,
+                        '_blank'
+                      );
                     }}
                   >
                     <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
@@ -178,9 +192,9 @@ export function ShareButton({ exerciseId, initialIsPublic, initialSlug }: ShareB
               </div>
 
               {/* Divider + Unshare */}
-              <div className="border-t border-border/40 pt-4">
+              <div className="border-border/40 border-t pt-4">
                 <button
-                  className="flex w-full items-center justify-center gap-1.5 rounded-xl px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-red-500/10 hover:text-red-500 disabled:opacity-50"
+                  className="text-muted-foreground flex w-full items-center justify-center gap-1.5 rounded-xl px-4 py-2 text-sm font-medium transition-colors hover:bg-red-500/10 hover:text-red-500 disabled:opacity-50"
                   onClick={handleUnshare}
                   disabled={isLoading}
                 >

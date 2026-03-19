@@ -24,9 +24,7 @@ export function PageHint({ hintId }: PageHintProps) {
     >
       <div className="pr-5">
         <p className="text-sm font-semibold">{hint.title}</p>
-        <p className="text-muted-foreground mt-1 text-xs leading-relaxed">
-          {hint.description}
-        </p>
+        <p className="text-muted-foreground mt-1 text-xs leading-relaxed">{hint.description}</p>
       </div>
       <div className="mt-3 flex justify-end">
         <Button size="sm" onClick={() => dismissHint(hintId)} className="h-7 px-3 text-xs">

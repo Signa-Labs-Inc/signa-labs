@@ -36,33 +36,30 @@ function formatResetsAt(iso: string): string {
 
 function UsageBar({ usage }: { usage: UsageSummary }) {
   const isUnlimited = usage.limit === -1;
-  const percentage = isUnlimited || usage.limit <= 0 ? 0 : Math.min((usage.current / usage.limit) * 100, 100);
+  const percentage =
+    isUnlimited || usage.limit <= 0 ? 0 : Math.min((usage.current / usage.limit) * 100, 100);
   const isAtLimit = !isUnlimited && usage.limit > 0 && usage.current >= usage.limit;
 
   return (
-    <div className="rounded-xl border border-border bg-card p-5">
+    <div className="border-border bg-card rounded-xl border p-5">
       <div className="flex items-center justify-between">
         <h3 className="font-medium">{usage.label}</h3>
-        <span className="text-sm text-muted-foreground">
+        <span className="text-muted-foreground text-sm">
           {isUnlimited ? 'Unlimited' : `${usage.current} / ${usage.limit}`}
         </span>
       </div>
 
       {!isUnlimited && (
         <>
-          <div className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-muted">
+          <div className="bg-muted mt-3 h-2.5 w-full overflow-hidden rounded-full">
             <div
               className={`h-full rounded-full transition-all ${
-                isAtLimit
-                  ? 'bg-destructive'
-                  : percentage >= 80
-                    ? 'bg-amber-500'
-                    : 'bg-primary'
+                isAtLimit ? 'bg-destructive' : percentage >= 80 ? 'bg-amber-500' : 'bg-primary'
               }`}
               style={{ width: `${percentage}%` }}
             />
           </div>
-          <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
+          <div className="text-muted-foreground mt-2 flex items-center justify-between text-xs">
             <span>
               {isAtLimit
                 ? 'Limit reached'
@@ -74,9 +71,7 @@ function UsageBar({ usage }: { usage: UsageSummary }) {
       )}
 
       {isUnlimited && (
-        <p className="mt-2 text-xs text-muted-foreground">
-          No limit on your current plan.
-        </p>
+        <p className="text-muted-foreground mt-2 text-xs">No limit on your current plan.</p>
       )}
     </div>
   );
@@ -84,10 +79,7 @@ function UsageBar({ usage }: { usage: UsageSummary }) {
 
 export default async function UsagePage() {
   const user = await requireCurrentUser();
-  const [usage, plan] = await Promise.all([
-    getAllUsageLimits(user.id),
-    getUserPlan(user.id),
-  ]);
+  const [usage, plan] = await Promise.all([getAllUsageLimits(user.id), getUserPlan(user.id)]);
 
   return (
     <div className="animate-fade-in mx-auto max-w-2xl px-6 py-10">
@@ -111,9 +103,7 @@ export default async function UsagePage() {
 
       {usage.some((u) => u.limit !== -1 && u.current >= u.limit) && (
         <div className="mt-6 rounded-xl border border-amber-500/20 bg-amber-500/5 p-5">
-          <p className="font-medium text-amber-300">
-            You&apos;ve hit one or more limits.
-          </p>
+          <p className="font-medium text-amber-300">You&apos;ve hit one or more limits.</p>
           <p className="mt-1 text-sm text-amber-300/80">
             Upgrade your plan for higher limits and more features.
           </p>

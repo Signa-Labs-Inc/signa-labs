@@ -45,7 +45,6 @@ const DIFFICULTY_COLORS: Record<string, string> = {
     'bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-800',
 };
 
-
 // ============================================================
 // Types
 // ============================================================
@@ -363,9 +362,7 @@ export function ExerciseWorkspace({
         ? `/api/exercises/${exercise.id}/try`
         : `/api/exercises/${exercise.id}/submit`;
 
-      const payload = isAnonymous
-        ? { files: editableFiles }
-        : { attemptId, files: editableFiles };
+      const payload = isAnonymous ? { files: editableFiles } : { attemptId, files: editableFiles };
 
       const response = await fetch(url, {
         method: 'POST',
@@ -461,7 +458,7 @@ export function ExerciseWorkspace({
     <>
       <div className="flex h-full flex-col">
         {/* Top bar */}
-        <div className="flex items-center justify-between border-b bg-card px-4 py-2">
+        <div className="bg-card flex items-center justify-between border-b px-4 py-2">
           <div className="flex items-center gap-3">
             <Link href={isPathExercise ? `/paths/${pathId}` : '/exercises'}>
               <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -491,8 +488,12 @@ export function ExerciseWorkspace({
                 {saveStatus === 'saving' && (
                   <span className="text-muted-foreground animate-pulse text-xs">Saving...</span>
                 )}
-                {saveStatus === 'saved' && <span className="text-muted-foreground text-xs">Saved</span>}
-                {saveStatus === 'error' && <span className="text-xs text-red-500">Save failed</span>}
+                {saveStatus === 'saved' && (
+                  <span className="text-muted-foreground text-xs">Saved</span>
+                )}
+                {saveStatus === 'error' && (
+                  <span className="text-xs text-red-500">Save failed</span>
+                )}
               </>
             )}
 
@@ -567,7 +568,7 @@ export function ExerciseWorkspace({
         {/* Main workspace area */}
         <div className="flex flex-1 overflow-hidden">
           {/* Left panel: Instructions + Hints */}
-          <div className="flex w-[400px] flex-shrink-0 flex-col border-r bg-card">
+          <div className="bg-card flex w-[400px] flex-shrink-0 flex-col border-r">
             {/* Left panel tabs */}
             <div className="bg-muted/30 flex items-center border-b px-2">
               {hasLesson && (
@@ -625,7 +626,7 @@ export function ExerciseWorkspace({
           </div>
 
           {/* Right panel: File tabs + Editor/Preview + Results */}
-          <div className="flex flex-1 flex-col overflow-hidden bg-card">
+          <div className="bg-card flex flex-1 flex-col overflow-hidden">
             {/* File tabs */}
             <div className="bg-muted/30 flex items-center border-b px-2">
               <div className="flex flex-1 items-center gap-0 overflow-x-auto">
@@ -696,16 +697,17 @@ export function ExerciseWorkspace({
                   onCollapse={() => setResultsCollapsed(true)}
                 />
               )}
-              {isAnonymous && showAnonymousCTA && (
-                <AnonymousSignupCTA variant={showAnonymousCTA} />
-              )}
-              {!resultsCollapsed && !isAnonymous && (explanation || isExplaining) && !showSynthesis && (
-                <ExplanationPanel
-                  explanation={explanation}
-                  isLoading={isExplaining}
-                  onViewLesson={lessonContent ? () => setLeftTab('lesson') : undefined}
-                />
-              )}
+              {isAnonymous && showAnonymousCTA && <AnonymousSignupCTA variant={showAnonymousCTA} />}
+              {!resultsCollapsed &&
+                !isAnonymous &&
+                (explanation || isExplaining) &&
+                !showSynthesis && (
+                  <ExplanationPanel
+                    explanation={explanation}
+                    isLoading={isExplaining}
+                    onViewLesson={lessonContent ? () => setLeftTab('lesson') : undefined}
+                  />
+                )}
               {!isAnonymous && showSynthesis && synthesisContent && (
                 <SynthesisPanel
                   synthesis={synthesisContent}

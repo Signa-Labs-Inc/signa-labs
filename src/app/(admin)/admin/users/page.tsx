@@ -6,7 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { AdminPageHeader } from '@/components/admin/admin-page-header';
-import { AdminTableSkeleton, AdminEmptyState, AdminFilterBar } from '@/components/admin/admin-table-skeleton';
+import {
+  AdminTableSkeleton,
+  AdminEmptyState,
+  AdminFilterBar,
+} from '@/components/admin/admin-table-skeleton';
 
 type User = {
   id: string;
@@ -91,15 +95,11 @@ export default function AdminUsersPage() {
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader
-        title="Users"
-        description={`${totalCount} users total`}
-        icon={Users}
-      />
+      <AdminPageHeader title="Users" description={`${totalCount} users total`} icon={Users} />
 
       <AdminFilterBar>
         <div className="flex items-center gap-2">
-          <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <Search className="text-muted-foreground h-4 w-4 shrink-0" />
           <Input
             placeholder="Search by email, name, or username..."
             value={search}
@@ -109,18 +109,28 @@ export default function AdminUsersPage() {
         </div>
       </AdminFilterBar>
 
-      <div className="overflow-hidden rounded-lg border border-border">
+      <div className="border-border overflow-hidden rounded-lg border">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-border bg-muted/50">
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">User</th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Email</th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Role</th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Joined</th>
-              <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">Change Role</th>
+            <tr className="border-border bg-muted/50 border-b">
+              <th className="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider uppercase">
+                User
+              </th>
+              <th className="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider uppercase">
+                Email
+              </th>
+              <th className="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider uppercase">
+                Role
+              </th>
+              <th className="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider uppercase">
+                Joined
+              </th>
+              <th className="text-muted-foreground px-4 py-3 text-right text-xs font-medium tracking-wider uppercase">
+                Change Role
+              </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border">
+          <tbody className="divide-border divide-y">
             {loading ? (
               <AdminTableSkeleton columns={5} />
             ) : users.length === 0 ? (
@@ -131,34 +141,34 @@ export default function AdminUsersPage() {
               </tr>
             ) : (
               users.map((user) => (
-                <tr key={user.id} className="transition-colors hover:bg-muted/30">
+                <tr key={user.id} className="hover:bg-muted/30 transition-colors">
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
+                      <div className="bg-primary/10 text-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-medium">
                         {(user.displayName ?? user.email)?.[0]?.toUpperCase() ?? '?'}
                       </div>
                       <div>
                         <p className="font-medium">{user.displayName ?? user.username ?? '-'}</p>
                         {user.username && user.displayName && (
-                          <p className="text-xs text-muted-foreground">@{user.username}</p>
+                          <p className="text-muted-foreground text-xs">@{user.username}</p>
                         )}
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-4 text-muted-foreground">{user.email}</td>
+                  <td className="text-muted-foreground px-4 py-4">{user.email}</td>
                   <td className="px-4 py-4">
                     <Badge variant="outline" className={ROLE_STYLES[user.role] ?? ''}>
                       {user.role}
                     </Badge>
                   </td>
-                  <td className="px-4 py-4 text-muted-foreground">
+                  <td className="text-muted-foreground px-4 py-4">
                     {new Date(user.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-4 py-4 text-right">
                     <select
                       value={user.role}
                       onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                      className="h-8 rounded-md border border-border bg-background px-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                      className="border-border bg-background focus:ring-ring h-8 rounded-md border px-2 text-sm focus:ring-1 focus:outline-none"
                     >
                       <option value="learner">learner</option>
                       <option value="admin">admin</option>
@@ -174,14 +184,24 @@ export default function AdminUsersPage() {
 
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">
+          <span className="text-muted-foreground text-sm">
             Page {page} of {totalPages} ({totalCount} results)
           </span>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => p - 1)}
+            >
               Previous
             </Button>
-            <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page >= totalPages}
+              onClick={() => setPage((p) => p + 1)}
+            >
               Next
             </Button>
           </div>

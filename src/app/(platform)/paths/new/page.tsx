@@ -86,11 +86,11 @@ export default function NewPathPage() {
   return (
     <div className="animate-fade-in">
       {/* ── Hero Header ── */}
-      <div className="relative overflow-hidden border-b border-border bg-linear-to-br from-primary/10 via-background to-violet-500/5">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent" />
+      <div className="border-border from-primary/10 via-background relative overflow-hidden border-b bg-linear-to-br to-violet-500/5">
+        <div className="from-primary/5 absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] via-transparent to-transparent" />
         <div className="relative mx-auto max-w-3xl px-6 py-10 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-primary/20 to-violet-400/20">
-            <Route className="h-7 w-7 text-primary" />
+          <div className="from-primary/20 mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br to-violet-400/20">
+            <Route className="text-primary h-7 w-7" />
           </div>
           <h1 className="text-3xl font-bold tracking-tight">Start a Learning Path</h1>
           <p className="text-muted-foreground mt-2">
@@ -103,7 +103,7 @@ export default function NewPathPage() {
       {/* ── Composer ── */}
       <div className="mx-auto max-w-3xl px-6 py-8">
         {/* Main input card */}
-        <div className="overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm">
+        <div className="border-border/60 bg-card overflow-hidden rounded-2xl border shadow-sm">
           {/* Textarea */}
           <div className="p-4">
             <textarea
@@ -113,14 +113,14 @@ export default function NewPathPage() {
               rows={3}
               maxLength={500}
               disabled={isCreating}
-              className="w-full resize-none bg-transparent text-base outline-none placeholder:text-muted-foreground/50 disabled:opacity-50 md:text-sm"
+              className="placeholder:text-muted-foreground/50 w-full resize-none bg-transparent text-base outline-none disabled:opacity-50 md:text-sm"
             />
           </div>
 
           {/* Settings bar */}
-          <div className="flex flex-wrap items-center gap-2 border-t border-border/40 bg-muted/30 px-4 py-3">
+          <div className="border-border/40 bg-muted/30 flex flex-wrap items-center gap-2 border-t px-4 py-3">
             {/* Language toggle */}
-            <div className="flex items-center gap-1 rounded-lg border border-border/60 bg-card p-1">
+            <div className="border-border/60 bg-card flex items-center gap-1 rounded-lg border p-1">
               {LANGUAGES.map((lang) => (
                 <button
                   key={lang.value}
@@ -153,7 +153,7 @@ export default function NewPathPage() {
                 key={example}
                 onClick={() => setPrompt(example)}
                 disabled={isCreating}
-                className="rounded-full border border-border/60 bg-card px-3 py-1 text-xs text-muted-foreground transition-colors hover:border-primary/30 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                className="border-border/60 bg-card text-muted-foreground hover:border-primary/30 hover:text-foreground rounded-full border px-3 py-1 text-xs transition-colors disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {example}
               </button>
@@ -173,8 +173,8 @@ export default function NewPathPage() {
                 className={cn(
                   'rounded-xl border p-4 text-left transition-all',
                   level === l.value
-                    ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
-                    : 'border-border/60 bg-card hover:-translate-y-0.5 hover:border-foreground/20'
+                    ? 'border-primary bg-primary/5 ring-primary/20 ring-1'
+                    : 'border-border/60 bg-card hover:border-foreground/20 hover:-translate-y-0.5'
                 )}
               >
                 <span className="text-sm font-medium">{l.label}</span>
@@ -208,8 +208,8 @@ export default function NewPathPage() {
 
         {/* Progress steps */}
         {isCreating && (
-          <div className="mt-4 overflow-hidden rounded-xl border border-border/60 bg-card">
-            <div className="flex items-stretch divide-x divide-border/60">
+          <div className="border-border/60 bg-card mt-4 overflow-hidden rounded-xl border">
+            <div className="divide-border/60 flex items-stretch divide-x">
               <StepCard
                 number={1}
                 label="Submitting"
@@ -233,11 +233,12 @@ export default function NewPathPage() {
         )}
 
         {/* Error */}
-        {status === 'failed' && error && (
-          code === 'FORBIDDEN' ? (
+        {status === 'failed' &&
+          error &&
+          (code === 'FORBIDDEN' ? (
             <UpgradeBanner message={error} className="mt-4" />
           ) : (
-            <div className="mt-4 overflow-hidden rounded-xl border border-red-500/20 bg-linear-to-r from-red-500/5 via-card to-red-500/5">
+            <div className="via-card mt-4 overflow-hidden rounded-xl border border-red-500/20 bg-linear-to-r from-red-500/5 to-red-500/5">
               <div className="flex items-start gap-3 p-5">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-500/10">
                   <AlertTriangle className="h-5 w-5 text-red-400" />
@@ -257,8 +258,7 @@ export default function NewPathPage() {
                 </div>
               </div>
             </div>
-          )
-        )}
+          ))}
       </div>
     </div>
   );

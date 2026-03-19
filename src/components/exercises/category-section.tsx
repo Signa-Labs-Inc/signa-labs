@@ -1,13 +1,6 @@
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
-import {
-  BriefcaseBusiness,
-  Layers,
-  Globe,
-  Atom,
-  Terminal,
-  BookOpen,
-} from 'lucide-react';
+import { BriefcaseBusiness, Layers, Globe, Atom, Terminal, BookOpen } from 'lucide-react';
 import type { ExerciseCategory } from '@/lib/services/exercises/exercise-categories';
 import type { ExerciseSummary } from '@/lib/services/exercises/exercises.types';
 import { ExerciseCard } from './exercise-card';
@@ -28,22 +21,14 @@ type CategorySectionProps = {
   index: number;
 };
 
-export function CategorySection({
-  category,
-  exercises,
-  totalCount,
-  index,
-}: CategorySectionProps) {
+export function CategorySection({ category, exercises, totalCount, index }: CategorySectionProps) {
   const Icon = ICON_MAP[category.icon] ?? BookOpen;
 
   return (
-    <section
-      className="animate-fade-in"
-      style={{ animationDelay: `${index * 100}ms` }}
-    >
+    <section className="animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <div className="bg-primary/10 text-primary flex h-9 w-9 items-center justify-center rounded-lg">
             <Icon className="h-4.5 w-4.5" />
           </div>
           <div>
@@ -67,7 +52,7 @@ export function CategorySection({
           <div
             key={exercise.id}
             className="animate-fade-in"
-            style={{ animationDelay: `${(index * 100) + (i * 60)}ms` }}
+            style={{ animationDelay: `${index * 100 + i * 60}ms` }}
           >
             <ExerciseCard exercise={exercise} />
           </div>

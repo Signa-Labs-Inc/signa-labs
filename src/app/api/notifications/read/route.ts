@@ -1,7 +1,10 @@
 import { NextRequest } from 'next/server';
 import { requireCurrentUser } from '@/lib/services/auth/auth.service';
 import { handleError } from '@/lib/utils/api.handler-errors';
-import { markNotificationRead, markAllNotificationsRead } from '@/lib/services/notifications/notifications.service';
+import {
+  markNotificationRead,
+  markAllNotificationsRead,
+} from '@/lib/services/notifications/notifications.service';
 import { ValidationError } from '@/lib/utils/errors';
 
 export async function POST(req: NextRequest) {

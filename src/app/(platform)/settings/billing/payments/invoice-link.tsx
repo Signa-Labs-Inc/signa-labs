@@ -39,7 +39,7 @@ export function InvoiceLink({ invoiceId }: { invoiceId: string }) {
     <button
       onClick={handleClick}
       disabled={loading}
-      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+      className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-xs transition-colors disabled:opacity-50"
       title="View invoice"
     >
       {loading ? (

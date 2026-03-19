@@ -68,24 +68,20 @@ function ProgressRing({
 export function StatsOverview({ stats }: StatsOverviewProps) {
   const completionRate =
     stats.totalExercisesAttempted > 0
-      ? Math.round(
-          (stats.totalExercisesCompleted / stats.totalExercisesAttempted) * 100
-        )
+      ? Math.round((stats.totalExercisesCompleted / stats.totalExercisesAttempted) * 100)
       : 0;
 
   return (
     <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
       {/* Completed — with progress ring */}
       <div className="animate-fade-in" style={{ animationDelay: '0ms' }}>
-        <div className="bg-linear-to-br from-card via-card to-primary/5 rounded-xl border p-5">
+        <div className="from-card via-card to-primary/5 rounded-xl border bg-linear-to-br p-5">
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="rounded-lg p-2 bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400">
+              <div className="rounded-lg bg-emerald-100 p-2 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400">
                 <Trophy className="h-5 w-5" />
               </div>
-              <span className="text-muted-foreground text-sm font-medium">
-                Completed
-              </span>
+              <span className="text-muted-foreground text-sm font-medium">Completed</span>
             </div>
             <ProgressRing
               value={stats.totalExercisesCompleted}
@@ -108,7 +104,7 @@ export function StatsOverview({ stats }: StatsOverviewProps) {
       {/* Streak — with fire glow */}
       <div className="animate-fade-in" style={{ animationDelay: '80ms' }}>
         <div
-          className={`bg-linear-to-br from-card via-card to-primary/5 rounded-xl border p-5 ${
+          className={`from-card via-card to-primary/5 rounded-xl border bg-linear-to-br p-5 ${
             stats.currentStreakDays >= 7
               ? 'border-orange-500/30 shadow-sm shadow-orange-500/10'
               : ''
@@ -124,9 +120,7 @@ export function StatsOverview({ stats }: StatsOverviewProps) {
             >
               <Flame className="h-5 w-5" />
             </div>
-            <span className="text-muted-foreground text-sm font-medium">
-              Current Streak
-            </span>
+            <span className="text-muted-foreground text-sm font-medium">Current Streak</span>
           </div>
           <div className="flex items-baseline gap-2">
             <span
@@ -147,9 +141,7 @@ export function StatsOverview({ stats }: StatsOverviewProps) {
                 <div
                   key={i}
                   className={`h-1.5 flex-1 rounded-full transition-colors ${
-                    i < stats.currentStreakDays
-                      ? 'bg-orange-500'
-                      : 'bg-muted'
+                    i < stats.currentStreakDays ? 'bg-orange-500' : 'bg-muted'
                   }`}
                 />
               ))}
@@ -160,19 +152,15 @@ export function StatsOverview({ stats }: StatsOverviewProps) {
 
       {/* Longest streak */}
       <div className="animate-fade-in" style={{ animationDelay: '160ms' }}>
-        <div className="bg-linear-to-br from-card via-card to-primary/5 rounded-xl border p-5">
+        <div className="from-card via-card to-primary/5 rounded-xl border bg-linear-to-br p-5">
           <div className="mb-3 flex items-center gap-3">
-            <div className="rounded-lg p-2 bg-indigo-100 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400">
+            <div className="rounded-lg bg-indigo-100 p-2 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400">
               <Target className="h-5 w-5" />
             </div>
-            <span className="text-muted-foreground text-sm font-medium">
-              Best Streak
-            </span>
+            <span className="text-muted-foreground text-sm font-medium">Best Streak</span>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-bold tracking-tight">
-              {stats.longestStreakDays}
-            </span>
+            <span className="text-3xl font-bold tracking-tight">{stats.longestStreakDays}</span>
             <span className="text-muted-foreground text-sm">
               {stats.longestStreakDays === 1 ? 'day' : 'days'}
             </span>
@@ -182,14 +170,12 @@ export function StatsOverview({ stats }: StatsOverviewProps) {
 
       {/* Practice time */}
       <div className="animate-fade-in" style={{ animationDelay: '240ms' }}>
-        <div className="bg-linear-to-br from-card via-card to-primary/5 rounded-xl border p-5">
+        <div className="from-card via-card to-primary/5 rounded-xl border bg-linear-to-br p-5">
           <div className="mb-3 flex items-center gap-3">
-            <div className="rounded-lg p-2 bg-sky-100 text-sky-600 dark:bg-sky-950 dark:text-sky-400">
+            <div className="rounded-lg bg-sky-100 p-2 text-sky-600 dark:bg-sky-950 dark:text-sky-400">
               <Clock className="h-5 w-5" />
             </div>
-            <span className="text-muted-foreground text-sm font-medium">
-              Practice Time
-            </span>
+            <span className="text-muted-foreground text-sm font-medium">Practice Time</span>
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-3xl font-bold tracking-tight">

@@ -29,9 +29,7 @@ export function GuidedTour() {
     >
       <div className="pr-5">
         <p className="text-sm font-semibold">{step.title}</p>
-        <p className="text-muted-foreground mt-1 text-xs leading-relaxed">
-          {step.description}
-        </p>
+        <p className="text-muted-foreground mt-1 text-xs leading-relaxed">{step.description}</p>
       </div>
 
       {/* Step dots + actions */}

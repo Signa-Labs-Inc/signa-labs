@@ -2,8 +2,14 @@ import { toSubscriptionStatus, toPaymentStatus } from '../subscriptions.types';
 
 describe('toSubscriptionStatus', () => {
   const validStatuses = [
-    'trialing', 'active', 'past_due', 'canceled',
-    'unpaid', 'paused', 'incomplete', 'incomplete_expired',
+    'trialing',
+    'active',
+    'past_due',
+    'canceled',
+    'unpaid',
+    'paused',
+    'incomplete',
+    'incomplete_expired',
   ];
 
   it.each(validStatuses)('returns "%s" for valid status', (status) => {

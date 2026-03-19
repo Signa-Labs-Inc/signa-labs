@@ -34,7 +34,7 @@ export function NotificationBell() {
       if (!res.ok) return;
       const data = await res.json();
       const fetched = data.notifications ?? [];
-      setNotifications((prev) => append ? [...prev, ...fetched] : fetched);
+      setNotifications((prev) => (append ? [...prev, ...fetched] : fetched));
       setUnreadCount(data.unreadCount ?? 0);
       setHasMore(fetched.length === PAGE_SIZE);
     } catch (err) {
@@ -107,26 +107,26 @@ export function NotificationBell() {
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent/50 hover:text-foreground"
+        className="text-muted-foreground hover:bg-accent/50 hover:text-foreground relative flex h-8 w-8 items-center justify-center rounded-md transition-colors"
         aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
       >
         <Bell className="h-4 w-4" />
         {unreadCount > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+          <span className="bg-primary text-primary-foreground absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 z-50 w-80 rounded-md border border-border bg-card shadow-lg">
-          <div className="flex items-center justify-between border-b border-border px-4 py-3">
+        <div className="border-border bg-card absolute top-full right-0 z-50 mt-2 w-80 rounded-md border shadow-lg">
+          <div className="border-border flex items-center justify-between border-b px-4 py-3">
             <h3 className="text-sm font-semibold">Notifications</h3>
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllRead}
                 disabled={markingAll}
-                className="flex items-center gap-1 text-xs text-primary hover:underline disabled:opacity-50"
+                className="text-primary flex items-center gap-1 text-xs hover:underline disabled:opacity-50"
               >
                 {markingAll ? (
                   <Loader2 className="h-3 w-3 animate-spin" />
@@ -140,10 +140,10 @@ export function NotificationBell() {
 
           {notifications.length === 0 ? (
             <div className="px-4 py-6 text-center">
-              <p className="text-sm text-muted-foreground">No notifications</p>
+              <p className="text-muted-foreground text-sm">No notifications</p>
             </div>
           ) : (
-            <div className="max-h-80 divide-y divide-border overflow-y-auto">
+            <div className="divide-border max-h-80 divide-y overflow-y-auto">
               {notifications.map((n) => (
                 <button
                   key={n.id}
@@ -154,18 +154,18 @@ export function NotificationBell() {
                       setIsOpen(false);
                     }
                   }}
-                  className={`w-full px-4 py-3 text-left transition-colors hover:bg-accent/30 ${
+                  className={`hover:bg-accent/30 w-full px-4 py-3 text-left transition-colors ${
                     n.readAt ? 'opacity-60' : ''
                   }`}
                 >
                   <div className="flex items-start gap-2">
                     {!n.readAt && (
-                      <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary" />
+                      <span className="bg-primary mt-1.5 h-2 w-2 shrink-0 rounded-full" />
                     )}
                     <div className={n.readAt ? 'pl-4' : ''}>
                       <p className="text-sm font-medium">{n.subject}</p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">{n.body}</p>
-                      <p className="mt-1 text-[10px] text-muted-foreground/60">
+                      <p className="text-muted-foreground mt-0.5 text-xs">{n.body}</p>
+                      <p className="text-muted-foreground/60 mt-1 text-[10px]">
                         {new Date(n.createdAt).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
@@ -183,7 +183,7 @@ export function NotificationBell() {
                   <button
                     onClick={handleLoadMore}
                     disabled={loadingMore}
-                    className="text-xs text-primary hover:underline disabled:opacity-50"
+                    className="text-primary text-xs hover:underline disabled:opacity-50"
                   >
                     {loadingMore ? (
                       <Loader2 className="mx-auto h-3 w-3 animate-spin" />
@@ -195,7 +195,6 @@ export function NotificationBell() {
               )}
             </div>
           )}
-
         </div>
       )}
     </div>

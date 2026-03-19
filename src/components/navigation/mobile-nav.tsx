@@ -28,18 +28,18 @@ export function MobileNav() {
   return (
     <div className="md:hidden">
       {/* Top bar */}
-      <div className="flex h-14 items-center justify-between border-b border-border bg-card px-4">
+      <div className="border-border bg-card flex h-14 items-center justify-between border-b px-4">
         <Link href="/discover" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-primary to-violet-400 text-white font-bold text-sm">
+          <div className="from-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-linear-to-br to-violet-400 text-sm font-bold text-white">
             S
           </div>
-          <span className="text-lg font-bold text-foreground">Signa Labs</span>
+          <span className="text-foreground text-lg font-bold">Signa Labs</span>
         </Link>
         <div className="flex items-center gap-1">
           <NotificationBell />
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="rounded-md p-2 text-muted-foreground hover:bg-accent/50 transition-colors"
+            className="text-muted-foreground hover:bg-accent/50 rounded-md p-2 transition-colors"
           >
             {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
@@ -49,17 +49,14 @@ export function MobileNav() {
       {/* Overlay + Drawer */}
       {isOpen && (
         <>
-          <div
-            className="fixed inset-0 z-40 bg-black/50"
-            onClick={() => setIsOpen(false)}
-          />
-          <div className="fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-border flex flex-col">
+          <div className="fixed inset-0 z-40 bg-black/50" onClick={() => setIsOpen(false)} />
+          <div className="bg-card border-border fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r">
             {/* Header */}
-            <div className="flex h-14 items-center justify-between border-b border-border px-4">
-              <span className="text-lg font-bold text-primary">Signa Labs</span>
+            <div className="border-border flex h-14 items-center justify-between border-b px-4">
+              <span className="text-primary text-lg font-bold">Signa Labs</span>
               <button
                 onClick={() => setIsOpen(false)}
-                className="rounded-md p-2 text-muted-foreground hover:bg-accent/50 transition-colors"
+                className="text-muted-foreground hover:bg-accent/50 rounded-md p-2 transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -104,7 +101,7 @@ export function MobileNav() {
             </nav>
 
             {/* User menu + theme toggle */}
-            <div className="flex items-center justify-between border-t border-border p-3">
+            <div className="border-border flex items-center justify-between border-t p-3">
               <UserMenu />
               <ThemeToggle />
             </div>

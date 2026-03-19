@@ -9,7 +9,7 @@ export default function BlogPage() {
       <p className="text-muted-foreground mt-3 text-lg">
         Insights, tutorials, and updates from the Signa Labs team.
       </p>
-      <div className="mt-10 rounded-lg border border-dashed border-border p-12 text-center">
+      <div className="border-border mt-10 rounded-lg border border-dashed p-12 text-center">
         <p className="text-muted-foreground text-sm">
           This page is under construction. Check back soon.
         </p>

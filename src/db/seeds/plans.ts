@@ -112,10 +112,7 @@ export async function seedPlansAndPrices() {
   );
 
   for (const price of seedPrices) {
-    await db
-      .insert(planPrices)
-      .values(price)
-      .onConflictDoNothing();
+    await db.insert(planPrices).values(price).onConflictDoNothing();
   }
 
   console.log(`Seeded ${seedPrices.length} plan prices`);

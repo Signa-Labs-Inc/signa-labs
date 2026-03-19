@@ -35,11 +35,7 @@ export async function getExerciseBySlug(slug: string): Promise<Exercise | null> 
     .from(exercises)
     .innerJoin(exerciseEnvironments, eq(exercises.environmentId, exerciseEnvironments.id))
     .where(
-      and(
-        eq(exercises.slug, slug),
-        eq(exercises.isPublic, true),
-        isNull(exercises.deletedAt)
-      )
+      and(eq(exercises.slug, slug), eq(exercises.isPublic, true), isNull(exercises.deletedAt))
     );
   if (!exercise) return null;
 

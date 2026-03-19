@@ -212,7 +212,7 @@ export default function AdminCategoriesPage() {
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
                 rows={2}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                className="border-border bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:ring-1 focus:outline-none"
               />
             </div>
             <div className="space-y-1.5">
@@ -237,20 +237,34 @@ export default function AdminCategoriesPage() {
         </Card>
       )}
 
-      <div className="overflow-hidden rounded-lg border border-border">
+      <div className="border-border overflow-hidden rounded-lg border">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-border bg-muted/50">
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Order</th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Icon</th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Label</th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Description</th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Tags</th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Active</th>
-              <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">Actions</th>
+            <tr className="border-border bg-muted/50 border-b">
+              <th className="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider uppercase">
+                Order
+              </th>
+              <th className="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider uppercase">
+                Icon
+              </th>
+              <th className="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider uppercase">
+                Label
+              </th>
+              <th className="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider uppercase">
+                Description
+              </th>
+              <th className="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider uppercase">
+                Tags
+              </th>
+              <th className="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider uppercase">
+                Active
+              </th>
+              <th className="text-muted-foreground px-4 py-3 text-right text-xs font-medium tracking-wider uppercase">
+                Actions
+              </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border">
+          <tbody className="divide-border divide-y">
             {loading ? (
               <AdminTableSkeleton columns={7} rows={4} />
             ) : categories.length === 0 ? (
@@ -261,7 +275,7 @@ export default function AdminCategoriesPage() {
               </tr>
             ) : (
               categories.map((cat, idx) => (
-                <tr key={cat.id} className="transition-colors hover:bg-muted/30">
+                <tr key={cat.id} className="hover:bg-muted/30 transition-colors">
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-0.5">
                       <Button
@@ -282,14 +296,18 @@ export default function AdminCategoriesPage() {
                       >
                         <ChevronDown className="h-4 w-4" />
                       </Button>
-                      <span className="ml-1 tabular-nums text-muted-foreground">{cat.sortOrder}</span>
+                      <span className="text-muted-foreground ml-1 tabular-nums">
+                        {cat.sortOrder}
+                      </span>
                     </div>
                   </td>
                   <td className="px-4 py-4">
                     <span className="text-base">{cat.icon}</span>
                   </td>
                   <td className="px-4 py-4 font-medium">{cat.label}</td>
-                  <td className="max-w-[200px] truncate px-4 py-4 text-muted-foreground">{cat.description}</td>
+                  <td className="text-muted-foreground max-w-[200px] truncate px-4 py-4">
+                    {cat.description}
+                  </td>
                   <td className="px-4 py-4">
                     <div className="flex flex-wrap gap-1">
                       {(cat.tags ?? []).map((tag) => (
@@ -307,13 +325,18 @@ export default function AdminCategoriesPage() {
                   </td>
                   <td className="px-4 py-4 text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => startEdit(cat)}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        onClick={() => startEdit(cat)}
+                      >
                         <Pencil className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                        className="text-destructive hover:text-destructive h-8 w-8 p-0"
                         onClick={() => handleDelete(cat.id)}
                       >
                         <Trash2 className="h-4 w-4" />

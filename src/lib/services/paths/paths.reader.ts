@@ -49,9 +49,7 @@ export async function getTotalPathCount(): Promise<number> {
     return _totalPathCountCache.value;
   }
 
-  const [result] = await db
-    .select({ count: sql<number>`count(*)::int` })
-    .from(learningPaths);
+  const [result] = await db.select({ count: sql<number>`count(*)::int` }).from(learningPaths);
 
   const count = result?.count ?? 0;
   _totalPathCountCache = { value: count, expiresAt: Date.now() + PATH_COUNT_TTL_MS };

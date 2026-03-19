@@ -13,7 +13,16 @@ import { cn } from '@/lib/utils/helpers';
 
 const LANGUAGES = ['python', 'javascript', 'typescript', 'go', 'sql'];
 const DIFFICULTIES = ['beginner', 'easy', 'medium', 'hard', 'expert'];
-const EXERCISE_TYPES = ['algorithm', 'debugging', 'build', 'refactor', 'query', 'api', 'data_pipeline', 'config'];
+const EXERCISE_TYPES = [
+  'algorithm',
+  'debugging',
+  'build',
+  'refactor',
+  'query',
+  'api',
+  'data_pipeline',
+  'config',
+];
 const FILE_TYPES = ['starter', 'solution', 'test', 'support'] as const;
 
 type FileEntry = {
@@ -80,7 +89,7 @@ export default function AdminExerciseGeneratePage() {
       const res = await fetch('/api/admin/environments');
       if (res.ok) {
         const data = await res.json();
-        setEnvironments(Array.isArray(data) ? data : data.environments ?? []);
+        setEnvironments(Array.isArray(data) ? data : (data.environments ?? []));
       }
     } catch {
       console.error('Failed to fetch environments');
@@ -107,7 +116,12 @@ export default function AdminExerciseGeneratePage() {
   // Sync selected categories with tags input
   useEffect(() => {
     if (categories.length === 0) return;
-    const currentTags = new Set(tagsInput.split(',').map((t) => t.trim()).filter(Boolean));
+    const currentTags = new Set(
+      tagsInput
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean)
+    );
     const matched = new Set<string>();
     for (const cat of categories) {
       if (cat.tags.length > 0 && cat.tags.every((t) => currentTags.has(t))) {
@@ -169,7 +183,17 @@ export default function AdminExerciseGeneratePage() {
       support: { filePath: 'support/', fileName: 'helper' },
     };
     const d = defaults[fileType] ?? { filePath: '', fileName: '' };
-    setFiles((prev) => [...prev, { fileType, filePath: d.filePath, fileName: d.fileName, content: '', isEditable: fileType === 'starter', sortOrder: prev.filter((f) => f.fileType === fileType).length }]);
+    setFiles((prev) => [
+      ...prev,
+      {
+        fileType,
+        filePath: d.filePath,
+        fileName: d.fileName,
+        content: '',
+        isEditable: fileType === 'starter',
+        sortOrder: prev.filter((f) => f.fileType === fileType).length,
+      },
+    ]);
   }
 
   function removeFile(index: number) {
@@ -184,7 +208,10 @@ export default function AdminExerciseGeneratePage() {
     const category = categories.find((c) => c.id === categoryId);
     if (!category) return;
 
-    const currentTags = tagsInput.split(',').map((t) => t.trim()).filter(Boolean);
+    const currentTags = tagsInput
+      .split(',')
+      .map((t) => t.trim())
+      .filter(Boolean);
     const isSelected = selectedCategoryIds.has(categoryId);
 
     let newTags: string[];
@@ -193,9 +220,7 @@ export default function AdminExerciseGeneratePage() {
         (c) => c.id !== categoryId && selectedCategoryIds.has(c.id)
       );
       const tagsNeededByOthers = new Set(otherSelectedCats.flatMap((c) => c.tags));
-      newTags = currentTags.filter(
-        (t) => !category.tags.includes(t) || tagsNeededByOthers.has(t)
-      );
+      newTags = currentTags.filter((t) => !category.tags.includes(t) || tagsNeededByOthers.has(t));
     } else {
       const tagSet = new Set(currentTags);
       for (const t of category.tags) tagSet.add(t);
@@ -218,8 +243,14 @@ export default function AdminExerciseGeneratePage() {
     setCreateError('');
 
     try {
-      const tags = tagsInput.split(',').map((t) => t.trim()).filter(Boolean);
-      const hints = hintsInput.split('\n').map((h) => h.trim()).filter(Boolean);
+      const tags = tagsInput
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean);
+      const hints = hintsInput
+        .split('\n')
+        .map((h) => h.trim())
+        .filter(Boolean);
 
       const res = await fetch('/api/admin/exercises/generate', {
         method: 'POST',
@@ -257,7 +288,8 @@ export default function AdminExerciseGeneratePage() {
     }
   }
 
-  const selectClasses = 'w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring';
+  const selectClasses =
+    'w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring';
 
   return (
     <div className="space-y-6">
@@ -267,7 +299,7 @@ export default function AdminExerciseGeneratePage() {
         icon={FlaskConical}
       />
 
-      <div className="flex gap-1 rounded-lg bg-muted p-1 w-fit">
+      <div className="bg-muted flex w-fit gap-1 rounded-lg p-1">
         <button
           onClick={() => setActiveTab('ai')}
           className={cn(
@@ -304,33 +336,51 @@ export default function AdminExerciseGeneratePage() {
                 onChange={(e) => setPrompt(e.target.value)}
                 rows={5}
                 placeholder="Describe the exercise you want to generate..."
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm resize-y focus:outline-none focus:ring-1 focus:ring-ring"
+                className="border-border bg-background focus:ring-ring w-full resize-y rounded-md border px-3 py-2 text-sm focus:ring-1 focus:outline-none"
               />
             </div>
 
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-1.5">
                 <label className="text-sm font-medium">Language</label>
-                <select value={aiLanguage} onChange={(e) => setAiLanguage(e.target.value)} className={selectClasses}>
+                <select
+                  value={aiLanguage}
+                  onChange={(e) => setAiLanguage(e.target.value)}
+                  className={selectClasses}
+                >
                   {LANGUAGES.map((l) => (
-                    <option key={l} value={l}>{l}</option>
+                    <option key={l} value={l}>
+                      {l}
+                    </option>
                   ))}
                 </select>
               </div>
               <div className="space-y-1.5">
                 <label className="text-sm font-medium">Difficulty</label>
-                <select value={aiDifficulty} onChange={(e) => setAiDifficulty(e.target.value)} className={selectClasses}>
+                <select
+                  value={aiDifficulty}
+                  onChange={(e) => setAiDifficulty(e.target.value)}
+                  className={selectClasses}
+                >
                   {DIFFICULTIES.map((d) => (
-                    <option key={d} value={d}>{d}</option>
+                    <option key={d} value={d}>
+                      {d}
+                    </option>
                   ))}
                 </select>
               </div>
               <div className="space-y-1.5">
                 <label className="text-sm font-medium">Type (optional)</label>
-                <select value={aiExerciseType} onChange={(e) => setAiExerciseType(e.target.value)} className={selectClasses}>
+                <select
+                  value={aiExerciseType}
+                  onChange={(e) => setAiExerciseType(e.target.value)}
+                  className={selectClasses}
+                >
                   <option value="">None</option>
                   {EXERCISE_TYPES.map((t) => (
-                    <option key={t} value={t}>{t}</option>
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -341,20 +391,26 @@ export default function AdminExerciseGeneratePage() {
             </Button>
 
             {generationError && (
-              <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+              <div className="border-destructive/50 bg-destructive/10 text-destructive rounded-md border p-3 text-sm">
                 {generationError}
               </div>
             )}
 
             {generationResult && (
               <div className="space-y-3 rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-4">
-                <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400">Generation started successfully!</p>
-                <p className="text-sm text-muted-foreground">
-                  Run ID: <code className="rounded bg-muted px-1.5 py-0.5 text-xs">{generationResult.runId}</code>
+                <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
+                  Generation started successfully!
                 </p>
-                <p className="text-xs text-muted-foreground">
-                  Note: The generated exercise will be created with origin &quot;user&quot; (hardcoded by the generation service).
-                  You can convert it to a platform exercise from the exercise detail page.
+                <p className="text-muted-foreground text-sm">
+                  Run ID:{' '}
+                  <code className="bg-muted rounded px-1.5 py-0.5 text-xs">
+                    {generationResult.runId}
+                  </code>
+                </p>
+                <p className="text-muted-foreground text-xs">
+                  Note: The generated exercise will be created with origin &quot;user&quot;
+                  (hardcoded by the generation service). You can convert it to a platform exercise
+                  from the exercise detail page.
                 </p>
                 <Button variant="outline" size="sm" onClick={() => router.push('/admin/exercises')}>
                   Go to Exercises List
@@ -373,7 +429,11 @@ export default function AdminExerciseGeneratePage() {
 
               <div className="space-y-1.5">
                 <label className="text-sm font-medium">Title</label>
-                <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Exercise title" />
+                <Input
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Exercise title"
+                />
               </div>
 
               <div className="space-y-1.5">
@@ -383,24 +443,36 @@ export default function AdminExerciseGeneratePage() {
                   onChange={(e) => setDescription(e.target.value)}
                   rows={6}
                   placeholder="Exercise description in markdown..."
-                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm resize-y font-mono focus:outline-none focus:ring-1 focus:ring-ring"
+                  className="border-border bg-background focus:ring-ring w-full resize-y rounded-md border px-3 py-2 font-mono text-sm focus:ring-1 focus:outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium">Language</label>
-                  <select value={manualLanguage} onChange={(e) => setManualLanguage(e.target.value)} className={selectClasses}>
+                  <select
+                    value={manualLanguage}
+                    onChange={(e) => setManualLanguage(e.target.value)}
+                    className={selectClasses}
+                  >
                     {LANGUAGES.map((l) => (
-                      <option key={l} value={l}>{l}</option>
+                      <option key={l} value={l}>
+                        {l}
+                      </option>
                     ))}
                   </select>
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium">Difficulty</label>
-                  <select value={manualDifficulty} onChange={(e) => setManualDifficulty(e.target.value)} className={selectClasses}>
+                  <select
+                    value={manualDifficulty}
+                    onChange={(e) => setManualDifficulty(e.target.value)}
+                    className={selectClasses}
+                  >
                     {DIFFICULTIES.map((d) => (
-                      <option key={d} value={d}>{d}</option>
+                      <option key={d} value={d}>
+                        {d}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -408,10 +480,16 @@ export default function AdminExerciseGeneratePage() {
 
               <div className="space-y-1.5">
                 <label className="text-sm font-medium">Environment</label>
-                <select value={environmentId} onChange={(e) => setEnvironmentId(e.target.value)} className={selectClasses}>
+                <select
+                  value={environmentId}
+                  onChange={(e) => setEnvironmentId(e.target.value)}
+                  className={selectClasses}
+                >
                   <option value="">Select Environment</option>
                   {environments.map((env) => (
-                    <option key={env.id} value={env.id}>{env.displayName || env.name}</option>
+                    <option key={env.id} value={env.id}>
+                      {env.displayName || env.name}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -419,7 +497,9 @@ export default function AdminExerciseGeneratePage() {
               {categories.length > 0 && (
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Categories</label>
-                  <p className="text-xs text-muted-foreground">Select categories to auto-populate tags.</p>
+                  <p className="text-muted-foreground text-xs">
+                    Select categories to auto-populate tags.
+                  </p>
                   <div className="grid gap-2 sm:grid-cols-2">
                     {categories.map((cat) => {
                       const isSelected = selectedCategoryIds.has(cat.id);
@@ -435,12 +515,14 @@ export default function AdminExerciseGeneratePage() {
                               : 'border-border hover:border-primary/30 hover:bg-muted/30'
                           )}
                         >
-                          <div className={cn(
-                            'flex h-4 w-4 shrink-0 items-center justify-center rounded border text-[10px]',
-                            isSelected
-                              ? 'border-primary bg-primary text-primary-foreground'
-                              : 'border-muted-foreground/30'
-                          )}>
+                          <div
+                            className={cn(
+                              'flex h-4 w-4 shrink-0 items-center justify-center rounded border text-[10px]',
+                              isSelected
+                                ? 'border-primary bg-primary text-primary-foreground'
+                                : 'border-muted-foreground/30'
+                            )}
+                          >
                             {isSelected && '✓'}
                           </div>
                           <span className="font-medium">{cat.label}</span>
@@ -467,7 +549,7 @@ export default function AdminExerciseGeneratePage() {
                   onChange={(e) => setHintsInput(e.target.value)}
                   rows={4}
                   placeholder="First hint&#10;Second hint&#10;Third hint"
-                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm resize-y focus:outline-none focus:ring-1 focus:ring-ring"
+                  className="border-border bg-background focus:ring-ring w-full resize-y rounded-md border px-3 py-2 text-sm focus:ring-1 focus:outline-none"
                 />
               </div>
 
@@ -500,7 +582,7 @@ export default function AdminExerciseGeneratePage() {
                         <Badge variant="outline" className={FILE_BADGE_COLORS[fileType]}>
                           {fileType}
                         </Badge>
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-muted-foreground text-sm">
                           {typeFiles.length} file{typeFiles.length !== 1 ? 's' : ''}
                         </span>
                       </div>
@@ -511,7 +593,10 @@ export default function AdminExerciseGeneratePage() {
                     </div>
 
                     {typeFiles.map((file) => (
-                      <div key={file._index} className="space-y-2 rounded-lg border border-border bg-muted/30 p-3">
+                      <div
+                        key={file._index}
+                        className="border-border bg-muted/30 space-y-2 rounded-lg border p-3"
+                      >
                         <div className="flex items-center gap-2">
                           <Input
                             value={file.filePath}
@@ -528,7 +613,7 @@ export default function AdminExerciseGeneratePage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                            className="text-destructive hover:text-destructive h-8 w-8 p-0"
                             onClick={() => removeFile(file._index)}
                             aria-label={`Remove ${file.fileName || fileType} file`}
                           >
@@ -539,7 +624,7 @@ export default function AdminExerciseGeneratePage() {
                           value={file.content}
                           onChange={(e) => updateFile(file._index, 'content', e.target.value)}
                           placeholder="File content..."
-                          className="font-mono text-sm bg-background border border-border rounded-md p-3 w-full min-h-[200px] resize-y focus:outline-none focus:ring-1 focus:ring-ring"
+                          className="bg-background border-border focus:ring-ring min-h-[200px] w-full resize-y rounded-md border p-3 font-mono text-sm focus:ring-1 focus:outline-none"
                         />
                       </div>
                     ))}
@@ -550,12 +635,15 @@ export default function AdminExerciseGeneratePage() {
           </div>
 
           {createError && (
-            <div className="max-w-2xl rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+            <div className="border-destructive/50 bg-destructive/10 text-destructive max-w-2xl rounded-md border p-3 text-sm">
               {createError}
             </div>
           )}
 
-          <Button onClick={handleCreate} disabled={creating || !title.trim() || !description.trim() || !environmentId}>
+          <Button
+            onClick={handleCreate}
+            disabled={creating || !title.trim() || !description.trim() || !environmentId}
+          >
             {creating ? 'Creating...' : 'Create Exercise'}
           </Button>
         </div>

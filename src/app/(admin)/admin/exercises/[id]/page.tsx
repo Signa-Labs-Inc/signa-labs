@@ -3,7 +3,17 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Code2, Plus, Trash2, Save, ChevronDown, ChevronRight, AlertTriangle, FolderTree } from 'lucide-react';
+import {
+  ArrowLeft,
+  Code2,
+  Plus,
+  Trash2,
+  Save,
+  ChevronDown,
+  ChevronRight,
+  AlertTriangle,
+  FolderTree,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -64,22 +74,22 @@ const FILE_BADGE_COLORS: Record<string, string> = {
 function DetailSkeleton() {
   return (
     <div className="space-y-6">
-      <div className="h-8 w-32 animate-pulse rounded bg-muted" />
+      <div className="bg-muted h-8 w-32 animate-pulse rounded" />
       <div className="space-y-2">
-        <div className="h-7 w-64 animate-pulse rounded bg-muted" />
-        <div className="h-4 w-48 animate-pulse rounded bg-muted" />
+        <div className="bg-muted h-7 w-64 animate-pulse rounded" />
+        <div className="bg-muted h-4 w-48 animate-pulse rounded" />
       </div>
       <div className="flex gap-3">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-5 w-24 animate-pulse rounded bg-muted" />
+          <div key={i} className="bg-muted h-5 w-24 animate-pulse rounded" />
         ))}
       </div>
       {Array.from({ length: 3 }).map((_, i) => (
         <Card key={i}>
           <CardContent className="p-6">
             <div className="space-y-4">
-              <div className="h-6 w-32 animate-pulse rounded bg-muted" />
-              <div className="h-24 w-full animate-pulse rounded bg-muted" />
+              <div className="bg-muted h-6 w-32 animate-pulse rounded" />
+              <div className="bg-muted h-24 w-full animate-pulse rounded" />
             </div>
           </CardContent>
         </Card>
@@ -179,7 +189,12 @@ export default function AdminExerciseDetailPage() {
   // Derive which categories the exercise belongs to based on current tags
   useEffect(() => {
     if (categories.length === 0) return;
-    const currentTags = new Set(tagsInput.split(',').map((t) => t.trim()).filter(Boolean));
+    const currentTags = new Set(
+      tagsInput
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean)
+    );
     const matched = new Set<string>();
     for (const cat of categories) {
       if (cat.tags.length > 0 && cat.tags.every((t) => currentTags.has(t))) {
@@ -193,7 +208,10 @@ export default function AdminExerciseDetailPage() {
     const category = categories.find((c) => c.id === categoryId);
     if (!category) return;
 
-    const currentTags = tagsInput.split(',').map((t) => t.trim()).filter(Boolean);
+    const currentTags = tagsInput
+      .split(',')
+      .map((t) => t.trim())
+      .filter(Boolean);
     const isSelected = selectedCategoryIds.has(categoryId);
 
     let newTags: string[];
@@ -203,9 +221,7 @@ export default function AdminExerciseDetailPage() {
         (c) => c.id !== categoryId && selectedCategoryIds.has(c.id)
       );
       const tagsNeededByOthers = new Set(otherSelectedCats.flatMap((c) => c.tags));
-      newTags = currentTags.filter(
-        (t) => !category.tags.includes(t) || tagsNeededByOthers.has(t)
-      );
+      newTags = currentTags.filter((t) => !category.tags.includes(t) || tagsNeededByOthers.has(t));
     } else {
       // Add this category's tags
       const tagSet = new Set(currentTags);
@@ -220,7 +236,10 @@ export default function AdminExerciseDetailPage() {
     setSavingCategories(true);
     setCategoriesMessage('');
     try {
-      const tags = tagsInput.split(',').map((t) => t.trim()).filter(Boolean);
+      const tags = tagsInput
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean);
       const res = await fetch(`/api/admin/exercises/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -241,11 +260,22 @@ export default function AdminExerciseDetailPage() {
     setSavingMeta(true);
     setMetaMessage('');
     try {
-      const tags = tagsInput.split(',').map((t) => t.trim()).filter(Boolean);
+      const tags = tagsInput
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean);
       const res = await fetch(`/api/admin/exercises/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, description, difficulty, language, tags, isValidated, isPublic }),
+        body: JSON.stringify({
+          title,
+          description,
+          difficulty,
+          language,
+          tags,
+          isValidated,
+          isPublic,
+        }),
       });
       if (!res.ok) throw new Error('Save failed');
       const updated = await res.json();
@@ -269,7 +299,7 @@ export default function AdminExerciseDetailPage() {
       });
       if (!res.ok) throw new Error('Save failed');
       const data = await res.json();
-      const returnedFiles: ExerciseFile[] = Array.isArray(data) ? data : data.files ?? [];
+      const returnedFiles: ExerciseFile[] = Array.isArray(data) ? data : (data.files ?? []);
       if (returnedFiles.length > 0) {
         setFiles(
           returnedFiles.map((f: ExerciseFile) => ({
@@ -295,7 +325,10 @@ export default function AdminExerciseDetailPage() {
     setSavingHints(true);
     setHintsMessage('');
     try {
-      const hints = hintsInput.split('\n').map((h) => h.trim()).filter(Boolean);
+      const hints = hintsInput
+        .split('\n')
+        .map((h) => h.trim())
+        .filter(Boolean);
       const res = await fetch(`/api/admin/exercises/${id}/hints`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -372,7 +405,8 @@ export default function AdminExerciseDetailPage() {
     }
   }
 
-  const selectClasses = 'w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring';
+  const selectClasses =
+    'w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring';
 
   if (loading) {
     return <DetailSkeleton />;
@@ -381,12 +415,14 @@ export default function AdminExerciseDetailPage() {
   if (!exercise) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 py-20">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-          <Code2 className="h-6 w-6 text-muted-foreground" />
+        <div className="bg-muted flex h-12 w-12 items-center justify-center rounded-full">
+          <Code2 className="text-muted-foreground h-6 w-6" />
         </div>
-        <p className="text-sm text-muted-foreground">Exercise not found.</p>
+        <p className="text-muted-foreground text-sm">Exercise not found.</p>
         <Link href="/admin/exercises">
-          <Button variant="outline" size="sm">Back to Exercises</Button>
+          <Button variant="outline" size="sm">
+            Back to Exercises
+          </Button>
         </Link>
       </div>
     );
@@ -394,9 +430,7 @@ export default function AdminExerciseDetailPage() {
 
   const filesByType = FILE_TYPES.reduce(
     (acc, type) => {
-      acc[type] = files
-        .map((f, i) => ({ ...f, _index: i }))
-        .filter((f) => f.fileType === type);
+      acc[type] = files.map((f, i) => ({ ...f, _index: i })).filter((f) => f.fileType === type);
       return acc;
     },
     {} as Record<string, (ExerciseFile & { _index: number })[]>
@@ -416,15 +450,15 @@ export default function AdminExerciseDetailPage() {
       <AdminPageHeader title={exercise.title} description={`ID: ${exercise.id}`} icon={Code2} />
 
       <div className="flex flex-wrap items-center gap-2">
-        <Badge variant="outline" className="capitalize">{exercise.origin}</Badge>
+        <Badge variant="outline" className="capitalize">
+          {exercise.origin}
+        </Badge>
         <Badge variant="secondary">{exercise.slug}</Badge>
         <Badge variant="secondary">{files.length} files</Badge>
         {exercise.environment && (
           <Badge variant="secondary">{exercise.environment.displayName}</Badge>
         )}
-        {exercise.deletedAt && (
-          <Badge variant="destructive">Deleted</Badge>
-        )}
+        {exercise.deletedAt && <Badge variant="destructive">Deleted</Badge>}
       </div>
 
       {/* Section 1: Metadata */}
@@ -434,10 +468,14 @@ export default function AdminExerciseDetailPage() {
           className="flex w-full items-center justify-between p-5 text-left"
         >
           <h3 className="text-base font-semibold">Metadata</h3>
-          {metaOpen ? <ChevronDown className="h-5 w-5 text-muted-foreground" /> : <ChevronRight className="h-5 w-5 text-muted-foreground" />}
+          {metaOpen ? (
+            <ChevronDown className="text-muted-foreground h-5 w-5" />
+          ) : (
+            <ChevronRight className="text-muted-foreground h-5 w-5" />
+          )}
         </button>
         {metaOpen && (
-          <CardContent className="space-y-4 border-t border-border px-5 pb-5 pt-5">
+          <CardContent className="border-border space-y-4 border-t px-5 pt-5 pb-5">
             <div className="space-y-1.5">
               <label className="text-sm font-medium">Title</label>
               <Input value={title} onChange={(e) => setTitle(e.target.value)} />
@@ -449,24 +487,36 @@ export default function AdminExerciseDetailPage() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={5}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm resize-y focus:outline-none focus:ring-1 focus:ring-ring"
+                className="border-border bg-background focus:ring-ring w-full resize-y rounded-md border px-3 py-2 text-sm focus:ring-1 focus:outline-none"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="text-sm font-medium">Difficulty</label>
-                <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)} className={selectClasses}>
+                <select
+                  value={difficulty}
+                  onChange={(e) => setDifficulty(e.target.value)}
+                  className={selectClasses}
+                >
                   {DIFFICULTIES.map((d) => (
-                    <option key={d} value={d}>{d}</option>
+                    <option key={d} value={d}>
+                      {d}
+                    </option>
                   ))}
                 </select>
               </div>
               <div className="space-y-1.5">
                 <label className="text-sm font-medium">Language</label>
-                <select value={language} onChange={(e) => setLanguage(e.target.value)} className={selectClasses}>
+                <select
+                  value={language}
+                  onChange={(e) => setLanguage(e.target.value)}
+                  className={selectClasses}
+                >
                   {LANGUAGES.map((l) => (
-                    <option key={l} value={l}>{l}</option>
+                    <option key={l} value={l}>
+                      {l}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -498,7 +548,12 @@ export default function AdminExerciseDetailPage() {
                 {savingMeta ? 'Saving...' : 'Save Metadata'}
               </Button>
               {metaMessage && (
-                <span className={cn('text-sm', metaMessage.includes('success') ? 'text-emerald-600' : 'text-destructive')}>
+                <span
+                  className={cn(
+                    'text-sm',
+                    metaMessage.includes('success') ? 'text-emerald-600' : 'text-destructive'
+                  )}
+                >
                   {metaMessage}
                 </span>
               )}
@@ -515,52 +570,63 @@ export default function AdminExerciseDetailPage() {
             className="flex w-full items-center justify-between p-5 text-left"
           >
             <h3 className="flex items-center gap-2 text-base font-semibold">
-              <FolderTree className="h-4 w-4 text-muted-foreground" />
+              <FolderTree className="text-muted-foreground h-4 w-4" />
               Categories
             </h3>
-            {categoriesOpen ? <ChevronDown className="h-5 w-5 text-muted-foreground" /> : <ChevronRight className="h-5 w-5 text-muted-foreground" />}
+            {categoriesOpen ? (
+              <ChevronDown className="text-muted-foreground h-5 w-5" />
+            ) : (
+              <ChevronRight className="text-muted-foreground h-5 w-5" />
+            )}
           </button>
           {categoriesOpen && (
-            <CardContent className="space-y-4 border-t border-border px-5 pb-5 pt-5">
-              <p className="text-sm text-muted-foreground">
-                Select which categories this exercise belongs to. This updates the exercise&apos;s tags to match.
+            <CardContent className="border-border space-y-4 border-t px-5 pt-5 pb-5">
+              <p className="text-muted-foreground text-sm">
+                Select which categories this exercise belongs to. This updates the exercise&apos;s
+                tags to match.
               </p>
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                {categories.filter((c) => c.isActive).map((cat) => {
-                  const isSelected = selectedCategoryIds.has(cat.id);
-                  return (
-                    <button
-                      key={cat.id}
-                      onClick={() => handleToggleCategory(cat.id)}
-                      className={cn(
-                        'flex flex-col gap-1 rounded-lg border p-3 text-left transition-colors',
-                        isSelected
-                          ? 'border-primary bg-primary/5'
-                          : 'border-border hover:border-primary/30 hover:bg-muted/30'
-                      )}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div className={cn(
-                          'flex h-5 w-5 shrink-0 items-center justify-center rounded border text-xs',
+                {categories
+                  .filter((c) => c.isActive)
+                  .map((cat) => {
+                    const isSelected = selectedCategoryIds.has(cat.id);
+                    return (
+                      <button
+                        key={cat.id}
+                        onClick={() => handleToggleCategory(cat.id)}
+                        className={cn(
+                          'flex flex-col gap-1 rounded-lg border p-3 text-left transition-colors',
                           isSelected
-                            ? 'border-primary bg-primary text-primary-foreground'
-                            : 'border-muted-foreground/30'
-                        )}>
-                          {isSelected && '✓'}
+                            ? 'border-primary bg-primary/5'
+                            : 'border-border hover:border-primary/30 hover:bg-muted/30'
+                        )}
+                      >
+                        <div className="flex items-center gap-2">
+                          <div
+                            className={cn(
+                              'flex h-5 w-5 shrink-0 items-center justify-center rounded border text-xs',
+                              isSelected
+                                ? 'border-primary bg-primary text-primary-foreground'
+                                : 'border-muted-foreground/30'
+                            )}
+                          >
+                            {isSelected && '✓'}
+                          </div>
+                          <span className="text-sm font-medium">{cat.label}</span>
                         </div>
-                        <span className="text-sm font-medium">{cat.label}</span>
-                      </div>
-                      <p className="pl-7 text-xs text-muted-foreground line-clamp-1">{cat.description}</p>
-                      <div className="flex flex-wrap gap-1 pl-7 pt-1">
-                        {cat.tags.map((t) => (
-                          <Badge key={t} variant="secondary" className="text-[10px] px-1.5 py-0">
-                            {t}
-                          </Badge>
-                        ))}
-                      </div>
-                    </button>
-                  );
-                })}
+                        <p className="text-muted-foreground line-clamp-1 pl-7 text-xs">
+                          {cat.description}
+                        </p>
+                        <div className="flex flex-wrap gap-1 pt-1 pl-7">
+                          {cat.tags.map((t) => (
+                            <Badge key={t} variant="secondary" className="px-1.5 py-0 text-[10px]">
+                              {t}
+                            </Badge>
+                          ))}
+                        </div>
+                      </button>
+                    );
+                  })}
               </div>
 
               <div className="flex items-center gap-3 pt-2">
@@ -569,7 +635,14 @@ export default function AdminExerciseDetailPage() {
                   {savingCategories ? 'Saving...' : 'Save Categories'}
                 </Button>
                 {categoriesMessage && (
-                  <span className={cn('text-sm', categoriesMessage.includes('success') ? 'text-emerald-600' : 'text-destructive')}>
+                  <span
+                    className={cn(
+                      'text-sm',
+                      categoriesMessage.includes('success')
+                        ? 'text-emerald-600'
+                        : 'text-destructive'
+                    )}
+                  >
                     {categoriesMessage}
                   </span>
                 )}
@@ -586,11 +659,15 @@ export default function AdminExerciseDetailPage() {
           className="flex w-full items-center justify-between p-5 text-left"
         >
           <h3 className="text-base font-semibold">Exercise Files</h3>
-          {filesOpen ? <ChevronDown className="h-5 w-5 text-muted-foreground" /> : <ChevronRight className="h-5 w-5 text-muted-foreground" />}
+          {filesOpen ? (
+            <ChevronDown className="text-muted-foreground h-5 w-5" />
+          ) : (
+            <ChevronRight className="text-muted-foreground h-5 w-5" />
+          )}
         </button>
         {filesOpen && (
-          <CardContent className="space-y-4 border-t border-border px-5 pb-5 pt-5">
-            <div className="flex gap-1 rounded-lg bg-muted p-1">
+          <CardContent className="border-border space-y-4 border-t px-5 pt-5 pb-5">
+            <div className="bg-muted flex gap-1 rounded-lg p-1">
               {FILE_TYPES.map((type) => (
                 <button
                   key={type}
@@ -610,7 +687,10 @@ export default function AdminExerciseDetailPage() {
             {FILE_TYPES.filter((type) => type === activeFileTab).map((fileType) => (
               <div key={fileType} className="space-y-3">
                 {filesByType[fileType]?.map((file) => (
-                  <div key={file._index} className="space-y-2 rounded-lg border border-border bg-muted/30 p-4">
+                  <div
+                    key={file._index}
+                    className="border-border bg-muted/30 space-y-2 rounded-lg border p-4"
+                  >
                     <div className="flex items-center gap-2">
                       <Badge variant="outline" className={FILE_BADGE_COLORS[fileType]}>
                         {fileType}
@@ -628,10 +708,12 @@ export default function AdminExerciseDetailPage() {
                         className="flex-1"
                       />
                       {fileType === 'starter' && (
-                        <label className="flex items-center gap-1.5 text-xs text-muted-foreground whitespace-nowrap">
+                        <label className="text-muted-foreground flex items-center gap-1.5 text-xs whitespace-nowrap">
                           <Switch
                             checked={file.isEditable}
-                            onCheckedChange={(checked) => updateFile(file._index, 'isEditable', checked)}
+                            onCheckedChange={(checked) =>
+                              updateFile(file._index, 'isEditable', checked)
+                            }
                           />
                           Editable
                         </label>
@@ -639,7 +721,7 @@ export default function AdminExerciseDetailPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                        className="text-destructive hover:text-destructive h-8 w-8 p-0"
                         onClick={() => removeFile(file._index)}
                         aria-label={`Remove ${file.fileName || fileType} file`}
                       >
@@ -650,14 +732,14 @@ export default function AdminExerciseDetailPage() {
                       value={file.content}
                       onChange={(e) => updateFile(file._index, 'content', e.target.value)}
                       placeholder="File content..."
-                      className="font-mono text-sm bg-background border border-border rounded-md p-3 w-full min-h-[200px] resize-y focus:outline-none focus:ring-1 focus:ring-ring"
+                      className="bg-background border-border focus:ring-ring min-h-[200px] w-full resize-y rounded-md border p-3 font-mono text-sm focus:ring-1 focus:outline-none"
                     />
                   </div>
                 ))}
 
                 {(filesByType[fileType]?.length ?? 0) === 0 && (
-                  <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border py-8">
-                    <p className="text-sm text-muted-foreground">No {fileType} files yet.</p>
+                  <div className="border-border flex flex-col items-center gap-2 rounded-lg border border-dashed py-8">
+                    <p className="text-muted-foreground text-sm">No {fileType} files yet.</p>
                   </div>
                 )}
 
@@ -668,13 +750,18 @@ export default function AdminExerciseDetailPage() {
               </div>
             ))}
 
-            <div className="flex items-center gap-3 border-t border-border pt-4">
+            <div className="border-border flex items-center gap-3 border-t pt-4">
               <Button onClick={handleSaveFiles} disabled={savingFiles}>
                 <Save className="mr-1.5 h-4 w-4" />
                 {savingFiles ? 'Saving...' : 'Save All Files'}
               </Button>
               {filesMessage && (
-                <span className={cn('text-sm', filesMessage.includes('success') ? 'text-emerald-600' : 'text-destructive')}>
+                <span
+                  className={cn(
+                    'text-sm',
+                    filesMessage.includes('success') ? 'text-emerald-600' : 'text-destructive'
+                  )}
+                >
                   {filesMessage}
                 </span>
               )}
@@ -690,10 +777,14 @@ export default function AdminExerciseDetailPage() {
           className="flex w-full items-center justify-between p-5 text-left"
         >
           <h3 className="text-base font-semibold">Hints</h3>
-          {hintsOpen ? <ChevronDown className="h-5 w-5 text-muted-foreground" /> : <ChevronRight className="h-5 w-5 text-muted-foreground" />}
+          {hintsOpen ? (
+            <ChevronDown className="text-muted-foreground h-5 w-5" />
+          ) : (
+            <ChevronRight className="text-muted-foreground h-5 w-5" />
+          )}
         </button>
         {hintsOpen && (
-          <CardContent className="space-y-4 border-t border-border px-5 pb-5 pt-5">
+          <CardContent className="border-border space-y-4 border-t px-5 pt-5 pb-5">
             <div className="space-y-1.5">
               <label className="text-sm font-medium">Hints (one per line)</label>
               <textarea
@@ -701,7 +792,7 @@ export default function AdminExerciseDetailPage() {
                 onChange={(e) => setHintsInput(e.target.value)}
                 rows={6}
                 placeholder="First hint&#10;Second hint&#10;Third hint"
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm resize-y focus:outline-none focus:ring-1 focus:ring-ring"
+                className="border-border bg-background focus:ring-ring w-full resize-y rounded-md border px-3 py-2 text-sm focus:ring-1 focus:outline-none"
               />
             </div>
 
@@ -711,7 +802,12 @@ export default function AdminExerciseDetailPage() {
                 {savingHints ? 'Saving...' : 'Save Hints'}
               </Button>
               {hintsMessage && (
-                <span className={cn('text-sm', hintsMessage.includes('success') ? 'text-emerald-600' : 'text-destructive')}>
+                <span
+                  className={cn(
+                    'text-sm',
+                    hintsMessage.includes('success') ? 'text-emerald-600' : 'text-destructive'
+                  )}
+                >
                   {hintsMessage}
                 </span>
               )}
@@ -726,17 +822,21 @@ export default function AdminExerciseDetailPage() {
           onClick={() => setDangerOpen(!dangerOpen)}
           className="flex w-full items-center justify-between p-5 text-left"
         >
-          <h3 className="flex items-center gap-2 text-base font-semibold text-destructive">
+          <h3 className="text-destructive flex items-center gap-2 text-base font-semibold">
             <AlertTriangle className="h-4 w-4" />
             Danger Zone
           </h3>
-          {dangerOpen ? <ChevronDown className="h-5 w-5 text-muted-foreground" /> : <ChevronRight className="h-5 w-5 text-muted-foreground" />}
+          {dangerOpen ? (
+            <ChevronDown className="text-muted-foreground h-5 w-5" />
+          ) : (
+            <ChevronRight className="text-muted-foreground h-5 w-5" />
+          )}
         </button>
         {dangerOpen && (
-          <CardContent className="space-y-4 border-t border-destructive/30 px-5 pb-5 pt-5">
+          <CardContent className="border-destructive/30 space-y-4 border-t px-5 pt-5 pb-5">
             {exercise.deletedAt ? (
               <div className="space-y-3">
-                <p className="text-sm text-muted-foreground">
+                <p className="text-muted-foreground text-sm">
                   This exercise was soft-deleted. You can restore it.
                 </p>
                 <Button variant="outline" onClick={handleRestore}>
@@ -745,7 +845,7 @@ export default function AdminExerciseDetailPage() {
               </div>
             ) : (
               <div className="space-y-3">
-                <p className="text-sm text-muted-foreground">
+                <p className="text-muted-foreground text-sm">
                   Soft-delete this exercise. It can be restored later.
                 </p>
                 {!deleteConfirm ? (
@@ -755,7 +855,7 @@ export default function AdminExerciseDetailPage() {
                 ) : (
                   <div className="space-y-2">
                     <div className="flex items-center gap-3">
-                      <span className="text-sm text-destructive font-medium">Are you sure?</span>
+                      <span className="text-destructive text-sm font-medium">Are you sure?</span>
                       <Button variant="destructive" onClick={handleDelete}>
                         Yes, Delete
                       </Button>
@@ -763,9 +863,7 @@ export default function AdminExerciseDetailPage() {
                         Cancel
                       </Button>
                     </div>
-                    {deleteError && (
-                      <p className="text-sm text-destructive">{deleteError}</p>
-                    )}
+                    {deleteError && <p className="text-destructive text-sm">{deleteError}</p>}
                   </div>
                 )}
               </div>

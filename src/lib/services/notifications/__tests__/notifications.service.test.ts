@@ -12,10 +12,7 @@ vi.mock('../notifications.writer', () => ({
 
 import * as reader from '../notifications.reader';
 import * as writer from '../notifications.writer';
-import {
-  getUserNotifications,
-  createUsageAlertIfNeeded,
-} from '../notifications.service';
+import { getUserNotifications, createUsageAlertIfNeeded } from '../notifications.service';
 import { buildNotification } from '@/test/helpers/factories';
 
 const mockReader = vi.mocked(reader);

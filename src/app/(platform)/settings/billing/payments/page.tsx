@@ -61,11 +61,9 @@ export default async function PaymentsPage() {
       </Button>
 
       <h1 className="text-2xl font-bold tracking-tight">Payment History</h1>
-      <p className="text-muted-foreground mt-1">
-        View your past invoices and charges.
-      </p>
+      <p className="text-muted-foreground mt-1">View your past invoices and charges.</p>
 
-      <div className="mt-8 rounded-xl border border-border bg-card">
+      <div className="border-border bg-card mt-8 rounded-xl border">
         {payments.length === 0 ? (
           <div className="p-8 text-center">
             <p className="text-muted-foreground">No payments found.</p>
@@ -74,7 +72,7 @@ export default async function PaymentsPage() {
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-border">
+          <div className="divide-border divide-y">
             {payments.map((payment) => (
               <div key={payment.id} className="flex items-center justify-between p-4">
                 <div className="min-w-0 flex-1">

@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls /Users/greatokonkwo/signa-labs-inc/signa-labs/src/app/\\\\\\(platform\\\\\\)/exercises/)"
+    ]
+  }
+}

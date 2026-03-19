@@ -19,8 +19,7 @@ export const TOUR_STEPS: TourStep[] = [
     id: 'discover-hero',
     targetSelector: '[data-onboarding="discover-hero"]',
     title: 'Welcome to Signa Labs!',
-    description:
-      'Explore exercises, learning paths, and tools to level up your coding skills.',
+    description: 'Explore exercises, learning paths, and tools to level up your coding skills.',
     side: 'bottom',
   },
   {
@@ -35,8 +34,7 @@ export const TOUR_STEPS: TourStep[] = [
     id: 'nav-paths',
     targetSelector: '[data-onboarding="nav-paths"]',
     title: 'Learning Paths',
-    description:
-      'AI-generated curricula that adapt as you improve — from beginner to advanced.',
+    description: 'AI-generated curricula that adapt as you improve — from beginner to advanced.',
     side: 'bottom',
   },
   {
@@ -61,8 +59,7 @@ export const PAGE_HINTS: Record<string, PageHintDef> = {
     id: 'paths-create',
     targetSelector: '[data-onboarding="paths-create"]',
     title: 'Create a Learning Path',
-    description:
-      'Create a personalized learning path that adapts to your skill level.',
+    description: 'Create a personalized learning path that adapts to your skill level.',
     side: 'bottom',
   },
 };

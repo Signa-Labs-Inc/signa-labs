@@ -9,7 +9,7 @@ export default function AboutPage() {
       <p className="text-muted-foreground mt-3 text-lg">
         Learn more about Signa Labs and our mission.
       </p>
-      <div className="mt-10 rounded-lg border border-dashed border-border p-12 text-center">
+      <div className="border-border mt-10 rounded-lg border border-dashed p-12 text-center">
         <p className="text-muted-foreground text-sm">
           This page is under construction. Check back soon.
         </p>

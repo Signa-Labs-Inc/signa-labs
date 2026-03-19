@@ -7,7 +7,11 @@ import { exerciseCategories } from '@/db/schema/tables/exercise_categories';
 import { promptTemplates } from '@/db/schema/tables/prompt_templates';
 import { users } from '@/db/schema/tables/users';
 import type { CategoryInput, PromptTemplateInput } from './admin.types';
-import type { ExerciseDifficulty, ExerciseLanguage, ExerciseOrigin } from '@/lib/services/exercises/exercises.constants';
+import type {
+  ExerciseDifficulty,
+  ExerciseLanguage,
+  ExerciseOrigin,
+} from '@/lib/services/exercises/exercises.constants';
 import type { LessonContent, SynthesisContent } from '@/lib/services/teaching/teaching.types';
 
 // --- Exercises ---------------------------------------------------------------
@@ -156,7 +160,10 @@ export async function adminUpdateLessonContent(id: string, lessonContent: Lesson
 }
 
 /** Update exercise synthesis content */
-export async function adminUpdateSynthesisContent(id: string, synthesisContent: SynthesisContent | null) {
+export async function adminUpdateSynthesisContent(
+  id: string,
+  synthesisContent: SynthesisContent | null
+) {
   const [updated] = await db
     .update(exercises)
     .set({ synthesisContent, updatedAt: new Date() })
@@ -207,10 +214,7 @@ export async function updateExerciseFile(
 
 /** Delete an exercise file */
 export async function deleteExerciseFile(fileId: string) {
-  const [deleted] = await db
-    .delete(exerciseFiles)
-    .where(eq(exerciseFiles.id, fileId))
-    .returning();
+  const [deleted] = await db.delete(exerciseFiles).where(eq(exerciseFiles.id, fileId)).returning();
   return deleted;
 }
 
@@ -229,9 +233,7 @@ export async function replaceExerciseFiles(
   return await db.transaction(async (tx) => {
     await tx.delete(exerciseFiles).where(eq(exerciseFiles.exerciseId, exerciseId));
     if (files.length > 0) {
-      await tx.insert(exerciseFiles).values(
-        files.map((f) => ({ exerciseId, ...f }))
-      );
+      await tx.insert(exerciseFiles).values(files.map((f) => ({ exerciseId, ...f })));
     }
     // Return the new files
     return tx
@@ -383,10 +385,7 @@ export async function toggleEnvironmentActive(id: string) {
 // --- Users -------------------------------------------------------------------
 
 /** Update a user's role */
-export async function updateUserRole(
-  userId: string,
-  role: 'learner' | 'admin' | 'super_admin'
-) {
+export async function updateUserRole(userId: string, role: 'learner' | 'admin' | 'super_admin') {
   const [updated] = await db
     .update(users)
     .set({ role, updatedAt: new Date() })

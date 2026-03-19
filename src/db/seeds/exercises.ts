@@ -27,7 +27,13 @@ async function upsertEnvironment(tx: Tx, values: typeof exerciseEnvironments.$in
 async function seedExercise(
   tx: Tx,
   values: typeof exercises.$inferInsert,
-  files: { fileType: string; filePath: string; fileName: string; content: string; sortOrder: number }[]
+  files: {
+    fileType: string;
+    filePath: string;
+    fileName: string;
+    content: string;
+    sortOrder: number;
+  }[]
 ) {
   const [ex] = await tx.insert(exercises).values(values).returning();
   await tx.insert(exerciseFiles).values(files.map((f) => ({ ...f, exerciseId: ex.id })));
@@ -99,7 +105,7 @@ async function seed() {
         language: 'python',
         hints: [
           'For each number, you need its complement: target - num. How can you check if you have already seen it?',
-          'A dictionary gives O(1) lookups. Store each number\'s index as you go.',
+          "A dictionary gives O(1) lookups. Store each number's index as you go.",
           'On each iteration: compute complement → check dict → if found, return both indices. Otherwise, record the current number.',
         ],
         isValidated: true,
@@ -133,8 +139,14 @@ print(find_pair_with_target_difference([2, 7, 11, 1, 8], 5))  # [0, 1]`,
             annotations: [
               { line: 3, text: 'Dictionary will map each value to its index for O(1) lookup' },
               { line: 5, text: 'Derive what partner value would satisfy our condition' },
-              { line: 6, text: 'Check the map BEFORE inserting — avoids matching an element with itself' },
-              { line: 8, text: 'Only store the element after checking, preserving correct pairing' },
+              {
+                line: 6,
+                text: 'Check the map BEFORE inserting — avoids matching an element with itself',
+              },
+              {
+                line: 8,
+                text: 'Only store the element after checking, preserving correct pairing',
+              },
             ],
           },
           keyTakeaways: [
@@ -144,9 +156,12 @@ print(find_pair_with_target_difference([2, 7, 11, 1, 8], 5))  # [0, 1]`,
           ],
         },
         synthesisContent: {
-          summary: 'You used a hash map to find a pair of elements satisfying a condition in a single pass through the array.',
-          connections: 'The "check-then-insert" hash map pattern is foundational to dozens of interview problems, from finding duplicates to grouping elements. It demonstrates the most common time-space tradeoff in algorithm design: using O(n) extra memory to eliminate an O(n) inner loop.',
-          realWorld: 'Hash map lookups power database indexing, caching layers, and request deduplication in production systems.',
+          summary:
+            'You used a hash map to find a pair of elements satisfying a condition in a single pass through the array.',
+          connections:
+            'The "check-then-insert" hash map pattern is foundational to dozens of interview problems, from finding duplicates to grouping elements. It demonstrates the most common time-space tradeoff in algorithm design: using O(n) extra memory to eliminate an O(n) inner loop.',
+          realWorld:
+            'Hash map lookups power database indexing, caching layers, and request deduplication in production systems.',
           nextPreview: null,
         },
       },
@@ -253,9 +268,15 @@ Two pointers work because they let you eliminate half the comparisons — you're
             language: 'typescript',
             annotations: [
               { line: 2, text: 'Left pointer starts at the beginning of the sequence' },
-              { line: 3, text: 'Right pointer starts at the end — they will converge toward the middle' },
+              {
+                line: 3,
+                text: 'Right pointer starts at the end — they will converge toward the middle',
+              },
               { line: 6, text: 'Skip over "noise" elements, but always guard with left < right' },
-              { line: 9, text: 'Core comparison: if the values at both pointers differ, it is not mirrored' },
+              {
+                line: 9,
+                text: 'Core comparison: if the values at both pointers differ, it is not mirrored',
+              },
             ],
           },
           keyTakeaways: [
@@ -265,9 +286,12 @@ Two pointers work because they let you eliminate half the comparisons — you're
           ],
         },
         synthesisContent: {
-          summary: 'You applied the two-pointer technique to verify a symmetry property of a string while filtering out irrelevant characters.',
-          connections: 'Two pointers are a building block that appears in sorted-array search, partitioning algorithms like quicksort, and the container/water problem. Learning to skip and normalize within the pointer loop prepares you for messier real-world inputs.',
-          realWorld: 'Input sanitization and normalization before comparison is routine in production — think username matching, search queries, or URL slug generation.',
+          summary:
+            'You applied the two-pointer technique to verify a symmetry property of a string while filtering out irrelevant characters.',
+          connections:
+            'Two pointers are a building block that appears in sorted-array search, partitioning algorithms like quicksort, and the container/water problem. Learning to skip and normalize within the pointer loop prepares you for messier real-world inputs.',
+          realWorld:
+            'Input sanitization and normalization before comparison is routine in production — think username matching, search queries, or URL slug generation.',
           nextPreview: null,
         },
       },
@@ -1276,7 +1300,7 @@ test("miss returns -1", () => {
         difficulty: 'medium',
         language: 'python',
         hints: [
-          'Checking only parent-child relationships is not enough — a node deep in the right subtree could violate an ancestor\'s constraint.',
+          "Checking only parent-child relationships is not enough — a node deep in the right subtree could violate an ancestor's constraint.",
           'Pass down valid bounds (min, max) as you recurse. Each node must fall within its allowed range.',
           'For the left child, update the upper bound. For the right child, update the lower bound.',
         ],
@@ -1913,7 +1937,7 @@ test("unsubscribe from once before firing", () => {
         hints: [
           'Start with the base case: if a === b (strict equality), they are equal.',
           'If both are objects (and not null), compare their keys. They must have the same set of keys.',
-          'Recurse on each key\'s value. Arrays are objects too, so this handles both.',
+          "Recurse on each key's value. Arrays are objects too, so this handles both.",
         ],
         isValidated: true,
         tags: ['recursion', 'javascript-patterns'],
@@ -2304,7 +2328,7 @@ def test_2x2():
         hints: [
           'A decorator is a function that takes a function and returns a wrapper function.',
           'Use a dictionary to store results keyed by the arguments tuple.',
-          'functools.wraps preserves the original function\'s name and docstring on the wrapper.',
+          "functools.wraps preserves the original function's name and docstring on the wrapper.",
         ],
         isValidated: true,
         tags: ['decorators', 'python-patterns', 'closures'],

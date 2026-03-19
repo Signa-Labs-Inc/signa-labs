@@ -10,7 +10,10 @@ vi.mock('@/lib/services/notifications/notifications.service', () => ({
 }));
 
 import { requireCurrentUser } from '@/lib/services/auth/auth.service';
-import { markNotificationRead, markAllNotificationsRead } from '@/lib/services/notifications/notifications.service';
+import {
+  markNotificationRead,
+  markAllNotificationsRead,
+} from '@/lib/services/notifications/notifications.service';
 import { POST } from '../../notifications/read/route';
 import { mockUser } from '@/test/helpers/mock-auth';
 

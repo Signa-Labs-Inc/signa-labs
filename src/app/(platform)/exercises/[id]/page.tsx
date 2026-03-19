@@ -33,8 +33,7 @@ export default async function ExerciseWorkspacePage({
     const previouslyCompleted =
       isNew && (await submissionService.hasPassingSubmission(user.id, exercise.id));
 
-    const isCreator =
-      exercise.origin === 'user' && exercise.createdBy === user.id;
+    const isCreator = exercise.origin === 'user' && exercise.createdBy === user.id;
 
     return (
       <ExerciseWorkspace
@@ -50,8 +49,7 @@ export default async function ExerciseWorkspacePage({
   }
 
   // Anonymous user: check access
-  const isAccessible =
-    exercise.origin === 'platform' || exercise.isPublic;
+  const isAccessible = exercise.origin === 'platform' || exercise.isPublic;
 
   if (!isAccessible) {
     redirect(`/sign-in?redirect_url=${encodeURIComponent(`/exercises/${id}`)}`);

@@ -2,11 +2,7 @@ import { db } from '@/index';
 import { notifications } from '@/db/schema/tables';
 import { and, eq, gte, isNull, sql } from 'drizzle-orm';
 
-export async function getRecentNotificationsByUserId(
-  userId: string,
-  limit = 20,
-  offset = 0
-) {
+export async function getRecentNotificationsByUserId(userId: string, limit = 20, offset = 0) {
   return db
     .select()
     .from(notifications)
@@ -20,12 +16,7 @@ export async function getUnreadCount(userId: string): Promise<number> {
   const [result] = await db
     .select({ count: sql<number>`count(*)::int` })
     .from(notifications)
-    .where(
-      and(
-        eq(notifications.userId, userId),
-        isNull(notifications.readAt)
-      )
-    );
+    .where(and(eq(notifications.userId, userId), isNull(notifications.readAt)));
   return result?.count ?? 0;
 }
 

@@ -17,9 +17,7 @@ export async function GET(req: NextRequest) {
       isValidated: searchParams.has('isValidated')
         ? searchParams.get('isValidated') === 'true'
         : undefined,
-      isPublic: searchParams.has('isPublic')
-        ? searchParams.get('isPublic') === 'true'
-        : undefined,
+      isPublic: searchParams.has('isPublic') ? searchParams.get('isPublic') === 'true' : undefined,
       includeDeleted: searchParams.has('includeDeleted')
         ? searchParams.get('includeDeleted') === 'true'
         : undefined,
