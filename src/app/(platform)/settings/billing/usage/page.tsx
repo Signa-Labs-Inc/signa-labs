@@ -36,8 +36,8 @@ function formatResetsAt(iso: string): string {
 
 function UsageBar({ usage }: { usage: UsageSummary }) {
   const isUnlimited = usage.limit === -1;
-  const percentage = isUnlimited ? 0 : Math.min((usage.current / usage.limit) * 100, 100);
-  const isAtLimit = !isUnlimited && usage.current >= usage.limit;
+  const percentage = isUnlimited || usage.limit <= 0 ? 0 : Math.min((usage.current / usage.limit) * 100, 100);
+  const isAtLimit = !isUnlimited && usage.limit > 0 && usage.current >= usage.limit;
 
   return (
     <div className="rounded-xl border border-border bg-card p-5">

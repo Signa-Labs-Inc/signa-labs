@@ -1,17 +1,21 @@
 import { db } from '@/index';
+import { eq } from 'drizzle-orm';
 import { users } from '@/db/schema/tables';
 import { insertNotification, markNotificationRead, markAllNotificationsRead } from '../notifications.writer';
 import { getUnreadCount, hasRecentUsageAlert } from '../notifications.reader';
 
 async function seedUser(id = crypto.randomUUID()) {
-  const [u] = await db.insert(users).values({
+  const values = {
     id,
     clerkId: `clerk_${id}`,
     email: `${id}@test.com`,
     name: 'Test User',
     role: 'learner',
-  }).onConflictDoNothing().returning();
-  return u;
+  };
+  const [u] = await db.insert(users).values(values).onConflictDoNothing().returning();
+  if (u) return u;
+  const [existing] = await db.select().from(users).where(eq(users.id, id));
+  return existing;
 }
 
 describe('notifications integration', () => {

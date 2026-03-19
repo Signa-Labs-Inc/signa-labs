@@ -35,7 +35,27 @@ export async function getSubscriptionByStripeIdForUpdate(
   tx: Parameters<Parameters<typeof db.transaction>[0]>[0]
 ): Promise<UserSubscription | null> {
   const result = await tx.execute(
-    sql`SELECT * FROM subscriptions WHERE stripe_subscription_id = ${stripeSubId} FOR UPDATE`
+    sql`SELECT
+      id,
+      user_id AS "userId",
+      owner_type AS "ownerType",
+      org_id AS "orgId",
+      plan_id AS "planId",
+      plan_price_id AS "planPriceId",
+      stripe_subscription_id AS "stripeSubscriptionId",
+      stripe_customer_id AS "stripeCustomerId",
+      status,
+      total_seats AS "totalSeats",
+      current_period_start AS "currentPeriodStart",
+      current_period_end AS "currentPeriodEnd",
+      trial_end AS "trialEnd",
+      cancel_at_period_end AS "cancelAtPeriodEnd",
+      canceled_at AS "canceledAt",
+      created_at AS "createdAt",
+      updated_at AS "updatedAt"
+    FROM subscriptions
+    WHERE stripe_subscription_id = ${stripeSubId}
+    FOR UPDATE`
   );
   const sub = result.rows[0];
   return (sub as UserSubscription) ?? null;

@@ -9,7 +9,7 @@
  * Run with: STRIPE_TEST_MODE=true pnpm test:all -- --include 'src/e2e/**'
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 
 describe.skipIf(!process.env.STRIPE_TEST_MODE)('Stripe E2E Flow', () => {
   beforeAll(async () => {

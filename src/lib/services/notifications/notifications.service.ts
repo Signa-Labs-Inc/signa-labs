@@ -44,8 +44,8 @@ export async function createUsageAlertIfNeeded(params: {
 }): Promise<boolean> {
   const { userId, feature, label, current, limit, windowStart } = params;
 
-  // Don't alert for unlimited features
-  if (limit === -1) return false;
+  // Don't alert for unlimited or zero-allowance features
+  if (limit <= 0) return false;
 
   const percentage = (current / limit) * 100;
 

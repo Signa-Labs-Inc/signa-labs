@@ -8,7 +8,7 @@ export const plans = pgTable('plans', {
   description: text(),
   features: jsonb().notNull().default({}),
   displayFeatures: text('display_features').array().notNull().default(sql`'{}'::text[]`),
-  stripeProductId: text('stripe_product_id'),
+  stripeProductId: text('stripe_product_id').unique(),
   isActive: boolean('is_active').notNull().default(true),
   sortOrder: integer('sort_order').notNull().default(0),
   ...timestamps,

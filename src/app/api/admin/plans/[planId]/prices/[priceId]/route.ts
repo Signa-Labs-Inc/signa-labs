@@ -30,11 +30,21 @@ export async function PATCH(
       if (typeof stripePriceId !== 'string') {
         throw new ValidationError('stripePriceId must be a string');
       }
-      // Validate the new Stripe Price ID exists and is active
+      // Validate the Stripe Price ID exists, is active, and interval matches
+      let retrievedPrice;
       try {
-        await stripe.prices.retrieve(stripePriceId);
+        retrievedPrice = await stripe.prices.retrieve(stripePriceId);
       } catch {
         throw new ValidationError(`Invalid Stripe Price ID: ${stripePriceId}`);
+      }
+      if (!retrievedPrice.active) {
+        throw new ValidationError(`Stripe Price ${stripePriceId} is not active`);
+      }
+      const targetInterval = (interval as string | undefined) ?? set.interval;
+      if (targetInterval && retrievedPrice.recurring?.interval !== targetInterval) {
+        throw new ValidationError(
+          `Stripe Price interval "${retrievedPrice.recurring?.interval}" does not match "${targetInterval}"`
+        );
       }
       set.stripePriceId = stripePriceId;
     }

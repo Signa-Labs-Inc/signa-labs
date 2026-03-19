@@ -10,8 +10,13 @@ export async function POST(req: NextRequest) {
 
     let body: Record<string, unknown>;
     try {
-      body = await req.json();
-    } catch {
+      const parsed = await req.json();
+      if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+        throw new ValidationError('Invalid JSON body');
+      }
+      body = parsed;
+    } catch (err) {
+      if (err instanceof ValidationError) throw err;
       throw new ValidationError('Invalid JSON body');
     }
 

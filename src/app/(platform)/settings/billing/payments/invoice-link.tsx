@@ -9,17 +9,26 @@ export function InvoiceLink({ invoiceId }: { invoiceId: string }) {
 
   async function handleClick() {
     setLoading(true);
+    const newWindow = window.open('about:blank', '_blank', 'noopener,noreferrer');
     try {
       const res = await fetch(`/api/stripe/invoices/${invoiceId}`);
       if (!res.ok) {
+        newWindow?.close();
         toast.error('Failed to load invoice');
         return;
       }
       const data = await res.json();
       if (data.url) {
-        window.open(data.url, '_blank', 'noopener,noreferrer');
+        if (newWindow) {
+          newWindow.location.href = data.url;
+        } else {
+          window.open(data.url, '_blank', 'noopener,noreferrer');
+        }
+      } else {
+        newWindow?.close();
       }
     } catch {
+      newWindow?.close();
       toast.error('Failed to load invoice');
     } finally {
       setLoading(false);

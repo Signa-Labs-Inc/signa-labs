@@ -37,8 +37,8 @@ export default async function DashboardPage() {
     pathService.getUserPaths(user.id).catch(() => []),
     getUserProfile(user.id),
     getTodayPracticeTimeSeconds(user.id),
-    getAllUsageLimits(user.id),
-    getUserPlan(user.id),
+    getAllUsageLimits(user.id).catch(() => null),
+    getUserPlan(user.id).catch(() => null),
   ]);
 
   const dailyGoalMinutes = userProfile?.preferences?.daily_goal_minutes ?? 30;
@@ -67,7 +67,7 @@ export default async function DashboardPage() {
               <StatsOverview stats={stats} />
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 <DailyGoalProgress todaySeconds={todayTime} goalMinutes={dailyGoalMinutes} />
-                <PlanUsageCard planName={userPlan?.planName ?? 'Free'} usage={usage} />
+                {usage && <PlanUsageCard planName={userPlan?.planName ?? 'Free'} usage={usage} />}
               </div>
             </div>
           )}

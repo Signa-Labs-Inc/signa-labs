@@ -214,9 +214,13 @@ export type UpdatePlanParams = {
 };
 
 export async function updatePlan(planId: string, set: UpdatePlanParams) {
+  const cleaned = Object.fromEntries(
+    Object.entries(set).filter(([, v]) => v !== undefined)
+  );
+  if (Object.keys(cleaned).length === 0) return null;
   const [updated] = await db
     .update(plans)
-    .set(set)
+    .set(cleaned)
     .where(eq(plans.id, planId))
     .returning();
   return updated ?? null;

@@ -17,7 +17,6 @@ export function NotificationBell() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
-  const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [markingAll, setMarkingAll] = useState(false);
@@ -56,10 +55,8 @@ export function NotificationBell() {
   }, []);
 
   async function handleLoadMore() {
-    const nextOffset = (page + 1) * PAGE_SIZE;
     setLoadingMore(true);
-    await fetchNotifications(nextOffset, true);
-    setPage((p) => p + 1);
+    await fetchNotifications(notifications.length, true);
     setLoadingMore(false);
   }
 

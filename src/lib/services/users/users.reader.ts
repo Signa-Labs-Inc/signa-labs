@@ -21,7 +21,7 @@ export async function getStripeCustomerId(userId: string): Promise<string | null
   const [row] = await db
     .select({ stripeCustomerId: users.stripeCustomerId })
     .from(users)
-    .where(eq(users.id, userId));
+    .where(and(eq(users.id, userId), isNull(users.deletedAt)));
   return row?.stripeCustomerId ?? null;
 }
 

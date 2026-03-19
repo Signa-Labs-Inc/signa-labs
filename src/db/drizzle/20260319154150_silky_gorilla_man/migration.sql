@@ -1,0 +1,1 @@
+ALTER TABLE "plans" ADD CONSTRAINT "plans_stripe_product_id_key" UNIQUE("stripe_product_id");
