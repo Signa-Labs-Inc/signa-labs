@@ -9,6 +9,7 @@ import type {
   CategoryInput,
   PromptTemplateInput,
   AnalyticsData,
+  AnalyticsFilters,
 } from './admin.types';
 import type { generateExerciseTask } from '@/trigger/generate-exercise';
 import type { GenerateExerciseInput } from '@/lib/services/generation/generation.types';
@@ -38,8 +39,8 @@ export function getDashboardStats() {
   return reader.getAdminDashboardStats();
 }
 
-export function getAnalytics(): Promise<AnalyticsData> {
-  return reader.getAnalyticsData();
+export function getAnalytics(filters?: AnalyticsFilters): Promise<AnalyticsData> {
+  return reader.getAnalyticsData(filters);
 }
 
 // --- Exercises ---------------------------------------------------------------

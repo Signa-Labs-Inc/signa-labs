@@ -11,17 +11,24 @@ import { exerciseFiles } from '@/db/schema/tables/exercise_files';
 import { exerciseAttempts } from '@/db/schema/tables/exercise_attempts';
 import { exerciseSubmissions } from '@/db/schema/tables/exercise_submissions';
 import { userLearningStats } from '@/db/schema/tables/user_learning_stats';
+import { subscriptions } from '@/db/schema/tables/subscriptions';
+import { subscriptionEvents } from '@/db/schema/tables/subscription_events';
+import { paymentRecords } from '@/db/schema/tables/payment_records';
 import type {
   AdminDashboardStats,
   AdminExerciseFilters,
   AdminUserFilters,
   AdminPathFilters,
   AnalyticsData,
+  AnalyticsFilters,
   BreakdownItem,
   DailyCount,
+  MonthlyRevenue,
   RankedExercise,
+  RecentPayment,
   TopUser,
 } from './admin.types';
+import { rangeToInterval } from './admin.types';
 
 /** Escape LIKE wildcards so user input is treated as literal text */
 function escapeLike(value: string): string {
@@ -345,6 +352,12 @@ export async function listAllUsers(
 
 // --- Analytics -----------------------------------------------------------------
 
+/** Build a raw SQL interval expression from filter range, with fallback */
+function sqlInterval(interval: string | null, fallback: string): ReturnType<typeof sql> {
+  const val = interval ?? fallback;
+  return sql.raw(`interval '${val}'`);
+}
+
 function toBreakdown(rows: { label: string; value: number }[]): BreakdownItem[] {
   const items = rows.map((r) => ({ label: r.label, value: Number(r.value) }));
   const total = items.reduce((sum, r) => sum + r.value, 0);
@@ -354,7 +367,10 @@ function toBreakdown(rows: { label: string; value: number }[]): BreakdownItem[] 
   }));
 }
 
-async function getOverviewStats(): Promise<AnalyticsData['overview']> {
+async function getOverviewStats(interval: string | null): Promise<AnalyticsData['overview']> {
+  const rangeFilter = interval ? sql`AND ${exerciseAttempts.startedAt} >= now() - ${sqlInterval(interval, '30 days')}` : sql``;
+  const subRangeFilter = interval ? sql`AND ${exerciseSubmissions.submittedAt} >= now() - ${sqlInterval(interval, '30 days')}` : sql``;
+
   const [
     [completions],
     [submissions],
@@ -365,22 +381,23 @@ async function getOverviewStats(): Promise<AnalyticsData['overview']> {
   ] = await Promise.all([
     db.select({ count: sql<number>`count(*)::int` })
       .from(exerciseAttempts)
-      .where(sql`${exerciseAttempts.status} = 'completed'`),
+      .where(sql`${exerciseAttempts.status} = 'completed' ${rangeFilter}`),
     db.select({ count: sql<number>`count(*)::int` })
-      .from(exerciseSubmissions),
+      .from(exerciseSubmissions)
+      .where(sql`1=1 ${subRangeFilter}`),
     db.select({
       rate: sql<number>`round(coalesce(100.0 * count(*) filter (where ${exerciseSubmissions.isPassing}) / nullif(count(*), 0), 0), 1)`,
-    }).from(exerciseSubmissions),
+    }).from(exerciseSubmissions).where(sql`1=1 ${subRangeFilter}`),
     db.select({ count: sql<number>`count(distinct ${exerciseAttempts.userId})::int` })
       .from(exerciseAttempts)
-      .where(sql`${exerciseAttempts.startedAt} >= now() - interval '30 days'`),
+      .where(sql`${exerciseAttempts.startedAt} >= now() - ${sqlInterval(interval, '30 days')}`),
     db.select({
       total: sql<number>`coalesce(sum(${userLearningStats.totalTimeSpentSeconds}), 0)::int`,
     }).from(userLearningStats),
     db.select({
       avg: sql<number>`round(coalesce(avg(${exerciseAttempts.timeSpentSeconds}), 0) / 60.0, 1)`,
     }).from(exerciseAttempts)
-      .where(sql`${exerciseAttempts.status} = 'completed'`),
+      .where(sql`${exerciseAttempts.status} = 'completed' ${rangeFilter}`),
   ]);
 
   return {
@@ -393,7 +410,8 @@ async function getOverviewStats(): Promise<AnalyticsData['overview']> {
   };
 }
 
-async function getDailyCompletions(): Promise<DailyCount[]> {
+async function getDailyCompletions(interval: string | null): Promise<DailyCount[]> {
+  const seriesInterval = sqlInterval(interval, '29 days');
   const rows = await db.execute(sql`
     select
       to_char(d::date, 'YYYY-MM-DD') as date,
@@ -402,7 +420,7 @@ async function getDailyCompletions(): Promise<DailyCount[]> {
         from exercise_attempts ea
         where ea.status = 'completed' and ea.completed_at::date = d::date
       ), 0) as count
-    from generate_series(now() - interval '29 days', now(), interval '1 day') as d
+    from generate_series(now() - ${seriesInterval}, now(), interval '1 day') as d
     order by d
   `);
 
@@ -413,7 +431,7 @@ async function getDailyCompletions(): Promise<DailyCount[]> {
   }));
 }
 
-async function getExerciseInsights(): Promise<AnalyticsData['exerciseInsights']> {
+async function getExerciseInsights(_interval: string | null): Promise<AnalyticsData['exerciseInsights']> {
   const [langRows, diffRows, hardestRows, mostAttemptedRows] = await Promise.all([
     db.select({
       label: exercises.language,
@@ -489,7 +507,7 @@ async function getExerciseInsights(): Promise<AnalyticsData['exerciseInsights']>
   };
 }
 
-async function getUserEngagement(): Promise<AnalyticsData['userEngagement']> {
+async function getUserEngagement(interval: string | null): Promise<AnalyticsData['userEngagement']> {
   type DateCount = { date: string; count: number };
 
   const [
@@ -536,11 +554,11 @@ async function getUserEngagement(): Promise<AnalyticsData['userEngagement']> {
       order by d
     `),
 
-    // New signups (gap-filled)
+    // New signups (gap-filled, scoped to filter range)
     db.execute(sql`
       select to_char(d::date, 'YYYY-MM-DD') as date,
         coalesce((select count(*)::int from users u where u.deleted_at is null and u.created_at::date = d::date), 0) as count
-      from generate_series(now() - interval '29 days', now(), interval '1 day') as d
+      from generate_series(now() - ${sqlInterval(interval, '29 days')}, now(), interval '1 day') as d
       order by d
     `),
 
@@ -570,7 +588,7 @@ async function getUserEngagement(): Promise<AnalyticsData['userEngagement']> {
   };
 }
 
-async function getUserSegmentation(): Promise<AnalyticsData['userSegmentation']> {
+async function getUserSegmentation(interval: string | null): Promise<AnalyticsData['userSegmentation']> {
   const [
     activityRows,
     planRows,
@@ -582,7 +600,7 @@ async function getUserSegmentation(): Promise<AnalyticsData['userSegmentation']>
     [avgStats],
     [medianStreakResult],
   ] = await Promise.all([
-    // Activity level segmentation based on completions in last 30 days
+    // Activity level segmentation based on completions in selected range
     db.select({
       label: sql<string>`case
         when coalesce(completions, 0) = 0 then 'Inactive'
@@ -597,7 +615,7 @@ async function getUserSegmentation(): Promise<AnalyticsData['userSegmentation']>
         sql`(
           select user_id, count(*) as completions
           from exercise_attempts
-          where status = 'completed' and completed_at >= now() - interval '30 days'
+          where status = 'completed' and completed_at >= now() - ${sqlInterval(interval, '30 days')}
           group by user_id
         ) as recent_activity`,
         sql`recent_activity.user_id = ${users.id}`
@@ -735,7 +753,7 @@ async function getUserSegmentation(): Promise<AnalyticsData['userSegmentation']>
   };
 }
 
-async function getLearningPathStats(): Promise<AnalyticsData['learningPathStats']> {
+async function getLearningPathStats(_interval: string | null): Promise<AnalyticsData['learningPathStats']> {
   const [statusRows, langRows, [totals], [avgMilestones]] = await Promise.all([
     db.select({
       label: learningPaths.status,
@@ -774,7 +792,9 @@ async function getLearningPathStats(): Promise<AnalyticsData['learningPathStats'
   };
 }
 
-async function getSubmissionPerformance(): Promise<AnalyticsData['submissionPerformance']> {
+async function getSubmissionPerformance(interval: string | null): Promise<AnalyticsData['submissionPerformance']> {
+  const subRangeFilter = interval ? sql`AND ${exerciseSubmissions.submittedAt} >= now() - ${sqlInterval(interval, '30 days')}` : sql``;
+  const attemptRangeFilter = interval ? sql`AND ${exerciseAttempts.startedAt} >= now() - ${sqlInterval(interval, '30 days')}` : sql``;
   const [
     [passRate],
     [avgAttempts],
@@ -785,7 +805,7 @@ async function getSubmissionPerformance(): Promise<AnalyticsData['submissionPerf
   ] = await Promise.all([
     db.select({
       rate: sql<number>`round(coalesce(100.0 * count(*) filter (where ${exerciseSubmissions.isPassing}) / nullif(count(*), 0), 0), 1)`,
-    }).from(exerciseSubmissions),
+    }).from(exerciseSubmissions).where(sql`1=1 ${subRangeFilter}`),
 
     db.select({
       avg: sql<number>`coalesce((
@@ -802,18 +822,18 @@ async function getSubmissionPerformance(): Promise<AnalyticsData['submissionPerf
 
     db.select({
       rate: sql<number>`round(coalesce(100.0 * count(*) filter (where ${exerciseAttempts.hintsRevealed} > 0) / nullif(count(*), 0), 0), 1)`,
-    }).from(exerciseAttempts),
+    }).from(exerciseAttempts).where(sql`1=1 ${attemptRangeFilter}`),
 
     db.select({
       rate: sql<number>`round(coalesce(100.0 * count(*) filter (where ${exerciseAttempts.solutionViewed} = true) / nullif(count(*), 0), 0), 1)`,
-    }).from(exerciseAttempts),
+    }).from(exerciseAttempts).where(sql`1=1 ${attemptRangeFilter}`),
 
     db.select({
       avg: sql<number>`round(coalesce(avg(${exerciseSubmissions.executionTimeMs}), 0))::int`,
-    }).from(exerciseSubmissions),
+    }).from(exerciseSubmissions).where(sql`1=1 ${subRangeFilter}`),
 
     db.select({ count: sql<number>`count(*)::int` })
-      .from(exerciseSubmissions),
+      .from(exerciseSubmissions).where(sql`1=1 ${subRangeFilter}`),
   ]);
 
   return {
@@ -826,8 +846,275 @@ async function getSubmissionPerformance(): Promise<AnalyticsData['submissionPerf
   };
 }
 
+// ── Financial Analytics ─────────────────────────────────────────────────────
+
+/** Build SQL fragments for plan/status filtering on subscriptions-joined queries */
+function buildFinancialFilters(plan: string, status: string) {
+  // For queries that join subscriptions (aliased as 's')
+  const planFilter = plan !== 'all' ? sql`AND s.plan_id = ${plan}` : sql``;
+
+  let statusFilter = sql``;
+  if (status === 'active') statusFilter = sql`AND s.status IN ('active', 'past_due')`;
+  else if (status === 'churned') statusFilter = sql`AND s.status = 'canceled'`;
+  else if (status === 'trial') statusFilter = sql`AND s.status = 'trialing'`;
+
+  return { planFilter, statusFilter };
+}
+
+async function getRevenueMetrics(interval: string | null, plan: string, status: string) {
+  const dateFilter = interval ? sql`AND paid_at >= now() - ${sql.raw(`interval '${interval}'`)}` : sql``;
+  const { planFilter, statusFilter } = buildFinancialFilters(plan, status);
+  // For revenue, join payment_records to subscriptions when plan/status filters are active
+  const needsSubJoin = plan !== 'all' || status !== 'all';
+  const subJoin = needsSubJoin ? sql`JOIN subscriptions s ON s.id = pr.subscription_id` : sql``;
+  const subFilters = needsSubJoin ? sql`${planFilter} ${statusFilter}` : sql``;
+
+  const [mrrRow, totalRow, arpuRow, trend] = await Promise.all([
+    // MRR: succeeded payments in last 30d
+    db.execute(sql`
+      SELECT coalesce(sum(pr.amount_cents), 0)::int AS mrr
+      FROM payment_records pr
+      ${subJoin}
+      WHERE pr.status = 'succeeded'
+        AND pr.paid_at >= now() - interval '30 days'
+        ${subFilters}
+    `).then((r) => r.rows[0] as { mrr: number }),
+
+    // Total revenue in range
+    db.execute(sql`
+      SELECT coalesce(sum(pr.amount_cents), 0)::int AS total
+      FROM payment_records pr
+      ${subJoin}
+      WHERE pr.status = 'succeeded' ${dateFilter} ${subFilters}
+    `).then((r) => r.rows[0] as { total: number }),
+
+    // ARPU
+    db.execute(sql`
+      SELECT CASE WHEN count(DISTINCT pr.user_id) = 0 THEN 0
+        ELSE (coalesce(sum(pr.amount_cents), 0) / count(DISTINCT pr.user_id))::int
+      END AS arpu
+      FROM payment_records pr
+      ${subJoin}
+      WHERE pr.status = 'succeeded' ${dateFilter} ${subFilters}
+    `).then((r) => r.rows[0] as { arpu: number }),
+
+    // Revenue trend (last 6 months, gap-filled)
+    db.execute(sql`
+      SELECT to_char(d::date, 'YYYY-MM') AS month,
+        coalesce((
+          SELECT sum(pr2.amount_cents)::int
+          FROM payment_records pr2
+          ${needsSubJoin ? sql`JOIN subscriptions s ON s.id = pr2.subscription_id` : sql``}
+          WHERE pr2.status = 'succeeded'
+            AND to_char(pr2.paid_at, 'YYYY-MM') = to_char(d::date, 'YYYY-MM')
+            ${subFilters}
+        ), 0) AS "totalCents"
+      FROM generate_series(
+        date_trunc('month', now() - interval '5 months'),
+        date_trunc('month', now()),
+        interval '1 month'
+      ) AS d
+      ORDER BY d
+    `).then((r) => r.rows as MonthlyRevenue[]),
+  ]);
+
+  return {
+    mrr: mrrRow.mrr,
+    totalRevenue: totalRow.total,
+    arpu: arpuRow.arpu,
+    revenueTrend: trend,
+  };
+}
+
+async function getSubscriptionHealth(interval: string | null, plan: string, status: string) {
+  const dateFilter = interval ? sql`AND created_at >= now() - ${sql.raw(`interval '${interval}'`)}` : sql``;
+  const planFilter = plan !== 'all' ? sql`AND plan_id = ${plan}` : sql``;
+  // For event queries, join to subscriptions for plan filter
+  const eventPlanFilter = plan !== 'all' ? sql`AND se.subscription_id IN (SELECT id FROM subscriptions WHERE plan_id = ${plan})` : sql``;
+
+  const [activeRow, churnRow, trialRow, upgradeRow, downgradeRow] = await Promise.all([
+    // Active subscribers
+    db.execute(sql`
+      SELECT count(*)::int AS count FROM subscriptions
+      WHERE status IN ('active', 'trialing', 'past_due') ${planFilter}
+    `).then((r) => r.rows[0] as { count: number }),
+
+    // Churn: canceled + churn rate
+    db.execute(sql`
+      SELECT
+        count(*) FILTER (WHERE status = 'canceled' AND canceled_at >= now() - interval '30 days')::int AS churned,
+        CASE WHEN (
+          count(*) FILTER (WHERE status IN ('active','trialing','past_due')) +
+          count(*) FILTER (WHERE status = 'canceled' AND canceled_at >= now() - interval '30 days')
+        ) = 0 THEN 0
+        ELSE round(100.0 *
+          count(*) FILTER (WHERE status = 'canceled' AND canceled_at >= now() - interval '30 days') /
+          (count(*) FILTER (WHERE status IN ('active','trialing','past_due')) +
+           count(*) FILTER (WHERE status = 'canceled' AND canceled_at >= now() - interval '30 days'))
+        , 1) END AS "churnRate"
+      FROM subscriptions
+      WHERE 1=1 ${planFilter}
+    `).then((r) => r.rows[0] as { churned: number; churnRate: number }),
+
+    // Trial conversion rate
+    db.execute(sql`
+      SELECT round(coalesce(
+        100.0 * count(*) FILTER (WHERE status = 'active')
+              / nullif(count(*), 0)
+      , 0), 1)::numeric AS rate
+      FROM subscriptions
+      WHERE trial_end IS NOT NULL ${planFilter}
+    `).then((r) => r.rows[0] as { rate: number }),
+
+    // Upgrades in range
+    db.execute(sql`
+      SELECT count(*)::int AS count FROM subscription_events se
+      WHERE se.type = 'upgraded' ${dateFilter} ${eventPlanFilter}
+    `).then((r) => r.rows[0] as { count: number }),
+
+    // Downgrades in range
+    db.execute(sql`
+      SELECT count(*)::int AS count FROM subscription_events se
+      WHERE se.type = 'downgraded' ${dateFilter} ${eventPlanFilter}
+    `).then((r) => r.rows[0] as { count: number }),
+  ]);
+
+  return {
+    activeSubscribers: activeRow.count,
+    churned30d: Number(churnRow.churned),
+    churnRate: Number(churnRow.churnRate),
+    trialConversionRate: Number(trialRow.rate),
+    upgradeCount30d: upgradeRow.count,
+    downgradeCount30d: downgradeRow.count,
+  };
+}
+
+async function getPaymentHistory(interval: string | null, plan: string, _status: string) {
+  const dateFilter = interval ? sql`AND pr.created_at >= now() - ${sql.raw(`interval '${interval}'`)}` : sql``;
+  const needsPlanJoin = plan !== 'all';
+  const planJoin = needsPlanJoin ? sql`JOIN subscriptions s ON s.id = pr.subscription_id AND s.plan_id = ${plan}` : sql``;
+
+  const [recent, failedRow, refundRow, successRow] = await Promise.all([
+    // Recent 20 payments
+    db.execute(sql`
+      SELECT pr.id, u.email AS "userEmail", pr.amount_cents AS "amountCents",
+             pr.currency, pr.status,
+             to_char(pr.paid_at, 'YYYY-MM-DD') AS "paidAt",
+             to_char(pr.created_at, 'YYYY-MM-DD') AS "createdAt"
+      FROM payment_records pr
+      JOIN users u ON u.id = pr.user_id
+      ${planJoin}
+      WHERE 1=1 ${dateFilter}
+      ORDER BY pr.created_at DESC
+      LIMIT 20
+    `).then((r) => r.rows as RecentPayment[]),
+
+    // Failed payments in range
+    db.execute(sql`
+      SELECT count(*)::int AS count FROM payment_records pr
+      ${planJoin}
+      WHERE pr.status = 'failed' ${dateFilter}
+    `).then((r) => r.rows[0] as { count: number }),
+
+    // Refund total in range
+    db.execute(sql`
+      SELECT coalesce(sum(pr.amount_cents), 0)::int AS total FROM payment_records pr
+      ${planJoin}
+      WHERE pr.status IN ('refunded', 'partial_refund') ${dateFilter}
+    `).then((r) => r.rows[0] as { total: number }),
+
+    // Payment success rate in range
+    db.execute(sql`
+      SELECT CASE WHEN count(*) = 0 THEN 0
+        ELSE round(100.0 * count(*) FILTER (WHERE pr.status = 'succeeded') / count(*), 1)
+      END::numeric AS rate
+      FROM payment_records pr
+      ${planJoin}
+      WHERE 1=1 ${dateFilter}
+    `).then((r) => r.rows[0] as { rate: number }),
+  ]);
+
+  return {
+    recentPayments: recent,
+    failedPayments30d: failedRow.count,
+    refundTotalCents: refundRow.total,
+    paymentSuccessRate: Number(successRow.rate),
+  };
+}
+
+async function getPlanBreakdown(plan: string, status: string) {
+  const { planFilter, statusFilter } = buildFinancialFilters(plan, status);
+  const defaultStatusFilter = status === 'all' ? sql`AND s.status IN ('active', 'trialing', 'past_due')` : statusFilter;
+
+  const [subsByPlan, revenueByPlan, freeVsPaid] = await Promise.all([
+    // Subscribers per plan
+    db.execute(sql`
+      SELECT s.plan_id AS label, count(DISTINCT s.id)::int AS value
+      FROM subscriptions s
+      WHERE 1=1 ${defaultStatusFilter} ${planFilter}
+      GROUP BY s.plan_id
+      ORDER BY value DESC
+    `).then((r) => {
+      const rows = r.rows as { label: string; value: number }[];
+      const total = rows.reduce((sum, row) => sum + Number(row.value), 0);
+      return rows.map((row) => ({
+        label: row.label,
+        value: Number(row.value),
+        percentage: total > 0 ? Math.round((Number(row.value) / total) * 100) : 0,
+      })) as BreakdownItem[];
+    }),
+
+    // Revenue per plan
+    db.execute(sql`
+      SELECT s.plan_id AS label,
+        coalesce(sum(pr.amount_cents), 0)::int AS value
+      FROM subscriptions s
+      LEFT JOIN payment_records pr ON pr.subscription_id = s.id AND pr.status = 'succeeded'
+      WHERE 1=1 ${defaultStatusFilter} ${planFilter}
+      GROUP BY s.plan_id
+      ORDER BY value DESC
+    `).then((r) => {
+      const rows = r.rows as { label: string; value: number }[];
+      const total = rows.reduce((sum, row) => sum + Number(row.value), 0);
+      return rows.map((row) => ({
+        label: row.label,
+        value: Number(row.value),
+        percentage: total > 0 ? Math.round((Number(row.value) / total) * 100) : 0,
+      })) as BreakdownItem[];
+    }),
+
+    // Free vs paid
+    db.execute(sql`
+      SELECT
+        count(*) FILTER (WHERE s.id IS NULL)::int AS free,
+        count(*) FILTER (WHERE s.id IS NOT NULL)::int AS paid
+      FROM users u
+      LEFT JOIN subscriptions s
+        ON s.user_id = u.id AND s.status IN ('active', 'trialing', 'past_due')
+      WHERE u.deleted_at IS NULL
+    `).then((r) => r.rows[0] as { free: number; paid: number }),
+  ]);
+
+  const totalUsers = Number(freeVsPaid.free) + Number(freeVsPaid.paid);
+
+  return {
+    subscribersByPlan: subsByPlan,
+    revenueByPlan,
+    freeVsPaidRatio: {
+      free: Number(freeVsPaid.free),
+      paid: Number(freeVsPaid.paid),
+      paidPercentage: totalUsers > 0 ? Math.round((Number(freeVsPaid.paid) / totalUsers) * 100) : 0,
+    },
+    mostPopularPlan: subsByPlan[0]?.label ?? 'free',
+  };
+}
+
 /** Fetch all analytics data in parallel */
-export async function getAnalyticsData(): Promise<AnalyticsData> {
+export async function getAnalyticsData(filters?: AnalyticsFilters): Promise<AnalyticsData> {
+  const interval = filters ? rangeToInterval(filters.range) : rangeToInterval('30d');
+  const plan = filters?.plan ?? 'all';
+  const status = filters?.status ?? 'all';
+
   const [
     overview,
     dailyCompletions,
@@ -836,14 +1123,22 @@ export async function getAnalyticsData(): Promise<AnalyticsData> {
     userSegmentation,
     learningPathStats,
     submissionPerformance,
+    revenueMetrics,
+    subscriptionHealth,
+    paymentHistory,
+    planBreakdown,
   ] = await Promise.all([
-    getOverviewStats(),
-    getDailyCompletions(),
-    getExerciseInsights(),
-    getUserEngagement(),
-    getUserSegmentation(),
-    getLearningPathStats(),
-    getSubmissionPerformance(),
+    getOverviewStats(interval),
+    getDailyCompletions(interval),
+    getExerciseInsights(interval),
+    getUserEngagement(interval),
+    getUserSegmentation(interval),
+    getLearningPathStats(interval),
+    getSubmissionPerformance(interval),
+    getRevenueMetrics(interval, plan, status),
+    getSubscriptionHealth(interval, plan, status),
+    getPaymentHistory(interval, plan, status),
+    getPlanBreakdown(plan, status),
   ]);
 
   return {
@@ -854,5 +1149,9 @@ export async function getAnalyticsData(): Promise<AnalyticsData> {
     userSegmentation,
     learningPathStats,
     submissionPerformance,
+    revenueMetrics,
+    subscriptionHealth,
+    paymentHistory,
+    planBreakdown,
   };
 }
