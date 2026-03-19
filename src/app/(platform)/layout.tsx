@@ -6,6 +6,7 @@ import { MobileNav } from '@/components/navigation/mobile-nav';
 import { Footer } from '@/components/navigation/footer';
 import { OnboardingProvider } from '@/components/onboarding/onboarding-provider';
 import { GuidedTour } from '@/components/onboarding/guided-tour';
+import { JobTracker } from '@/components/job-tracker/job-tracker';
 
 export default function PlatformLayout({
   children,
@@ -18,7 +19,12 @@ export default function PlatformLayout({
     /^\/e\/[^/]+$/.test(pathname);
 
   if (isExerciseWorkspace) {
-    return <div className="h-screen flex flex-col bg-background">{children}</div>;
+    return (
+      <>
+        <JobTracker />
+        <div className="h-screen flex flex-col bg-background">{children}</div>
+      </>
+    );
   }
 
   return (
@@ -34,6 +40,7 @@ export default function PlatformLayout({
         <Footer />
       </div>
       <GuidedTour />
+      <JobTracker />
     </OnboardingProvider>
   );
 }

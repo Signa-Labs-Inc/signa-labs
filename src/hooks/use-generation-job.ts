@@ -9,10 +9,11 @@
 
 'use client';
 
-import { useReducer, useCallback, useMemo } from 'react';
+import { useReducer, useCallback, useMemo, useEffect } from 'react';
 import { useRealtimeRun } from '@trigger.dev/react-hooks';
 import type { generateExerciseTask } from '@/trigger/generate-exercise';
 import { parseApiError } from '@/lib/utils/parse-api-error';
+import { useJobStore } from '@/stores/job-store';
 
 // ============================================================
 // Types
@@ -232,6 +233,14 @@ export function useGenerationJob(): UseGenerationJobReturn {
           runId: data.runId,
           accessToken: data.publicAccessToken,
         });
+
+        useJobStore.getState().registerJob({
+          runId: data.runId,
+          accessToken: data.publicAccessToken,
+          jobType: 'generate-exercise',
+          label: 'Exercise Generation',
+          createdAt: Date.now(),
+        });
       } catch {
         dispatch({ type: 'FAIL', error: 'Network error — please try again', code: null });
       }
@@ -239,9 +248,17 @@ export function useGenerationJob(): UseGenerationJobReturn {
     []
   );
 
+  // Deregister job from store on terminal state so JobTracker doesn't double-toast
+  useEffect(() => {
+    if ((derived.status === 'completed' || derived.status === 'failed') && state.runId) {
+      useJobStore.getState().removeJob(state.runId);
+    }
+  }, [derived.status, state.runId]);
+
   const reset = useCallback(() => {
+    if (state.runId) useJobStore.getState().removeJob(state.runId);
     dispatch({ type: 'RESET' });
-  }, []);
+  }, [state.runId]);
 
   return {
     status: derived.status,

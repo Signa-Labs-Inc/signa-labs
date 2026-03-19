@@ -8,6 +8,7 @@
 import { task, metadata } from '@trigger.dev/sdk/v3';
 import { PathService } from '@/lib/services/paths/paths.service';
 import type { CreatePathInput, CreatePathResult } from '@/lib/services/paths/paths.types';
+import { insertNotification } from '@/lib/services/notifications/notifications.writer';
 
 export type CreatePathPayload = CreatePathInput;
 export type CreatePathOutput = CreatePathResult;
@@ -26,6 +27,15 @@ export const createPathTask = task({
 
     metadata.set('step', 'completed');
     metadata.set('progress', 'Learning path created!');
+
+    await insertNotification({
+      userId: payload.userId,
+      type: 'job_completed',
+      channel: 'in_app',
+      subject: 'Learning path created!',
+      body: `Your path "${result.title}" with ${result.totalMilestones} milestones is ready.`,
+      metadata: { url: `/paths/${result.pathId}`, jobType: 'create-path' },
+    }).catch(() => {});
 
     return result;
   },
