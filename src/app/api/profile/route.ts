@@ -26,7 +26,12 @@ export async function GET() {
 export async function PUT(request: NextRequest) {
   try {
     const user = await requireCurrentUser();
-    const body = (await request.json()) as UpdateProfileInput;
+    let body: UpdateProfileInput;
+    try {
+      body = (await request.json()) as UpdateProfileInput;
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+    }
 
     const profile = await profileService.updateProfile(user.id, body);
 
