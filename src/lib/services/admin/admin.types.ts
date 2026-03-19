@@ -58,6 +58,23 @@ export type AnalyticsFilters = {
 
 export const VALID_TIME_RANGES: AnalyticsTimeRange[] = ['7d', '30d', '90d', '6mo', '1y', 'all'];
 
+export function rangeToLabel(range: AnalyticsTimeRange): string {
+  switch (range) {
+    case '7d':
+      return '7 days';
+    case '30d':
+      return '30 days';
+    case '90d':
+      return '90 days';
+    case '6mo':
+      return '6 months';
+    case '1y':
+      return '1 year';
+    case 'all':
+      return 'all time';
+  }
+}
+
 export function rangeToInterval(range: AnalyticsTimeRange): string | null {
   switch (range) {
     case '7d':
@@ -178,9 +195,9 @@ export type AnalyticsData = {
     totalSubmissions: number;
   };
   revenueMetrics: {
-    mrr: number;
-    totalRevenue: number;
-    arpu: number;
+    mrrCents: number;
+    totalRevenueCents: number;
+    arpuCents: number;
     revenueTrend: MonthlyRevenue[];
   };
   subscriptionHealth: {
@@ -193,7 +210,7 @@ export type AnalyticsData = {
   };
   paymentHistory: {
     recentPayments: RecentPayment[];
-    failedPayments30d: number;
+    failedPayments: number;
     refundTotalCents: number;
     paymentSuccessRate: number;
   };

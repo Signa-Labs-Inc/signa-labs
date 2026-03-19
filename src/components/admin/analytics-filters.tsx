@@ -60,6 +60,7 @@ export function AnalyticsFilters() {
         <div className="border-border flex rounded-md border">
           {TIME_RANGES.map(({ value, label }) => (
             <button
+              type="button"
               key={value}
               onClick={() => updateParam('range', value)}
               className={`px-3 py-1.5 text-xs font-medium transition-colors first:rounded-l-md last:rounded-r-md ${

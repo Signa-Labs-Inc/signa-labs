@@ -35,7 +35,11 @@ import { AnalyticsBarChart, AnalyticsBarChartLabels } from '@/components/admin/a
 import { AnalyticsBreakdownCard } from '@/components/admin/analytics-breakdown-card';
 import { AnalyticsFilters } from '@/components/admin/analytics-filters';
 import * as adminService from '@/lib/services/admin/admin.service';
-import { VALID_TIME_RANGES, type AnalyticsTimeRange } from '@/lib/services/admin/admin.types';
+import {
+  VALID_TIME_RANGES,
+  rangeToLabel,
+  type AnalyticsTimeRange,
+} from '@/lib/services/admin/admin.types';
 
 export const dynamic = 'force-dynamic';
 
@@ -86,6 +90,7 @@ export default async function AdminAnalyticsPage({
   const status = typeof params.status === 'string' ? params.status : 'all';
 
   const data = await adminService.getAnalytics({ range, plan, status });
+  const rangeLabel = rangeToLabel(range);
 
   const dailyLabels = data.dailyCompletions.map((d) => ({
     label: formatDate(d.date),
@@ -546,17 +551,17 @@ export default async function AdminAnalyticsPage({
         <div className="grid gap-4 sm:grid-cols-3">
           <AdminStatCard
             title="MRR"
-            value={formatCurrency(data.revenueMetrics.mrr)}
+            value={formatCurrency(data.revenueMetrics.mrrCents)}
             icon={DollarSign}
           />
           <AdminStatCard
             title="Total Revenue"
-            value={formatCurrency(data.revenueMetrics.totalRevenue)}
+            value={formatCurrency(data.revenueMetrics.totalRevenueCents)}
             icon={DollarSign}
           />
           <AdminStatCard
             title="ARPU"
-            value={formatCurrency(data.revenueMetrics.arpu)}
+            value={formatCurrency(data.revenueMetrics.arpuCents)}
             icon={DollarSign}
             description="Avg revenue per paying user"
           />
@@ -580,7 +585,7 @@ export default async function AdminAnalyticsPage({
             icon={Users}
           />
           <AdminStatCard
-            title="Churned (30d)"
+            title={`Churned (${rangeLabel})`}
             value={data.subscriptionHealth.churned30d}
             icon={AlertTriangle}
           />
@@ -597,12 +602,12 @@ export default async function AdminAnalyticsPage({
             icon={RefreshCw}
           />
           <AdminStatCard
-            title="Upgrades (30d)"
+            title={`Upgrades (${rangeLabel})`}
             value={data.subscriptionHealth.upgradeCount30d}
             icon={ArrowUpRight}
           />
           <AdminStatCard
-            title="Downgrades (30d)"
+            title={`Downgrades (${rangeLabel})`}
             value={data.subscriptionHealth.downgradeCount30d}
             icon={ArrowDownRight}
           />
@@ -614,8 +619,8 @@ export default async function AdminAnalyticsPage({
         <h2 className="mb-4 text-base font-semibold">Payment History</h2>
         <div className="grid gap-4 sm:grid-cols-3">
           <AdminStatCard
-            title="Failed Payments (30d)"
-            value={data.paymentHistory.failedPayments30d}
+            title={`Failed Payments (${rangeLabel})`}
+            value={data.paymentHistory.failedPayments}
             icon={AlertTriangle}
           />
           <AdminStatCard

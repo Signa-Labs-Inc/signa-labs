@@ -11,9 +11,6 @@ import { exerciseFiles } from '@/db/schema/tables/exercise_files';
 import { exerciseAttempts } from '@/db/schema/tables/exercise_attempts';
 import { exerciseSubmissions } from '@/db/schema/tables/exercise_submissions';
 import { userLearningStats } from '@/db/schema/tables/user_learning_stats';
-import { subscriptions } from '@/db/schema/tables/subscriptions';
-import { subscriptionEvents } from '@/db/schema/tables/subscription_events';
-import { paymentRecords } from '@/db/schema/tables/payment_records';
 import type {
   AdminDashboardStats,
   AdminExerciseFilters,
@@ -348,7 +345,10 @@ export async function listAllUsers(
 
 // --- Analytics -----------------------------------------------------------------
 
-/** Build a raw SQL interval expression from filter range, with fallback */
+/**
+ * Build a raw SQL interval expression from filter range, with fallback.
+ * Safe: `val` is always from rangeToInterval() which returns a closed set of hardcoded strings.
+ */
 function sqlInterval(interval: string | null, fallback: string): ReturnType<typeof sql> {
   const val = interval ?? fallback;
   return sql.raw(`interval '${val}'`);
@@ -991,9 +991,9 @@ async function getRevenueMetrics(interval: string | null, plan: string, status: 
   ]);
 
   return {
-    mrr: mrrRow.mrr,
-    totalRevenue: totalRow.total,
-    arpu: arpuRow.arpu,
+    mrrCents: mrrRow.mrr,
+    totalRevenueCents: totalRow.total,
+    arpuCents: arpuRow.arpu,
     revenueTrend: trend,
   };
 }
@@ -1153,7 +1153,7 @@ async function getPaymentHistory(interval: string | null, plan: string, _status:
 
   return {
     recentPayments: recent,
-    failedPayments30d: failedRow.count,
+    failedPayments: failedRow.count,
     refundTotalCents: refundRow.total,
     paymentSuccessRate: Number(successRow.rate),
   };
