@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { LayoutDashboard, Code2, Route, FlaskConical, Crown, Compass } from 'lucide-react';
 import { UserMenu } from './user-menu';
 import { ThemeToggle } from './theme-toggle';
+import { NotificationBell } from './notification-bell';
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -69,6 +70,7 @@ export function TopNav() {
 
         {/* User Menu + Theme Toggle (desktop) */}
         <div className="hidden items-center gap-2 md:flex">
+          <NotificationBell />
           <ThemeToggle />
           <UserMenu />
         </div>

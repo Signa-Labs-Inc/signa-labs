@@ -17,6 +17,14 @@ export async function getUserById(id: string): Promise<User | null> {
   return user ?? null;
 }
 
+export async function getStripeCustomerId(userId: string): Promise<string | null> {
+  const [row] = await db
+    .select({ stripeCustomerId: users.stripeCustomerId })
+    .from(users)
+    .where(and(eq(users.id, userId), isNull(users.deletedAt)));
+  return row?.stripeCustomerId ?? null;
+}
+
 export async function getUserByClerkId(clerkId: string): Promise<User | null> {
   const [user] = await db
     .select({

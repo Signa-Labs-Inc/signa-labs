@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireCurrentUser } from '@/lib/services/auth/auth.service';
+import { requireUsageLimit } from '@/lib/services/subscriptions/subscriptions.gate';
 import { handleError } from '@/lib/utils/api.handler-errors';
 import { SubmissionService } from '@/lib/services/submissions/submissions.service';
 
@@ -15,9 +16,8 @@ interface SubmitRequestBody {
 export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
     const user = await requireCurrentUser();
+    await requireUsageLimit(user.id, 'submissions');
     const { exerciseId } = await params;
-
-    // Parse and validate request body
     let body: SubmitRequestBody;
     try {
       body = (await request.json()) as SubmitRequestBody;

@@ -9,6 +9,7 @@
 import { useReducer, useCallback, useMemo } from 'react';
 import { useRealtimeRun } from '@trigger.dev/react-hooks';
 import type { createPathTask } from '@/trigger/create-path';
+import { parseApiError } from '@/lib/utils/parse-api-error';
 
 // ============================================================
 // Types
@@ -27,6 +28,7 @@ interface UsePathCreationReturn {
   status: PathCreationStatus;
   progress: string | null;
   error: string | null;
+  code: string | null;
   result: PathCreationResult | null;
   startCreation: (input: {
     prompt: string;
@@ -44,6 +46,7 @@ interface State {
   status: PathCreationStatus;
   progress: string | null;
   error: string | null;
+  code: string | null;
   result: PathCreationResult | null;
   runId: string | null;
   accessToken: string | null;
@@ -52,13 +55,14 @@ interface State {
 type Action =
   | { type: 'SUBMIT' }
   | { type: 'QUEUED'; runId: string; accessToken: string }
-  | { type: 'FAIL'; error: string }
+  | { type: 'FAIL'; error: string; code: string | null }
   | { type: 'RESET' };
 
 const initialState: State = {
   status: 'idle',
   progress: null,
   error: null,
+  code: null,
   result: null,
   runId: null,
   accessToken: null,
@@ -77,7 +81,7 @@ function reducer(state: State, action: Action): State {
         accessToken: action.accessToken,
       };
     case 'FAIL':
-      return { ...state, status: 'failed', error: action.error };
+      return { ...state, status: 'failed', error: action.error, code: action.code };
     case 'RESET':
       return initialState;
   }
@@ -185,19 +189,16 @@ export function usePathCreation(): UsePathCreationReturn {
         });
 
         if (!response.ok) {
-          const body = (await response.json().catch(() => null)) as { error?: unknown } | null;
-          const errMsg = body?.error;
-          dispatch({
-            type: 'FAIL',
-            error: typeof errMsg === 'string' ? errMsg : `Request failed (${response.status})`,
-          });
+          const body = await response.json().catch(() => null);
+          const { message, code } = parseApiError(body, response.status);
+          dispatch({ type: 'FAIL', error: message, code });
           return;
         }
 
         const data = (await response.json()) as { runId: string; publicAccessToken: string };
         dispatch({ type: 'QUEUED', runId: data.runId, accessToken: data.publicAccessToken });
       } catch {
-        dispatch({ type: 'FAIL', error: 'Network error — please try again' });
+        dispatch({ type: 'FAIL', error: 'Network error — please try again', code: null });
       }
     },
     []
@@ -209,6 +210,7 @@ export function usePathCreation(): UsePathCreationReturn {
     status: derived.status,
     progress: derived.progress,
     error: derived.error,
+    code: state.code,
     result: derived.result,
     startCreation,
     reset,

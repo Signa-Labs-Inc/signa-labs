@@ -24,3 +24,4 @@ export { pathMilestones } from './path_milestones';
 export { pathExercises } from './path_exercises';
 export { pathSkillAssessments } from './path_skill_assessments';
 export { submissionExplanations } from './submission_explanations';
+export { subscriptionEvents } from './subscription_events';

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { tasks } from '@trigger.dev/sdk/v3';
 import { requireCurrentUser } from '@/lib/services/auth/auth.service';
+import { requireUsageLimits } from '@/lib/services/subscriptions/subscriptions.gate';
 import { handleError } from '@/lib/utils/api.handler-errors';
 import type { generateExerciseTask } from '@/trigger/generate-exercise';
 import type { GenerateExerciseInput } from '@/lib/services/generation/generation.types';
@@ -15,6 +16,7 @@ interface GenerateRequestBody {
 export async function POST(request: NextRequest) {
   try {
     const user = await requireCurrentUser();
+    await requireUsageLimits(user.id, ['aiGenerations', 'exercises']);
 
     let body: GenerateRequestBody;
     try {

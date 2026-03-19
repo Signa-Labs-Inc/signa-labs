@@ -58,7 +58,7 @@ export const subscriptions = pgTable(
     // Status check
     check(
       'subscriptions_status_check',
-      sql`${table.status} IN ('trialing', 'active', 'past_due', 'canceled', 'unpaid', 'paused', 'incomplete')`
+      sql`${table.status} IN ('trialing', 'active', 'past_due', 'canceled', 'unpaid', 'paused', 'incomplete', 'incomplete_expired')`
     ),
     // Enforce: exactly one owner must be set
     check(

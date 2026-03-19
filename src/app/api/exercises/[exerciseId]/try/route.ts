@@ -5,9 +5,6 @@ import { getExerciseById, getExerciseFilesByType } from '@/lib/services/exercise
 import { incrementPublicAttemptCount } from '@/lib/services/exercises/exercises.service';
 import { createExecutionClient } from '@/lib/sandboxes/execution_clients';
 import type { SandboxResult } from '@/lib/sandboxes/types';
-import { db } from '@/index';
-import { exerciseEnvironments } from '@/db/schema/tables';
-import { eq } from 'drizzle-orm';
 
 interface RouteParams {
   params: Promise<{ exerciseId: string }>;
@@ -59,15 +56,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       throw new ForbiddenError('This exercise is not publicly accessible');
     }
 
-    // Load environment
-    const [environment] = await db
-      .select()
-      .from(exerciseEnvironments)
-      .where(eq(exerciseEnvironments.id, exercise.environment.id));
-
-    if (!environment) {
-      throw new NotFoundError('Exercise environment');
-    }
+    const environment = exercise.environment;
 
     // Load test + support files
     const testFiles = await getExerciseFilesByType(exercise.id, 'test');

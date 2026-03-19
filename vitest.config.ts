@@ -5,14 +5,41 @@ import path from 'path';
 export default defineConfig({
   plugins: [react()],
   test: {
-    environment: 'jsdom',
-    globals: true,
-    setupFiles: ['./src/test/setup.ts'],
-    include: ['src/**/*.{test,spec}.{js,jsx,ts,tsx}'],
-    exclude: [
-      'node_modules',
-      'src/lib/sandboxes/__fixtures__/**',
-      'src/lib/sandboxes/execution_clients/tests/**',
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: 'unit',
+          environment: 'jsdom',
+          globals: true,
+          setupFiles: ['./src/test/setup.ts'],
+          include: ['src/**/*.test.{ts,tsx}'],
+          exclude: [
+            'node_modules',
+            '**/*.integration.test.ts',
+            'src/e2e/**',
+            'src/lib/sandboxes/__fixtures__/**',
+            'src/lib/sandboxes/execution_clients/tests/**',
+          ],
+        },
+      },
+      {
+        test: {
+          name: 'integration',
+          environment: 'node',
+          globals: true,
+          setupFiles: ['./src/test/setup.integration.ts'],
+          include: ['src/**/*.integration.test.ts'],
+          pool: 'forks',
+          fileParallelism: false,
+          testTimeout: 15000,
+        },
+        resolve: {
+          alias: {
+            '@': path.resolve(__dirname, './src'),
+          },
+        },
+      },
     ],
     coverage: {
       provider: 'v8',

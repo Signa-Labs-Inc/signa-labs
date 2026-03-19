@@ -12,6 +12,7 @@ import {
   Users,
   FlaskConical,
   BarChart3,
+  CreditCard,
 } from 'lucide-react';
 import { cn } from '@/lib/utils/helpers';
 
@@ -28,6 +29,7 @@ const navItems = [
   { href: '/admin/templates', label: 'Templates', icon: FileText },
   { href: '/admin/environments', label: 'Environments', icon: Server },
   { href: '/admin/paths', label: 'Paths', icon: Route },
+  { href: '/admin/plans', label: 'Plans', icon: CreditCard },
 ];
 
 const superAdminItems = [

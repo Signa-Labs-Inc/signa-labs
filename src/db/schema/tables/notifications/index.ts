@@ -16,6 +16,7 @@ export const notifications = pgTable(
     metadata: jsonb().default({}),
     status: text().notNull().default('pending'),
     sentAt: timestamp('sent_at', { withTimezone: true }),
+    readAt: timestamp('read_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
@@ -28,5 +29,8 @@ export const notifications = pgTable(
     index('idx_notifications_pending')
       .on(table.createdAt)
       .where(sql`${table.status} = 'pending'`),
+    index('idx_notifications_unread')
+      .on(table.userId)
+      .where(sql`"read_at" IS NULL`),
   ]
 );

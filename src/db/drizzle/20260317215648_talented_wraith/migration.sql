@@ -1,0 +1,1 @@
+ALTER TABLE "plans" ADD COLUMN "display_features" text[] DEFAULT '{}'::text[] NOT NULL;

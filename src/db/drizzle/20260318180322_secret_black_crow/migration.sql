@@ -1,0 +1,1 @@
+ALTER TABLE "subscriptions" DROP CONSTRAINT "subscriptions_status_check", ADD CONSTRAINT "subscriptions_status_check" CHECK ("status" IN ('trialing', 'active', 'past_due', 'canceled', 'unpaid', 'paused', 'incomplete', 'incomplete_expired'));

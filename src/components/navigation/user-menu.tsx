@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useUser, useClerk } from '@clerk/nextjs';
 import Link from 'next/link';
-import { LogOut, User } from 'lucide-react';
+import { CreditCard, LogOut, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export function UserMenu() {
@@ -61,6 +61,14 @@ export function UserMenu() {
           >
             <User className="h-4 w-4" />
             Profile
+          </Link>
+          <Link
+            href="/settings/billing"
+            onClick={() => setIsOpen(false)}
+            className="flex items-center gap-2 rounded-sm px-3 py-2 text-sm text-foreground hover:bg-accent/50 transition-colors"
+          >
+            <CreditCard className="h-4 w-4" />
+            Billing
           </Link>
           <button
             onClick={() => signOut()}
