@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
           isValidated: body.isValidated,
           isPublic: body.isPublic,
         },
-        body.files ?? [],
+        body.files ?? []
       );
       return NextResponse.json(exercise, { status: 201 });
     }

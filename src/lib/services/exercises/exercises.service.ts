@@ -12,7 +12,11 @@ import { db } from '@/index';
 import { exercises } from '@/db/schema/tables/exercises';
 import { eq, and, sql } from 'drizzle-orm';
 import { generateSlug } from '@/lib/utils/slug';
-import { getActiveCategories, getCategoryBySlug, type ExerciseCategory } from './exercise-categories';
+import {
+  getActiveCategories,
+  getCategoryBySlug,
+  type ExerciseCategory,
+} from './exercise-categories';
 
 export type CategorySection = {
   category: ExerciseCategory;
@@ -56,15 +60,15 @@ export async function getCategoryExercises(
   categorySlug: string,
   limit: number = 12,
   offset: number = 0
-): Promise<{ category: ExerciseCategory; exercises: ExerciseSummary[]; totalCount: number } | null> {
+): Promise<{
+  category: ExerciseCategory;
+  exercises: ExerciseSummary[];
+  totalCount: number;
+} | null> {
   const category = await getCategoryBySlug(categorySlug);
   if (!category) return null;
 
-  const { exercises, totalCount } = await reader.listExercisesByTags(
-    category.tags,
-    limit,
-    offset
-  );
+  const { exercises, totalCount } = await reader.listExercisesByTags(category.tags, limit, offset);
 
   return {
     category,
@@ -159,13 +163,13 @@ export async function getExerciseSolution(exerciseId: string): Promise<ExerciseS
 // --- Sharing -----------------------------------------------------------------
 
 /** Share a user exercise: generate slug, mark public */
-export async function shareExercise(
-  exerciseId: string,
-  userId: string
-): Promise<{ slug: string }> {
+export async function shareExercise(exerciseId: string, userId: string): Promise<{ slug: string }> {
   const exercise = await reader.getExerciseById(exerciseId);
   if (!exercise) throw new NotFoundError('Exercise', exerciseId);
-  if (exercise.origin !== 'user' || (exercise as { createdBy?: string | null }).createdBy !== userId) {
+  if (
+    exercise.origin !== 'user' ||
+    (exercise as { createdBy?: string | null }).createdBy !== userId
+  ) {
     throw new ForbiddenError('You can only share your own exercises');
   }
 
@@ -192,7 +196,10 @@ export async function shareExercise(
 export async function unshareExercise(exerciseId: string, userId: string): Promise<void> {
   const exercise = await reader.getExerciseById(exerciseId);
   if (!exercise) throw new NotFoundError('Exercise', exerciseId);
-  if (exercise.origin !== 'user' || (exercise as { createdBy?: string | null }).createdBy !== userId) {
+  if (
+    exercise.origin !== 'user' ||
+    (exercise as { createdBy?: string | null }).createdBy !== userId
+  ) {
     throw new ForbiddenError('You can only unshare your own exercises');
   }
 

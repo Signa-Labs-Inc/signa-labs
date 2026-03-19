@@ -2,7 +2,10 @@ import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/lib/services/auth/auth.service';
 import { handleError } from '@/lib/utils/api.handler-errors';
 import { ConflictError, NotFoundError, ValidationError } from '@/lib/utils/errors';
-import { updatePlanPrice, deletePlanPrice } from '@/lib/services/subscriptions/subscriptions.writer';
+import {
+  updatePlanPrice,
+  deletePlanPrice,
+} from '@/lib/services/subscriptions/subscriptions.writer';
 import { countActiveSubscriptionsForPrice } from '@/lib/services/subscriptions/subscriptions.reader';
 import { stripe } from '@/lib/stripe/client';
 import { revalidateTag } from 'next/cache';
@@ -94,7 +97,7 @@ export async function DELETE(
     if (activeSubCount > 0) {
       throw new ConflictError(
         `Cannot delete price with ${activeSubCount} active subscription(s). ` +
-        `Deactivate the price instead.`
+          `Deactivate the price instead.`
       );
     }
 

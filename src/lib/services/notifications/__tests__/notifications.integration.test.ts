@@ -1,7 +1,11 @@
 import { db } from '@/index';
 import { eq } from 'drizzle-orm';
 import { users } from '@/db/schema/tables';
-import { insertNotification, markNotificationRead, markAllNotificationsRead } from '../notifications.writer';
+import {
+  insertNotification,
+  markNotificationRead,
+  markAllNotificationsRead,
+} from '../notifications.writer';
 import { getUnreadCount, hasRecentUsageAlert } from '../notifications.reader';
 
 async function seedUser(id = crypto.randomUUID()) {
@@ -82,7 +86,12 @@ describe('notifications integration', () => {
       await insertNotification({ userId, type: 'test', channel: 'in_app', subject: 'Unread 1' });
       await insertNotification({ userId, type: 'test', channel: 'in_app', subject: 'Unread 2' });
 
-      const n = await insertNotification({ userId, type: 'test', channel: 'in_app', subject: 'Will be read' });
+      const n = await insertNotification({
+        userId,
+        type: 'test',
+        channel: 'in_app',
+        subject: 'Will be read',
+      });
       await markNotificationRead(n!.id, userId);
 
       const count = await getUnreadCount(userId);

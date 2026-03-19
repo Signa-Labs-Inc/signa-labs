@@ -3,13 +3,7 @@ import Link from 'next/link';
 
 export const metadata: Metadata = { title: 'Learning Paths' };
 
-import {
-  FlaskConical,
-  Target,
-  Brain,
-  ArrowRight,
-  Route,
-} from 'lucide-react';
+import { FlaskConical, Target, Brain, ArrowRight, Route } from 'lucide-react';
 import { getCurrentUser } from '@/lib/services/auth/auth.service';
 import { PathService } from '@/lib/services/paths/paths.service';
 import { Button } from '@/components/ui/button';
@@ -48,7 +42,8 @@ const QUICK_STARTS = [
     description: 'Queries, joins, window functions, and optimization',
     language: 'sql',
     level: 'some_experience',
-    prompt: 'I want to learn SQL from basic queries to complex joins, window functions, and query optimization',
+    prompt:
+      'I want to learn SQL from basic queries to complex joins, window functions, and query optimization',
   },
 ];
 
@@ -112,23 +107,19 @@ export default async function PathsPage() {
   const showEmptyState = isAnonymous || paths.length === 0;
 
   // For anonymous users, the "Create New Path" button links to sign-in
-  const createPathHref = isAnonymous
-    ? '/sign-in?redirect_url=/paths/new'
-    : '/paths/new';
+  const createPathHref = isAnonymous ? '/sign-in?redirect_url=/paths/new' : '/paths/new';
 
   // For anonymous users, quick-start links go through sign-in
   function getQuickStartHref(qs: (typeof QUICK_STARTS)[number]) {
     const target = `/paths/new?prompt=${encodeURIComponent(qs.prompt)}&language=${qs.language}&level=${qs.level}`;
-    return isAnonymous
-      ? `/sign-in?redirect_url=${encodeURIComponent(target)}`
-      : target;
+    return isAnonymous ? `/sign-in?redirect_url=${encodeURIComponent(target)}` : target;
   }
 
   return (
     <div className="animate-fade-in">
       {/* ── Hero Banner ── */}
-      <div className="relative overflow-hidden border-b border-border bg-linear-to-br from-primary/10 via-background to-violet-500/5">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent" />
+      <div className="border-border from-primary/10 via-background relative overflow-hidden border-b bg-linear-to-br to-violet-500/5">
+        <div className="from-primary/5 absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] via-transparent to-transparent" />
         <div className="relative mx-auto max-w-5xl px-6 py-12 md:py-16">
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div className="max-w-xl">
@@ -138,8 +129,9 @@ export default async function PathsPage() {
               </div>
               <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
                 Your personalized
-                <span className="bg-linear-to-r from-primary to-violet-400 bg-clip-text text-transparent">
-                  {' '}coding journey
+                <span className="from-primary bg-linear-to-r to-violet-400 bg-clip-text text-transparent">
+                  {' '}
+                  coding journey
                 </span>
               </h1>
               <p className="text-muted-foreground mt-3 text-lg">
@@ -188,9 +180,7 @@ export default async function PathsPage() {
 
             {/* Quick starts */}
             <div>
-              <h2 className="mb-2 text-center text-lg font-semibold">
-                Get started in seconds
-              </h2>
+              <h2 className="mb-2 text-center text-lg font-semibold">Get started in seconds</h2>
               <p className="text-muted-foreground mb-6 text-center text-sm">
                 Pick a popular path or create your own from scratch
               </p>
@@ -199,7 +189,7 @@ export default async function PathsPage() {
                   <Link
                     key={qs.title}
                     href={getQuickStartHref(qs)}
-                    className="bg-card group flex items-center gap-4 rounded-xl border p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
+                    className="bg-card group hover:border-primary/30 flex items-center gap-4 rounded-xl border p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
                   >
                     <div className="bg-muted flex h-11 w-11 shrink-0 items-center justify-center rounded-lg">
                       <LanguageIcon language={qs.language} className="h-6 w-6" />
@@ -221,7 +211,7 @@ export default async function PathsPage() {
               <div>
                 <div className="mb-4 flex items-center gap-2">
                   <div className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
-                  <h2 className="text-sm font-semibold uppercase tracking-wider text-emerald-500">
+                  <h2 className="text-sm font-semibold tracking-wider text-emerald-500 uppercase">
                     Continue Learning
                   </h2>
                 </div>
@@ -236,7 +226,7 @@ export default async function PathsPage() {
             {/* ── Other Paths ── */}
             {otherPaths.length > 0 && (
               <div>
-                <h2 className="text-muted-foreground mb-4 text-sm font-semibold uppercase tracking-wider">
+                <h2 className="text-muted-foreground mb-4 text-sm font-semibold tracking-wider uppercase">
                   {activePaths.length > 0 ? 'Past Paths' : 'Your Paths'}
                 </h2>
                 <div className="grid gap-4">
@@ -248,7 +238,7 @@ export default async function PathsPage() {
             )}
 
             {/* ── Quick Start Suggestions ── */}
-            <div className="border-t border-border pt-10">
+            <div className="border-border border-t pt-10">
               <h2 className="mb-2 text-lg font-semibold">Start something new</h2>
               <p className="text-muted-foreground mb-6 text-sm">
                 Pick a popular path or create your own
@@ -258,7 +248,7 @@ export default async function PathsPage() {
                   <Link
                     key={qs.title}
                     href={`/paths/new?prompt=${encodeURIComponent(qs.prompt)}&language=${qs.language}&level=${qs.level}`}
-                    className="bg-card group flex items-center gap-3 rounded-xl border p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
+                    className="bg-card group hover:border-primary/30 flex items-center gap-3 rounded-xl border p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
                   >
                     <div className="bg-muted flex h-9 w-9 shrink-0 items-center justify-center rounded-lg">
                       <LanguageIcon language={qs.language} className="h-5 w-5" />

@@ -3,7 +3,10 @@
 import { useState } from 'react';
 import { Check, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { UserPlan, PlanForPricingPage } from '@/lib/services/subscriptions/subscriptions.types';
+import type {
+  UserPlan,
+  PlanForPricingPage,
+} from '@/lib/services/subscriptions/subscriptions.types';
 
 type BillingInterval = 'month' | 'year';
 
@@ -192,11 +195,18 @@ export function PricingCards({
     <div>
       {/* Billing interval toggle */}
       {hasYearlyPrices && (
-        <div className="mb-8 flex items-center justify-center gap-2" role="radiogroup" aria-label="Billing interval">
+        <div
+          className="mb-8 flex items-center justify-center gap-2"
+          role="radiogroup"
+          aria-label="Billing interval"
+        >
           <button
             role="radio"
             aria-checked={interval === 'month'}
-            onClick={() => { setInterval('month'); setError(null); }}
+            onClick={() => {
+              setInterval('month');
+              setError(null);
+            }}
             className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
               interval === 'month'
                 ? 'bg-primary text-primary-foreground'
@@ -208,7 +218,10 @@ export function PricingCards({
           <button
             role="radio"
             aria-checked={interval === 'year'}
-            onClick={() => { setInterval('year'); setError(null); }}
+            onClick={() => {
+              setInterval('year');
+              setError(null);
+            }}
             className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
               interval === 'year'
                 ? 'bg-primary text-primary-foreground'
@@ -222,7 +235,10 @@ export function PricingCards({
 
       {/* Error message */}
       {error && (
-        <div role="alert" className="mb-6 rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3 text-center text-sm text-destructive">
+        <div
+          role="alert"
+          className="border-destructive/20 bg-destructive/10 text-destructive mb-6 rounded-lg border px-4 py-3 text-center text-sm"
+        >
           {error}
         </div>
       )}
@@ -239,12 +255,12 @@ export function PricingCards({
               key={plan.id}
               className={`relative flex flex-col rounded-xl border p-6 transition-all ${
                 highlighted
-                  ? 'border-primary bg-primary/3 shadow-lg shadow-primary/10 scale-[1.02]'
+                  ? 'border-primary bg-primary/3 shadow-primary/10 scale-[1.02] shadow-lg'
                   : 'border-border bg-card'
               }`}
             >
               {highlighted && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-linear-to-r from-primary to-violet-400 px-3 py-0.5 text-xs font-semibold text-white">
+                <div className="from-primary absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-linear-to-r to-violet-400 px-3 py-0.5 text-xs font-semibold text-white">
                   Most Popular
                 </div>
               )}
@@ -252,21 +268,13 @@ export function PricingCards({
               <div className="mb-6">
                 <h2 className="text-lg font-semibold">{plan.name}</h2>
                 <div className="mt-2 flex items-baseline gap-1">
-                  <span className="text-4xl font-bold tracking-tight">
-                    {priceDisplay.price}
-                  </span>
-                  <span className="text-muted-foreground text-sm">
-                    {priceDisplay.period}
-                  </span>
+                  <span className="text-4xl font-bold tracking-tight">{priceDisplay.price}</span>
+                  <span className="text-muted-foreground text-sm">{priceDisplay.period}</span>
                 </div>
                 {priceDisplay.subtext && (
-                  <p className="text-muted-foreground mt-1 text-xs">
-                    {priceDisplay.subtext}
-                  </p>
+                  <p className="text-muted-foreground mt-1 text-xs">{priceDisplay.subtext}</p>
                 )}
-                <p className="text-muted-foreground mt-2 text-sm">
-                  {plan.description}
-                </p>
+                <p className="text-muted-foreground mt-2 text-sm">{plan.description}</p>
               </div>
 
               <ul className="mb-8 flex-1 space-y-3">

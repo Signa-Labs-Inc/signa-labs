@@ -2,9 +2,7 @@
   "version": "8",
   "dialect": "postgres",
   "id": "03bcac11-90c2-49d9-af75-6d426b8329ac",
-  "prevIds": [
-    "88b205af-8412-4a55-a67e-d00e751a1139"
-  ],
+  "prevIds": ["88b205af-8412-4a55-a67e-d00e751a1139"],
   "ddl": [
     {
       "isRlsEnabled": false,
@@ -5091,14 +5089,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "public",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "exercise_attempts_user_id_users_id_fkey",
@@ -5108,14 +5102,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "exercise_id"
-      ],
+      "columns": ["exercise_id"],
       "schemaTo": "public",
       "tableTo": "exercises",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "exercise_attempts_exercise_id_exercises_id_fkey",
@@ -5125,16 +5115,10 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "attempt_id",
-        "user_id"
-      ],
+      "columns": ["attempt_id", "user_id"],
       "schemaTo": "public",
       "tableTo": "exercise_attempts",
-      "columnsTo": [
-        "id",
-        "user_id"
-      ],
+      "columnsTo": ["id", "user_id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "fk_events_attempt_user",
@@ -5144,14 +5128,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "exercise_id"
-      ],
+      "columns": ["exercise_id"],
       "schemaTo": "public",
       "tableTo": "exercises",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "exercise_files_exercise_id_exercises_id_fkey",
@@ -5161,14 +5141,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "attempt_id"
-      ],
+      "columns": ["attempt_id"],
       "schemaTo": "public",
       "tableTo": "exercise_attempts",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "exercise_submissions_attempt_id_exercise_attempts_id_fkey",
@@ -5178,14 +5154,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "public",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "exercise_submissions_user_id_users_id_fkey",
@@ -5195,14 +5167,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "created_by"
-      ],
+      "columns": ["created_by"],
       "schemaTo": "public",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "exercises_created_by_users_id_fkey",
@@ -5212,14 +5180,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "prompt_template_id"
-      ],
+      "columns": ["prompt_template_id"],
       "schemaTo": "public",
       "tableTo": "prompt_templates",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "exercises_prompt_template_id_prompt_templates_id_fkey",
@@ -5229,14 +5193,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "environment_id"
-      ],
+      "columns": ["environment_id"],
       "schemaTo": "public",
       "tableTo": "exercise_environments",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "exercises_environment_id_exercise_environments_id_fkey",
@@ -5246,14 +5206,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "public",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "idempotency_keys_user_id_users_id_fkey",
@@ -5263,14 +5219,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "public",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "learning_paths_user_id_users_id_fkey",
@@ -5280,14 +5232,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "public",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "notifications_user_id_users_id_fkey",
@@ -5297,14 +5245,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "path_id"
-      ],
+      "columns": ["path_id"],
       "schemaTo": "public",
       "tableTo": "learning_paths",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "path_exercises_path_id_learning_paths_id_fkey",
@@ -5314,14 +5258,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "milestone_id"
-      ],
+      "columns": ["milestone_id"],
       "schemaTo": "public",
       "tableTo": "path_milestones",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "path_exercises_milestone_id_path_milestones_id_fkey",
@@ -5331,14 +5271,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "exercise_id"
-      ],
+      "columns": ["exercise_id"],
       "schemaTo": "public",
       "tableTo": "exercises",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "path_exercises_exercise_id_exercises_id_fkey",
@@ -5348,14 +5284,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "path_id"
-      ],
+      "columns": ["path_id"],
       "schemaTo": "public",
       "tableTo": "learning_paths",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "path_milestones_path_id_learning_paths_id_fkey",
@@ -5365,14 +5297,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "path_id"
-      ],
+      "columns": ["path_id"],
       "schemaTo": "public",
       "tableTo": "learning_paths",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "path_skill_assessments_path_id_learning_paths_id_fkey",
@@ -5382,14 +5310,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "milestone_id"
-      ],
+      "columns": ["milestone_id"],
       "schemaTo": "public",
       "tableTo": "path_milestones",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "path_skill_assessments_milestone_id_path_milestones_id_fkey",
@@ -5399,14 +5323,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "exercise_id"
-      ],
+      "columns": ["exercise_id"],
       "schemaTo": "public",
       "tableTo": "exercises",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "path_skill_assessments_exercise_id_exercises_id_fkey",
@@ -5416,14 +5336,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "public",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "payment_records_user_id_users_id_fkey",
@@ -5433,14 +5349,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "subscription_id"
-      ],
+      "columns": ["subscription_id"],
       "schemaTo": "public",
       "tableTo": "subscriptions",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "payment_records_subscription_id_subscriptions_id_fkey",
@@ -5450,14 +5362,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "plan_id"
-      ],
+      "columns": ["plan_id"],
       "schemaTo": "public",
       "tableTo": "plans",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "plan_prices_plan_id_plans_id_fkey",
@@ -5467,14 +5375,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "environment_id"
-      ],
+      "columns": ["environment_id"],
       "schemaTo": "public",
       "tableTo": "exercise_environments",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "prompt_templates_environment_id_exercise_environments_id_fkey",
@@ -5484,14 +5388,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "submission_id"
-      ],
+      "columns": ["submission_id"],
       "schemaTo": "public",
       "tableTo": "exercise_submissions",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "submission_explanations_eAevg7qOrjRd_fkey",
@@ -5501,14 +5401,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "public",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "submission_explanations_user_id_users_id_fkey",
@@ -5518,14 +5414,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "exercise_id"
-      ],
+      "columns": ["exercise_id"],
       "schemaTo": "public",
       "tableTo": "exercises",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "submission_explanations_exercise_id_exercises_id_fkey",
@@ -5535,14 +5427,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "submission_id"
-      ],
+      "columns": ["submission_id"],
       "schemaTo": "public",
       "tableTo": "exercise_submissions",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "submission_files_submission_id_exercise_submissions_id_fkey",
@@ -5552,14 +5440,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "subscription_id"
-      ],
+      "columns": ["subscription_id"],
       "schemaTo": "public",
       "tableTo": "subscriptions",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "subscription_seats_subscription_id_subscriptions_id_fkey",
@@ -5569,14 +5453,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "public",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "subscription_seats_user_id_users_id_fkey",
@@ -5586,14 +5466,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "assigned_by"
-      ],
+      "columns": ["assigned_by"],
       "schemaTo": "public",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "subscription_seats_assigned_by_users_id_fkey",
@@ -5603,14 +5479,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "public",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "subscriptions_user_id_users_id_fkey",
@@ -5620,14 +5492,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "org_id"
-      ],
+      "columns": ["org_id"],
       "schemaTo": "public",
       "tableTo": "organizations",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "subscriptions_org_id_organizations_id_fkey",
@@ -5637,14 +5505,10 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "plan_id"
-      ],
+      "columns": ["plan_id"],
       "schemaTo": "public",
       "tableTo": "plans",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "fk_subscriptions_plan",
@@ -5654,16 +5518,10 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "plan_price_id",
-        "plan_id"
-      ],
+      "columns": ["plan_price_id", "plan_id"],
       "schemaTo": "public",
       "tableTo": "plan_prices",
-      "columnsTo": [
-        "id",
-        "plan_id"
-      ],
+      "columnsTo": ["id", "plan_id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "fk_subscriptions_price_plan",
@@ -5673,14 +5531,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "public",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "user_learning_stats_user_id_users_id_fkey",
@@ -5690,14 +5544,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "org_id"
-      ],
+      "columns": ["org_id"],
       "schemaTo": "public",
       "tableTo": "organizations",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "users_org_id_organizations_id_fkey",
@@ -5707,14 +5557,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "public",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "users_profiles_user_id_users_id_fkey",
@@ -5723,10 +5569,7 @@
       "table": "users_profiles"
     },
     {
-      "columns": [
-        "key",
-        "scope"
-      ],
+      "columns": ["key", "scope"],
       "nameExplicit": false,
       "name": "idempotency_keys_pkey",
       "entityType": "pks",
@@ -5734,9 +5577,7 @@
       "table": "idempotency_keys"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "exercise_attempts_pkey",
       "schema": "public",
@@ -5744,9 +5585,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "exercise_categories_pkey",
       "schema": "public",
@@ -5754,9 +5593,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "exercise_environments_pkey",
       "schema": "public",
@@ -5764,9 +5601,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "exercise_events_pkey",
       "schema": "public",
@@ -5774,9 +5609,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "exercise_files_pkey",
       "schema": "public",
@@ -5784,9 +5617,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "exercise_submissions_pkey",
       "schema": "public",
@@ -5794,9 +5625,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "exercises_pkey",
       "schema": "public",
@@ -5804,9 +5633,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "learning_paths_pkey",
       "schema": "public",
@@ -5814,9 +5641,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "notifications_pkey",
       "schema": "public",
@@ -5824,9 +5649,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "organizations_pkey",
       "schema": "public",
@@ -5834,9 +5657,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "path_exercises_pkey",
       "schema": "public",
@@ -5844,9 +5665,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "path_milestones_pkey",
       "schema": "public",
@@ -5854,9 +5673,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "path_skill_assessments_pkey",
       "schema": "public",
@@ -5864,9 +5681,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "payment_records_pkey",
       "schema": "public",
@@ -5874,9 +5689,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "plan_prices_pkey",
       "schema": "public",
@@ -5884,9 +5697,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "plans_pkey",
       "schema": "public",
@@ -5894,9 +5705,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "prompt_templates_pkey",
       "schema": "public",
@@ -5904,9 +5713,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "submission_explanations_pkey",
       "schema": "public",
@@ -5914,9 +5721,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "submission_files_pkey",
       "schema": "public",
@@ -5924,9 +5729,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "subscription_seats_pkey",
       "schema": "public",
@@ -5934,9 +5737,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "subscriptions_pkey",
       "schema": "public",
@@ -5944,9 +5745,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "nameExplicit": false,
       "name": "user_learning_stats_pkey",
       "schema": "public",
@@ -5954,9 +5753,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "users_pkey",
       "schema": "public",
@@ -5964,9 +5761,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "nameExplicit": false,
       "name": "users_profiles_pkey",
       "schema": "public",
@@ -5975,9 +5770,7 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "slug"
-      ],
+      "columns": ["slug"],
       "nullsNotDistinct": false,
       "name": "exercise_categories_slug_key",
       "schema": "public",
@@ -5986,9 +5779,7 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "name"
-      ],
+      "columns": ["name"],
       "nullsNotDistinct": false,
       "name": "exercise_environments_name_key",
       "schema": "public",
@@ -5997,9 +5788,7 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "slug"
-      ],
+      "columns": ["slug"],
       "nullsNotDistinct": false,
       "name": "organizations_slug_key",
       "schema": "public",
@@ -6008,9 +5797,7 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "stripe_payment_intent_id"
-      ],
+      "columns": ["stripe_payment_intent_id"],
       "nullsNotDistinct": false,
       "name": "payment_records_stripe_payment_intent_id_key",
       "schema": "public",
@@ -6019,9 +5806,7 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "stripe_price_id"
-      ],
+      "columns": ["stripe_price_id"],
       "nullsNotDistinct": false,
       "name": "plan_prices_stripe_price_id_key",
       "schema": "public",
@@ -6030,9 +5815,7 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "stripe_subscription_id"
-      ],
+      "columns": ["stripe_subscription_id"],
       "nullsNotDistinct": false,
       "name": "subscriptions_stripe_subscription_id_key",
       "schema": "public",
@@ -6041,9 +5824,7 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "clerk_id"
-      ],
+      "columns": ["clerk_id"],
       "nullsNotDistinct": false,
       "name": "users_clerk_id_key",
       "schema": "public",
@@ -6052,9 +5833,7 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "email"
-      ],
+      "columns": ["email"],
       "nullsNotDistinct": false,
       "name": "users_email_key",
       "schema": "public",
@@ -6063,9 +5842,7 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "stripe_customer_id"
-      ],
+      "columns": ["stripe_customer_id"],
       "nullsNotDistinct": false,
       "name": "users_stripe_customer_id_key",
       "schema": "public",
@@ -6074,9 +5851,7 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "username"
-      ],
+      "columns": ["username"],
       "nullsNotDistinct": false,
       "name": "users_profiles_username_key",
       "schema": "public",

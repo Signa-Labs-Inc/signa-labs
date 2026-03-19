@@ -1,5 +1,12 @@
 import { db } from '@/index';
-import { subscriptions, paymentRecords, planPrices, plans, idempotencyKeys, subscriptionEvents } from '@/db/schema/tables';
+import {
+  subscriptions,
+  paymentRecords,
+  planPrices,
+  plans,
+  idempotencyKeys,
+  subscriptionEvents,
+} from '@/db/schema/tables';
 import { and, eq } from 'drizzle-orm';
 import type {
   CreateSubscriptionParams,
@@ -34,13 +41,10 @@ type TransactionClient = Parameters<Parameters<typeof db.transaction>[0]>[0];
 function buildSubscriptionUpdateSet(params: UpdateSubscriptionParams): Record<string, unknown> {
   const set: Record<string, unknown> = {};
   if (params.status !== undefined) set.status = params.status;
-  if (params.currentPeriodStart !== undefined)
-    set.currentPeriodStart = params.currentPeriodStart;
-  if (params.currentPeriodEnd !== undefined)
-    set.currentPeriodEnd = params.currentPeriodEnd;
+  if (params.currentPeriodStart !== undefined) set.currentPeriodStart = params.currentPeriodStart;
+  if (params.currentPeriodEnd !== undefined) set.currentPeriodEnd = params.currentPeriodEnd;
   if (params.trialEnd !== undefined) set.trialEnd = params.trialEnd;
-  if (params.cancelAtPeriodEnd !== undefined)
-    set.cancelAtPeriodEnd = params.cancelAtPeriodEnd;
+  if (params.cancelAtPeriodEnd !== undefined) set.cancelAtPeriodEnd = params.cancelAtPeriodEnd;
   if (params.canceledAt !== undefined) set.canceledAt = params.canceledAt;
   if (params.planId !== undefined) set.planId = params.planId;
   if (params.planPriceId !== undefined) set.planPriceId = params.planPriceId;
@@ -112,7 +116,10 @@ export async function insertIdempotencyKey(key: string, scope: string): Promise<
     // Drizzle may wrap the pg error, so check both the error and its cause
     const pgCode =
       (error instanceof Error && 'code' in error && (error as { code: string }).code) ||
-      (error instanceof Error && error.cause instanceof Error && 'code' in error.cause && (error.cause as { code: string }).code);
+      (error instanceof Error &&
+        error.cause instanceof Error &&
+        'code' in error.cause &&
+        (error.cause as { code: string }).code);
     if (pgCode === '23505') {
       return false;
     }
@@ -171,7 +178,10 @@ export async function insertSubscriptionEvent(params: SubscriptionEventParams) {
   return event ?? null;
 }
 
-export async function insertSubscriptionEventTx(params: SubscriptionEventParams, tx: TransactionClient) {
+export async function insertSubscriptionEventTx(
+  params: SubscriptionEventParams,
+  tx: TransactionClient
+) {
   const [event] = await tx
     .insert(subscriptionEvents)
     .values(buildSubscriptionEventValues(params))
@@ -214,15 +224,9 @@ export type UpdatePlanParams = {
 };
 
 export async function updatePlan(planId: string, set: UpdatePlanParams) {
-  const cleaned = Object.fromEntries(
-    Object.entries(set).filter(([, v]) => v !== undefined)
-  );
+  const cleaned = Object.fromEntries(Object.entries(set).filter(([, v]) => v !== undefined));
   if (Object.keys(cleaned).length === 0) return null;
-  const [updated] = await db
-    .update(plans)
-    .set(cleaned)
-    .where(eq(plans.id, planId))
-    .returning();
+  const [updated] = await db.update(plans).set(cleaned).where(eq(plans.id, planId)).returning();
   return updated ?? null;
 }
 

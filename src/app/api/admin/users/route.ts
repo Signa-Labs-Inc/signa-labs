@@ -12,9 +12,13 @@ export async function GET(req: NextRequest) {
     const roleParam = searchParams.get('role') ?? undefined;
     const filters: AdminUserFilters = {
       search: searchParams.get('search') ?? undefined,
-      role: roleParam && adminService.ALLOWED_ROLES.includes(roleParam as typeof adminService.ALLOWED_ROLES[number])
-        ? (roleParam as AdminUserFilters['role'])
-        : undefined,
+      role:
+        roleParam &&
+        adminService.ALLOWED_ROLES.includes(
+          roleParam as (typeof adminService.ALLOWED_ROLES)[number]
+        )
+          ? (roleParam as AdminUserFilters['role'])
+          : undefined,
     };
     const { limit, offset } = adminService.parsePagination({
       limit: searchParams.get('limit'),

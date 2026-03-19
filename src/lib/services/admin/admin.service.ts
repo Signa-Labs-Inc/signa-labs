@@ -12,7 +12,10 @@ import type {
 } from './admin.types';
 import type { generateExerciseTask } from '@/trigger/generate-exercise';
 import type { GenerateExerciseInput } from '@/lib/services/generation/generation.types';
-import type { ExerciseDifficulty, ExerciseLanguage } from '@/lib/services/exercises/exercises.constants';
+import type {
+  ExerciseDifficulty,
+  ExerciseLanguage,
+} from '@/lib/services/exercises/exercises.constants';
 import type { LessonContent, SynthesisContent } from '@/lib/services/teaching/teaching.types';
 
 // --- Constants ---------------------------------------------------------------
@@ -44,11 +47,7 @@ export function getAnalytics(): Promise<AnalyticsData> {
 
 // --- Exercises ---------------------------------------------------------------
 
-export function listExercises(
-  filters: AdminExerciseFilters,
-  limit?: number,
-  offset?: number,
-) {
+export function listExercises(filters: AdminExerciseFilters, limit?: number, offset?: number) {
   return reader.listAllExercises(filters, limit, offset);
 }
 
@@ -56,10 +55,7 @@ export function getExercise(id: string) {
   return reader.getExerciseForAdmin(id);
 }
 
-export async function updateExercise(
-  id: string,
-  raw: Record<string, unknown>,
-) {
+export async function updateExercise(id: string, raw: Record<string, unknown>) {
   const ALLOWED_DIFFICULTIES = ['beginner', 'easy', 'medium', 'hard', 'expert'];
 
   const data: {
@@ -73,23 +69,28 @@ export async function updateExercise(
   } = {};
 
   if (raw.title !== undefined) {
-    if (typeof raw.title !== 'string' || !raw.title.trim()) throw new ValidationError('title must be a non-empty string');
+    if (typeof raw.title !== 'string' || !raw.title.trim())
+      throw new ValidationError('title must be a non-empty string');
     data.title = raw.title.trim();
   }
   if (raw.description !== undefined) {
-    if (typeof raw.description !== 'string') throw new ValidationError('description must be a string');
+    if (typeof raw.description !== 'string')
+      throw new ValidationError('description must be a string');
     data.description = raw.description;
   }
   if (raw.difficulty !== undefined) {
-    if (!ALLOWED_DIFFICULTIES.includes(raw.difficulty as string)) throw new ValidationError(`difficulty must be one of: ${ALLOWED_DIFFICULTIES.join(', ')}`);
+    if (!ALLOWED_DIFFICULTIES.includes(raw.difficulty as string))
+      throw new ValidationError(`difficulty must be one of: ${ALLOWED_DIFFICULTIES.join(', ')}`);
     data.difficulty = raw.difficulty as ExerciseDifficulty;
   }
   if (raw.language !== undefined) {
-    if (!SUPPORTED_LANGUAGES.includes(raw.language as string)) throw new ValidationError(`language must be one of: ${SUPPORTED_LANGUAGES.join(', ')}`);
+    if (!SUPPORTED_LANGUAGES.includes(raw.language as string))
+      throw new ValidationError(`language must be one of: ${SUPPORTED_LANGUAGES.join(', ')}`);
     data.language = raw.language as ExerciseLanguage;
   }
   if (raw.tags !== undefined) {
-    if (!Array.isArray(raw.tags) || !raw.tags.every((t) => typeof t === 'string')) throw new ValidationError('tags must be an array of strings');
+    if (!Array.isArray(raw.tags) || !raw.tags.every((t) => typeof t === 'string'))
+      throw new ValidationError('tags must be an array of strings');
     data.tags = raw.tags;
   }
   if (raw.isPublic !== undefined) {
@@ -97,7 +98,8 @@ export async function updateExercise(
     data.isPublic = raw.isPublic;
   }
   if (raw.isValidated !== undefined) {
-    if (typeof raw.isValidated !== 'boolean') throw new ValidationError('isValidated must be a boolean');
+    if (typeof raw.isValidated !== 'boolean')
+      throw new ValidationError('isValidated must be a boolean');
     data.isValidated = raw.isValidated;
   }
 
@@ -138,7 +140,10 @@ export async function updateExerciseLessonContent(id: string, lessonContent: Les
   return result;
 }
 
-export async function updateExerciseSynthesisContent(id: string, synthesisContent: SynthesisContent | null) {
+export async function updateExerciseSynthesisContent(
+  id: string,
+  synthesisContent: SynthesisContent | null
+) {
   const result = await writer.adminUpdateSynthesisContent(id, synthesisContent);
   if (!result) throw new NotFoundError('Exercise not found');
   return result;
@@ -152,7 +157,7 @@ export async function generateExercise(
     language: string;
     difficulty?: string;
     exerciseType?: string;
-  },
+  }
 ) {
   if (!input.prompt || typeof input.prompt !== 'string' || input.prompt.trim().length < 10) {
     throw new ValidationError('Prompt must be at least 10 characters');
@@ -192,7 +197,7 @@ export function createExerciseManually(
     content: string;
     isEditable: boolean;
     sortOrder: number;
-  }[],
+  }[]
 ) {
   if (!input.title || !input.description || !input.language || !input.environmentId) {
     throw new ValidationError('title, description, language, and environmentId are required');
@@ -213,7 +218,7 @@ export function createExerciseManually(
       isValidated: input.isValidated ?? false,
       isPublic: input.isPublic ?? false,
     },
-    files,
+    files
   );
 }
 
@@ -250,18 +255,12 @@ function validateExerciseFileInput(raw: Record<string, unknown>) {
   };
 }
 
-export function createExerciseFile(
-  exerciseId: string,
-  raw: Record<string, unknown>,
-) {
+export function createExerciseFile(exerciseId: string, raw: Record<string, unknown>) {
   const data = validateExerciseFileInput(raw);
   return writer.createExerciseFile(exerciseId, data);
 }
 
-export async function updateExerciseFile(
-  fileId: string,
-  raw: Record<string, unknown>,
-) {
+export async function updateExerciseFile(fileId: string, raw: Record<string, unknown>) {
   const data: {
     content?: string;
     filePath?: string;
@@ -271,11 +270,13 @@ export async function updateExerciseFile(
   } = {};
 
   if (raw.filePath !== undefined) {
-    if (typeof raw.filePath !== 'string' || !raw.filePath.trim()) throw new ValidationError('filePath must be a non-empty string');
+    if (typeof raw.filePath !== 'string' || !raw.filePath.trim())
+      throw new ValidationError('filePath must be a non-empty string');
     data.filePath = raw.filePath.trim();
   }
   if (raw.fileName !== undefined) {
-    if (typeof raw.fileName !== 'string' || !raw.fileName.trim()) throw new ValidationError('fileName must be a non-empty string');
+    if (typeof raw.fileName !== 'string' || !raw.fileName.trim())
+      throw new ValidationError('fileName must be a non-empty string');
     data.fileName = raw.fileName.trim();
   }
   if (raw.content !== undefined) {
@@ -283,11 +284,13 @@ export async function updateExerciseFile(
     data.content = raw.content;
   }
   if (raw.isEditable !== undefined) {
-    if (typeof raw.isEditable !== 'boolean') throw new ValidationError('isEditable must be a boolean');
+    if (typeof raw.isEditable !== 'boolean')
+      throw new ValidationError('isEditable must be a boolean');
     data.isEditable = raw.isEditable;
   }
   if (raw.sortOrder !== undefined) {
-    if (typeof raw.sortOrder !== 'number' || !Number.isFinite(raw.sortOrder)) throw new ValidationError('sortOrder must be a finite number');
+    if (typeof raw.sortOrder !== 'number' || !Number.isFinite(raw.sortOrder))
+      throw new ValidationError('sortOrder must be a finite number');
     data.sortOrder = raw.sortOrder;
   }
 
@@ -304,13 +307,11 @@ export async function deleteExerciseFile(fileId: string) {
   return result;
 }
 
-export function replaceExerciseFiles(
-  exerciseId: string,
-  rawFiles: unknown,
-) {
+export function replaceExerciseFiles(exerciseId: string, rawFiles: unknown) {
   if (!Array.isArray(rawFiles)) throw new ValidationError('files must be an array');
   const files = rawFiles.map((f: unknown, i: number) => {
-    if (typeof f !== 'object' || f === null) throw new ValidationError(`files[${i}] must be an object`);
+    if (typeof f !== 'object' || f === null)
+      throw new ValidationError(`files[${i}] must be an object`);
     return validateExerciseFileInput(f as Record<string, unknown>);
   });
   return writer.replaceExerciseFiles(exerciseId, files);
@@ -328,37 +329,43 @@ function validateCategoryInput(raw: Record<string, unknown>, partial: boolean) {
   const data: Partial<CategoryInput> = {};
 
   if (raw.slug !== undefined) {
-    if (typeof raw.slug !== 'string' || !raw.slug.trim()) throw new ValidationError('slug must be a non-empty string');
+    if (typeof raw.slug !== 'string' || !raw.slug.trim())
+      throw new ValidationError('slug must be a non-empty string');
     data.slug = raw.slug.trim();
   } else if (!partial) {
     throw new ValidationError('slug is required');
   }
   if (raw.label !== undefined) {
-    if (typeof raw.label !== 'string' || !raw.label.trim()) throw new ValidationError('label must be a non-empty string');
+    if (typeof raw.label !== 'string' || !raw.label.trim())
+      throw new ValidationError('label must be a non-empty string');
     data.label = raw.label.trim();
   } else if (!partial) {
     throw new ValidationError('label is required');
   }
   if (raw.description !== undefined) {
-    if (typeof raw.description !== 'string') throw new ValidationError('description must be a string');
+    if (typeof raw.description !== 'string')
+      throw new ValidationError('description must be a string');
     data.description = raw.description;
   } else if (!partial) {
     throw new ValidationError('description is required');
   }
   if (raw.icon !== undefined) {
-    if (typeof raw.icon !== 'string' || !raw.icon.trim()) throw new ValidationError('icon must be a non-empty string');
+    if (typeof raw.icon !== 'string' || !raw.icon.trim())
+      throw new ValidationError('icon must be a non-empty string');
     data.icon = raw.icon.trim();
   } else if (!partial) {
     throw new ValidationError('icon is required');
   }
   if (raw.tags !== undefined) {
-    if (!Array.isArray(raw.tags) || !raw.tags.every((t) => typeof t === 'string')) throw new ValidationError('tags must be an array of strings');
+    if (!Array.isArray(raw.tags) || !raw.tags.every((t) => typeof t === 'string'))
+      throw new ValidationError('tags must be an array of strings');
     data.tags = raw.tags;
   } else if (!partial) {
     throw new ValidationError('tags is required');
   }
   if (raw.sortOrder !== undefined) {
-    if (typeof raw.sortOrder !== 'number' || !Number.isFinite(raw.sortOrder)) throw new ValidationError('sortOrder must be a finite number');
+    if (typeof raw.sortOrder !== 'number' || !Number.isFinite(raw.sortOrder))
+      throw new ValidationError('sortOrder must be a finite number');
     data.sortOrder = raw.sortOrder;
   } else if (!partial) {
     throw new ValidationError('sortOrder is required');
@@ -368,7 +375,8 @@ function validateCategoryInput(raw: Record<string, unknown>, partial: boolean) {
     data.isActive = raw.isActive;
   }
 
-  if (partial && Object.keys(data).length === 0) throw new ValidationError('No valid fields provided');
+  if (partial && Object.keys(data).length === 0)
+    throw new ValidationError('No valid fields provided');
 
   return data;
 }
@@ -402,10 +410,16 @@ export function listTemplates(filters?: { search?: string }) {
 }
 
 export function createTemplate(raw: Record<string, unknown>) {
-  if (typeof raw.name !== 'string' || !raw.name.trim()) throw new ValidationError('name is required');
-  if (typeof raw.templateText !== 'string' || !raw.templateText.trim()) throw new ValidationError('templateText is required');
-  if (typeof raw.exerciseType !== 'string' || !raw.exerciseType.trim()) throw new ValidationError('exerciseType is required');
-  if (!Array.isArray(raw.supportedLanguages) || !raw.supportedLanguages.every((l) => typeof l === 'string')) {
+  if (typeof raw.name !== 'string' || !raw.name.trim())
+    throw new ValidationError('name is required');
+  if (typeof raw.templateText !== 'string' || !raw.templateText.trim())
+    throw new ValidationError('templateText is required');
+  if (typeof raw.exerciseType !== 'string' || !raw.exerciseType.trim())
+    throw new ValidationError('exerciseType is required');
+  if (
+    !Array.isArray(raw.supportedLanguages) ||
+    !raw.supportedLanguages.every((l) => typeof l === 'string')
+  ) {
     throw new ValidationError('supportedLanguages must be an array of strings');
   }
 
@@ -425,29 +439,37 @@ export async function updateTemplate(id: string, raw: Record<string, unknown>) {
   const data: Partial<PromptTemplateInput> = {};
 
   if (raw.name !== undefined) {
-    if (typeof raw.name !== 'string' || !raw.name.trim()) throw new ValidationError('name must be a non-empty string');
+    if (typeof raw.name !== 'string' || !raw.name.trim())
+      throw new ValidationError('name must be a non-empty string');
     data.name = raw.name.trim();
   }
   if (raw.description !== undefined) {
-    if (typeof raw.description !== 'string') throw new ValidationError('description must be a string');
+    if (typeof raw.description !== 'string')
+      throw new ValidationError('description must be a string');
     data.description = raw.description;
   }
   if (raw.templateText !== undefined) {
-    if (typeof raw.templateText !== 'string' || !raw.templateText.trim()) throw new ValidationError('templateText must be a non-empty string');
+    if (typeof raw.templateText !== 'string' || !raw.templateText.trim())
+      throw new ValidationError('templateText must be a non-empty string');
     data.templateText = raw.templateText;
   }
   if (raw.exerciseType !== undefined) {
-    if (typeof raw.exerciseType !== 'string' || !raw.exerciseType.trim()) throw new ValidationError('exerciseType must be a non-empty string');
+    if (typeof raw.exerciseType !== 'string' || !raw.exerciseType.trim())
+      throw new ValidationError('exerciseType must be a non-empty string');
     data.exerciseType = raw.exerciseType.trim();
   }
   if (raw.supportedLanguages !== undefined) {
-    if (!Array.isArray(raw.supportedLanguages) || !raw.supportedLanguages.every((l) => typeof l === 'string')) {
+    if (
+      !Array.isArray(raw.supportedLanguages) ||
+      !raw.supportedLanguages.every((l) => typeof l === 'string')
+    ) {
       throw new ValidationError('supportedLanguages must be an array of strings');
     }
     data.supportedLanguages = raw.supportedLanguages;
   }
   if (raw.environmentId !== undefined) {
-    if (typeof raw.environmentId !== 'string') throw new ValidationError('environmentId must be a string');
+    if (typeof raw.environmentId !== 'string')
+      throw new ValidationError('environmentId must be a string');
     data.environmentId = raw.environmentId;
   }
 
@@ -478,7 +500,7 @@ export async function updateEnvironment(
     maxExecutionSeconds?: number;
     maxFiles?: number;
     maxFileSizeBytes?: number;
-  },
+  }
 ) {
   const result = await writer.updateEnvironment(id, data);
   if (!result) throw new NotFoundError('Environment not found');
@@ -504,11 +526,7 @@ export function listUsers(filters: AdminUserFilters, limit?: number, offset?: nu
 }
 
 /** Update a user's role with validation and self-demotion prevention */
-export async function updateUserRole(
-  currentUserId: string,
-  targetUserId: string,
-  role: string,
-) {
+export async function updateUserRole(currentUserId: string, targetUserId: string, role: string) {
   if (!role || !ALLOWED_ROLES.includes(role as UserRole)) {
     throw new ValidationError(`role must be one of: ${ALLOWED_ROLES.join(', ')}`);
   }

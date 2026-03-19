@@ -141,10 +141,10 @@ describe('getOrCreateStripeCustomer', () => {
   });
 
   it('creates new customer and saves ID when none exists', async () => {
-    mockGetStripeCustomerId
-      .mockResolvedValueOnce(null)
-      .mockResolvedValueOnce('cus_new_123');
-    mockStripe.customers.create.mockResolvedValue(buildStripeCustomer({ id: 'cus_new_123' }) as never);
+    mockGetStripeCustomerId.mockResolvedValueOnce(null).mockResolvedValueOnce('cus_new_123');
+    mockStripe.customers.create.mockResolvedValue(
+      buildStripeCustomer({ id: 'cus_new_123' }) as never
+    );
 
     const result = await getOrCreateStripeCustomer('user1', 'test@test.com');
     expect(result).toBe('cus_new_123');
@@ -156,10 +156,10 @@ describe('getOrCreateStripeCustomer', () => {
   });
 
   it('re-reads after race condition', async () => {
-    mockGetStripeCustomerId
-      .mockResolvedValueOnce(null)
-      .mockResolvedValueOnce('cus_race_winner');
-    mockStripe.customers.create.mockResolvedValue(buildStripeCustomer({ id: 'cus_race_loser' }) as never);
+    mockGetStripeCustomerId.mockResolvedValueOnce(null).mockResolvedValueOnce('cus_race_winner');
+    mockStripe.customers.create.mockResolvedValue(
+      buildStripeCustomer({ id: 'cus_race_loser' }) as never
+    );
 
     const result = await getOrCreateStripeCustomer('user1', 'test@test.com');
     expect(result).toBe('cus_race_winner');
@@ -167,7 +167,9 @@ describe('getOrCreateStripeCustomer', () => {
 
   it('falls back to created customer ID if re-read returns null', async () => {
     mockGetStripeCustomerId.mockResolvedValue(null);
-    mockStripe.customers.create.mockResolvedValue(buildStripeCustomer({ id: 'cus_fallback' }) as never);
+    mockStripe.customers.create.mockResolvedValue(
+      buildStripeCustomer({ id: 'cus_fallback' }) as never
+    );
 
     const result = await getOrCreateStripeCustomer('user1', 'test@test.com');
     expect(result).toBe('cus_fallback');
@@ -182,9 +184,9 @@ describe('createCheckoutSession', () => {
   it('throws ConflictError when user already subscribed', async () => {
     mockReader.getActiveSubscriptionByUserId.mockResolvedValue(buildSubscription() as never);
 
-    await expect(
-      createCheckoutSession('user1', 'test@test.com', 'pro', 'month')
-    ).rejects.toThrow('User already has an active subscription');
+    await expect(createCheckoutSession('user1', 'test@test.com', 'pro', 'month')).rejects.toThrow(
+      'User already has an active subscription'
+    );
   });
 
   it('throws NotFoundError when plan not found', async () => {
@@ -199,23 +201,31 @@ describe('createCheckoutSession', () => {
   it('throws ValidationError when no price for interval', async () => {
     mockReader.getActiveSubscriptionByUserId.mockResolvedValue(null);
     mockReader.getActivePlansWithPrices.mockResolvedValue([
-      buildPlanWithPrices({ prices: [{ id: '1', stripePriceId: 'price_test_yearly', currency: 'usd', interval: 'year' }] }),
+      buildPlanWithPrices({
+        prices: [
+          { id: '1', stripePriceId: 'price_test_yearly', currency: 'usd', interval: 'year' },
+        ],
+      }),
     ]);
 
-    await expect(
-      createCheckoutSession('user1', 'test@test.com', 'pro', 'month')
-    ).rejects.toThrow('No month price found');
+    await expect(createCheckoutSession('user1', 'test@test.com', 'pro', 'month')).rejects.toThrow(
+      'No month price found'
+    );
   });
 
   it('throws ValidationError for PLACEHOLDER price', async () => {
     mockReader.getActiveSubscriptionByUserId.mockResolvedValue(null);
     mockReader.getActivePlansWithPrices.mockResolvedValue([
-      buildPlanWithPrices({ prices: [{ id: '1', stripePriceId: 'PLACEHOLDER_monthly', currency: 'usd', interval: 'month' }] }),
+      buildPlanWithPrices({
+        prices: [
+          { id: '1', stripePriceId: 'PLACEHOLDER_monthly', currency: 'usd', interval: 'month' },
+        ],
+      }),
     ]);
 
-    await expect(
-      createCheckoutSession('user1', 'test@test.com', 'pro', 'month')
-    ).rejects.toThrow('No month price found');
+    await expect(createCheckoutSession('user1', 'test@test.com', 'pro', 'month')).rejects.toThrow(
+      'No month price found'
+    );
   });
 
   it('throws ValidationError when stripe.prices.retrieve throws', async () => {
@@ -223,9 +233,9 @@ describe('createCheckoutSession', () => {
     mockReader.getActivePlansWithPrices.mockResolvedValue([planWithPrices]);
     mockStripe.prices.retrieve.mockRejectedValue(new Error('Stripe error'));
 
-    await expect(
-      createCheckoutSession('user1', 'test@test.com', 'pro', 'month')
-    ).rejects.toThrow('no longer available');
+    await expect(createCheckoutSession('user1', 'test@test.com', 'pro', 'month')).rejects.toThrow(
+      'no longer available'
+    );
   });
 
   it('throws ValidationError when Stripe price is inactive', async () => {
@@ -233,9 +243,9 @@ describe('createCheckoutSession', () => {
     mockReader.getActivePlansWithPrices.mockResolvedValue([planWithPrices]);
     mockStripe.prices.retrieve.mockResolvedValue(buildStripePrice({ active: false }) as never);
 
-    await expect(
-      createCheckoutSession('user1', 'test@test.com', 'pro', 'month')
-    ).rejects.toThrow('no longer available');
+    await expect(createCheckoutSession('user1', 'test@test.com', 'pro', 'month')).rejects.toThrow(
+      'no longer available'
+    );
   });
 
   it('returns session URL on success', async () => {
@@ -258,9 +268,9 @@ describe('createCheckoutSession', () => {
     mockGetStripeCustomerId.mockResolvedValue('cus_test_123');
     mockStripe.checkout.sessions.create.mockResolvedValue({ url: null } as never);
 
-    await expect(
-      createCheckoutSession('user1', 'test@test.com', 'pro', 'month')
-    ).rejects.toThrow('Failed to create checkout session');
+    await expect(createCheckoutSession('user1', 'test@test.com', 'pro', 'month')).rejects.toThrow(
+      'Failed to create checkout session'
+    );
   });
 
   it('passes correct line_items and metadata to Stripe', async () => {
@@ -297,9 +307,7 @@ describe('createBillingPortalSession', () => {
   });
 
   it('creates Stripe customer first if none exists', async () => {
-    mockGetStripeCustomerId
-      .mockResolvedValueOnce(null)
-      .mockResolvedValueOnce('cus_new');
+    mockGetStripeCustomerId.mockResolvedValueOnce(null).mockResolvedValueOnce('cus_new');
     mockStripe.customers.create.mockResolvedValue(buildStripeCustomer({ id: 'cus_new' }) as never);
     mockStripe.billingPortal.sessions.create.mockResolvedValue(
       buildStripeBillingPortalSession() as never
@@ -508,7 +516,9 @@ describe('createPlanWithStripeProducts', () => {
 
   it('archives Stripe product on price creation failure', async () => {
     mockReader.getPlanById.mockResolvedValue(null);
-    mockStripe.products.create.mockResolvedValue(buildStripeProduct({ id: 'prod_orphan' }) as never);
+    mockStripe.products.create.mockResolvedValue(
+      buildStripeProduct({ id: 'prod_orphan' }) as never
+    );
     mockStripe.prices.create.mockRejectedValue(new Error('Stripe error'));
 
     await expect(
@@ -525,7 +535,9 @@ describe('createPlanWithStripeProducts', () => {
 
   it('archives Stripe product on DB insert failure', async () => {
     mockReader.getPlanById.mockResolvedValue(null);
-    mockStripe.products.create.mockResolvedValue(buildStripeProduct({ id: 'prod_orphan' }) as never);
+    mockStripe.products.create.mockResolvedValue(
+      buildStripeProduct({ id: 'prod_orphan' }) as never
+    );
     mockStripe.prices.create.mockResolvedValue(buildStripePrice() as never);
     mockWriter.insertPlan.mockRejectedValue(new Error('DB error'));
 
@@ -702,8 +714,8 @@ describe('handleSubscriptionUpdated', () => {
   };
 
   beforeEach(() => {
-    mockDb.transaction.mockImplementation(
-      async (fn: (tx: unknown) => Promise<unknown>) => fn(mockTx)
+    mockDb.transaction.mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) =>
+      fn(mockTx)
     );
   });
 
@@ -885,7 +897,10 @@ describe('handleInvoicePaid', () => {
 
   it('throws when userId unresolvable', async () => {
     const invoice = buildStripeInvoice({
-      parent: { type: 'subscription_details', subscription_details: { subscription: 'sub_unknown', metadata: {} } },
+      parent: {
+        type: 'subscription_details',
+        subscription_details: { subscription: 'sub_unknown', metadata: {} },
+      },
     });
     mockReader.getSubscriptionByStripeId.mockResolvedValue(null);
 
@@ -926,7 +941,10 @@ describe('handleInvoicePaymentFailed', () => {
 
   it('throws when userId unresolvable', async () => {
     const invoice = buildStripeInvoice({
-      parent: { type: 'subscription_details', subscription_details: { subscription: 'sub_unknown', metadata: {} } },
+      parent: {
+        type: 'subscription_details',
+        subscription_details: { subscription: 'sub_unknown', metadata: {} },
+      },
     });
     mockReader.getSubscriptionByStripeId.mockResolvedValue(null);
 

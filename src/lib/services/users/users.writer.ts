@@ -59,7 +59,10 @@ export async function updateUser(clerkId: string, params: UpdateUserParams): Pro
   return user ?? null;
 }
 
-export async function setStripeCustomerId(userId: string, stripeCustomerId: string): Promise<boolean> {
+export async function setStripeCustomerId(
+  userId: string,
+  stripeCustomerId: string
+): Promise<boolean> {
   const result = await db
     .update(users)
     .set({ stripeCustomerId })

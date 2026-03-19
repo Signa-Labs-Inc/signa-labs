@@ -31,9 +31,7 @@ export function saveAnonymousExerciseDraft(
   }
 }
 
-export function loadAnonymousExerciseDraft(
-  exerciseId: string
-): Record<string, string> | null {
+export function loadAnonymousExerciseDraft(exerciseId: string): Record<string, string> | null {
   try {
     const raw = localStorage.getItem(EXERCISE_DRAFT_KEY);
     if (!raw) return null;
@@ -72,10 +70,7 @@ type GenerateFormState = {
 
 export function saveGenerateFormState(state: Omit<GenerateFormState, 'savedAt'>): void {
   try {
-    localStorage.setItem(
-      GENERATE_KEY,
-      JSON.stringify({ ...state, savedAt: Date.now() })
-    );
+    localStorage.setItem(GENERATE_KEY, JSON.stringify({ ...state, savedAt: Date.now() }));
   } catch {
     // non-critical
   }
@@ -91,7 +86,12 @@ export function loadGenerateFormState(): Omit<GenerateFormState, 'savedAt'> | nu
       localStorage.removeItem(GENERATE_KEY);
       return null;
     }
-    return { prompt: state.prompt, language: state.language, difficulty: state.difficulty, mode: state.mode };
+    return {
+      prompt: state.prompt,
+      language: state.language,
+      difficulty: state.difficulty,
+      mode: state.mode,
+    };
   } catch {
     return null;
   }

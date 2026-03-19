@@ -1,5 +1,12 @@
 import { db } from '@/index';
-import { users, plans, planPrices, subscriptions, idempotencyKeys, subscriptionEvents } from '@/db/schema/tables';
+import {
+  users,
+  plans,
+  planPrices,
+  subscriptions,
+  idempotencyKeys,
+  subscriptionEvents,
+} from '@/db/schema/tables';
 import {
   insertSubscription,
   updateSubscriptionByStripeId,
@@ -14,41 +21,52 @@ import {
 // Seed helpers — use `db` (mocked to test DB) so seeding and production code
 // share the exact same connection, avoiding cross-connection visibility issues
 async function seedUser(id = crypto.randomUUID()) {
-  const [u] = await db.insert(users).values({
-    id,
-    clerkId: `clerk_${id}`,
-    email: `${id}@test.com`,
-    name: 'Test User',
-    role: 'learner',
-  }).onConflictDoNothing().returning();
+  const [u] = await db
+    .insert(users)
+    .values({
+      id,
+      clerkId: `clerk_${id}`,
+      email: `${id}@test.com`,
+      name: 'Test User',
+      role: 'learner',
+    })
+    .onConflictDoNothing()
+    .returning();
   return u;
 }
 
 async function seedPlan(id = `pro_writer_${Date.now()}`) {
-  const [p] = await db.insert(plans).values({
-    id,
-    name: 'Pro Writer',
-    features: {
-      exercises: { limit: 10, window: 'day' },
-      paths: { limit: 3, window: 'week' },
-      aiGenerations: { limit: 10, window: 'day' },
-      submissions: { limit: 50, window: 'day' },
-    },
-    displayFeatures: [],
-    sortOrder: 1,
-    isActive: true,
-  }).onConflictDoNothing().returning();
+  const [p] = await db
+    .insert(plans)
+    .values({
+      id,
+      name: 'Pro Writer',
+      features: {
+        exercises: { limit: 10, window: 'day' },
+        paths: { limit: 3, window: 'week' },
+        aiGenerations: { limit: 10, window: 'day' },
+        submissions: { limit: 50, window: 'day' },
+      },
+      displayFeatures: [],
+      sortOrder: 1,
+      isActive: true,
+    })
+    .onConflictDoNothing()
+    .returning();
   return p;
 }
 
 async function seedPlanPrice(planId: string) {
-  const [pp] = await db.insert(planPrices).values({
-    planId,
-    stripePriceId: `price_writer_${Date.now()}`,
-    currency: 'usd',
-    interval: 'month',
-    isActive: true,
-  }).returning();
+  const [pp] = await db
+    .insert(planPrices)
+    .values({
+      planId,
+      stripePriceId: `price_writer_${Date.now()}`,
+      currency: 'usd',
+      interval: 'month',
+      isActive: true,
+    })
+    .returning();
   return pp;
 }
 

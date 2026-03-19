@@ -18,23 +18,17 @@ export function DailyGoalProgress({ todaySeconds, goalMinutes }: DailyGoalProgre
     <div
       className={`overflow-hidden rounded-xl border transition-all ${
         isComplete
-          ? 'border-emerald-500/30 bg-linear-to-r from-emerald-500/5 via-card to-emerald-500/5'
-          : 'border-border bg-linear-to-br from-card via-card to-primary/5'
+          ? 'via-card border-emerald-500/30 bg-linear-to-r from-emerald-500/5 to-emerald-500/5'
+          : 'border-border from-card via-card to-primary/5 bg-linear-to-br'
       }`}
     >
       <div className="flex items-center gap-4 p-4">
         <div
           className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
-            isComplete
-              ? 'bg-emerald-500/10 text-emerald-500'
-              : 'bg-primary/10 text-primary'
+            isComplete ? 'bg-emerald-500/10 text-emerald-500' : 'bg-primary/10 text-primary'
           }`}
         >
-          {isComplete ? (
-            <CheckCircle2 className="h-5 w-5" />
-          ) : (
-            <Target className="h-5 w-5" />
-          )}
+          {isComplete ? <CheckCircle2 className="h-5 w-5" /> : <Target className="h-5 w-5" />}
         </div>
 
         <div className="min-w-0 flex-1">
@@ -48,12 +42,10 @@ export function DailyGoalProgress({ todaySeconds, goalMinutes }: DailyGoalProgre
           </div>
 
           {/* Progress bar */}
-          <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
+          <div className="bg-muted mt-2 h-2 overflow-hidden rounded-full">
             <div
               className={`h-full rounded-full transition-all duration-700 ease-out ${
-                isComplete
-                  ? 'bg-emerald-500'
-                  : 'bg-linear-to-r from-primary to-violet-400'
+                isComplete ? 'bg-emerald-500' : 'from-primary bg-linear-to-r to-violet-400'
               }`}
               style={{ width: `${Math.round(progress * 100)}%` }}
             />

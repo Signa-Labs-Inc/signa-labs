@@ -36,7 +36,9 @@ export function buildStripeSubscription(overrides?: Record<string, unknown>): St
   } as unknown as Stripe.Subscription;
 }
 
-export function buildStripeCheckoutSession(overrides?: Record<string, unknown>): Stripe.Checkout.Session {
+export function buildStripeCheckoutSession(
+  overrides?: Record<string, unknown>
+): Stripe.Checkout.Session {
   return {
     id: 'cs_test_123',
     object: 'checkout.session',
@@ -123,7 +125,9 @@ export function buildStripeCustomer(overrides?: Record<string, unknown>): Stripe
   } as unknown as Stripe.Customer;
 }
 
-export function buildStripeBillingPortalSession(overrides?: Record<string, unknown>): Stripe.BillingPortal.Session {
+export function buildStripeBillingPortalSession(
+  overrides?: Record<string, unknown>
+): Stripe.BillingPortal.Session {
   return {
     id: 'bps_test_123',
     object: 'billing_portal.session',

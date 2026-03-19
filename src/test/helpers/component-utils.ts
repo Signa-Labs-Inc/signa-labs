@@ -1,4 +1,7 @@
-import type { PlanForPricingPage, UsageSummary } from '@/lib/services/subscriptions/subscriptions.types';
+import type {
+  PlanForPricingPage,
+  UsageSummary,
+} from '@/lib/services/subscriptions/subscriptions.types';
 
 /**
  * Sets up fetch mock that routes by URL pattern.
@@ -8,7 +11,12 @@ export function mockFetchResponses(
   handlers: [string, unknown, { status?: number; ok?: boolean }?][]
 ) {
   return vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
-    const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : (input as Request).url;
+    const url =
+      typeof input === 'string'
+        ? input
+        : input instanceof URL
+          ? input.toString()
+          : (input as Request).url;
     for (const [pattern, body, opts] of handlers) {
       if (url.includes(pattern)) {
         const status = opts?.status ?? 200;
@@ -55,9 +63,7 @@ export function mockWindowOpen() {
   return spy;
 }
 
-export function buildPlanForPricing(
-  overrides?: Partial<PlanForPricingPage>
-): PlanForPricingPage {
+export function buildPlanForPricing(overrides?: Partial<PlanForPricingPage>): PlanForPricingPage {
   return {
     id: 'pro',
     name: 'Pro',

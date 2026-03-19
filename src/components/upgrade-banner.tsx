@@ -12,7 +12,7 @@ export function UpgradeBanner({ message, className }: UpgradeBannerProps) {
   return (
     <div
       className={cn(
-        'overflow-hidden rounded-xl border border-amber-500/20 bg-linear-to-r from-amber-500/5 via-card to-amber-500/5',
+        'via-card overflow-hidden rounded-xl border border-amber-500/20 bg-linear-to-r from-amber-500/5 to-amber-500/5',
         className
       )}
     >

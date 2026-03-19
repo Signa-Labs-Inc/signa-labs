@@ -1,13 +1,6 @@
 'use client';
 
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { TOUR_STEPS } from './tour-steps';
 
@@ -132,12 +125,16 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
       dismissHint,
       loaded: state.loaded,
     }),
-    [state.tourCompleted, state.tourStep, state.loaded, advanceTour, skipTour, shouldShowHint, dismissHint]
+    [
+      state.tourCompleted,
+      state.tourStep,
+      state.loaded,
+      advanceTour,
+      skipTour,
+      shouldShowHint,
+      dismissHint,
+    ]
   );
 
-  return (
-    <OnboardingContext.Provider value={value}>
-      {children}
-    </OnboardingContext.Provider>
-  );
+  return <OnboardingContext.Provider value={value}>{children}</OnboardingContext.Provider>;
 }

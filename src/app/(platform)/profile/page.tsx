@@ -26,11 +26,11 @@ export default async function ProfilePage() {
   return (
     <div className="animate-fade-in">
       {/* ── Hero Header ── */}
-      <div className="relative overflow-hidden border-b border-border bg-linear-to-br from-primary/10 via-background to-violet-500/5">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent" />
+      <div className="border-border from-primary/10 via-background relative overflow-hidden border-b bg-linear-to-br to-violet-500/5">
+        <div className="from-primary/5 absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] via-transparent to-transparent" />
         <div className="relative mx-auto max-w-2xl px-6 py-10">
           <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-primary to-violet-400 text-lg font-bold text-white shadow-lg shadow-primary/20">
+            <div className="from-primary shadow-primary/20 flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-linear-to-br to-violet-400 text-lg font-bold text-white shadow-lg">
               {initials}
             </div>
             <div>

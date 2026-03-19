@@ -10,15 +10,17 @@ vi.mock('@/stores/notification-store', () => ({
   useNotificationStore: () => 0,
 }));
 
-function makeNotification(overrides?: Partial<{
-  id: string;
-  type: string;
-  subject: string | null;
-  body: string | null;
-  readAt: string | null;
-  createdAt: string;
-  metadata: Record<string, unknown>;
-}>) {
+function makeNotification(
+  overrides?: Partial<{
+    id: string;
+    type: string;
+    subject: string | null;
+    body: string | null;
+    readAt: string | null;
+    createdAt: string;
+    metadata: Record<string, unknown>;
+  }>
+) {
   return {
     id: 'n1',
     type: 'billing',
@@ -35,10 +37,10 @@ function mockNotificationsResponse(
   notifications: ReturnType<typeof makeNotification>[],
   unreadCount: number
 ) {
-  return new Response(
-    JSON.stringify({ notifications, unreadCount }),
-    { status: 200, headers: { 'Content-Type': 'application/json' } }
-  );
+  return new Response(JSON.stringify({ notifications, unreadCount }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+  });
 }
 
 describe('NotificationBell', () => {
@@ -52,9 +54,7 @@ describe('NotificationBell', () => {
   });
 
   it('renders bell icon', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      mockNotificationsResponse([], 0)
-    );
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(mockNotificationsResponse([], 0));
     await act(async () => {
       render(<NotificationBell />);
     });
@@ -62,9 +62,9 @@ describe('NotificationBell', () => {
   });
 
   it('fetches notifications on mount', async () => {
-    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      mockNotificationsResponse([], 0)
-    );
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(mockNotificationsResponse([], 0));
     await act(async () => {
       render(<NotificationBell />);
     });
@@ -96,9 +96,7 @@ describe('NotificationBell', () => {
   });
 
   it('clicking bell opens dropdown', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      mockNotificationsResponse([], 0)
-    );
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(mockNotificationsResponse([], 0));
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     await act(async () => {
       render(<NotificationBell />);
@@ -110,9 +108,7 @@ describe('NotificationBell', () => {
   });
 
   it('shows "No notifications" when empty', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      mockNotificationsResponse([], 0)
-    );
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(mockNotificationsResponse([], 0));
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     await act(async () => {
       render(<NotificationBell />);
@@ -140,13 +136,12 @@ describe('NotificationBell', () => {
   });
 
   it('mark single read', async () => {
-    const fetchSpy = vi.spyOn(globalThis, 'fetch')
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
       .mockResolvedValueOnce(
         mockNotificationsResponse([makeNotification({ id: 'n1', subject: 'Test' })], 1)
       )
-      .mockResolvedValueOnce(
-        new Response(JSON.stringify({ success: true }), { status: 200 })
-      );
+      .mockResolvedValueOnce(new Response(JSON.stringify({ success: true }), { status: 200 }));
 
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     await act(async () => {
@@ -169,13 +164,10 @@ describe('NotificationBell', () => {
   });
 
   it('mark all read', async () => {
-    const fetchSpy = vi.spyOn(globalThis, 'fetch')
-      .mockResolvedValueOnce(
-        mockNotificationsResponse([makeNotification()], 2)
-      )
-      .mockResolvedValueOnce(
-        new Response(JSON.stringify({ success: true }), { status: 200 })
-      );
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(mockNotificationsResponse([makeNotification()], 2))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ success: true }), { status: 200 }));
 
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     await act(async () => {
@@ -203,9 +195,12 @@ describe('NotificationBell', () => {
       makeNotification({ id: `n${i}`, subject: `Notification ${i}` })
     );
 
-    const fetchSpy = vi.spyOn(globalThis, 'fetch')
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
       .mockResolvedValueOnce(mockNotificationsResponse(tenItems, 2))
-      .mockResolvedValueOnce(mockNotificationsResponse([makeNotification({ id: 'n10', subject: 'Page 2' })], 2));
+      .mockResolvedValueOnce(
+        mockNotificationsResponse([makeNotification({ id: 'n10', subject: 'Page 2' })], 2)
+      );
 
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     await act(async () => {
@@ -226,9 +221,9 @@ describe('NotificationBell', () => {
   });
 
   it('polls every 120 seconds', async () => {
-    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      mockNotificationsResponse([], 0)
-    );
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(mockNotificationsResponse([], 0));
 
     await act(async () => {
       render(<NotificationBell />);

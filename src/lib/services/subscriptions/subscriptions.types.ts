@@ -9,7 +9,14 @@ export type SubscriptionStatus =
   | 'incomplete_expired';
 
 const VALID_SUBSCRIPTION_STATUSES = new Set<string>([
-  'trialing', 'active', 'past_due', 'canceled', 'unpaid', 'paused', 'incomplete', 'incomplete_expired',
+  'trialing',
+  'active',
+  'past_due',
+  'canceled',
+  'unpaid',
+  'paused',
+  'incomplete',
+  'incomplete_expired',
 ]);
 
 export function toSubscriptionStatus(value: string): SubscriptionStatus {
@@ -22,7 +29,10 @@ export function toSubscriptionStatus(value: string): SubscriptionStatus {
 export type PaymentStatus = 'succeeded' | 'failed' | 'refunded' | 'partial_refund';
 
 const VALID_PAYMENT_STATUSES = new Set<string>([
-  'succeeded', 'failed', 'refunded', 'partial_refund',
+  'succeeded',
+  'failed',
+  'refunded',
+  'partial_refund',
 ]);
 
 export function toPaymentStatus(value: string): PaymentStatus {

@@ -21,7 +21,13 @@ type ResultsPanelProps = {
 // Component
 // ============================================================
 
-export function ResultsPanel({ result, isSubmitting, error, className, onCollapse }: ResultsPanelProps) {
+export function ResultsPanel({
+  result,
+  isSubmitting,
+  error,
+  className,
+  onCollapse,
+}: ResultsPanelProps) {
   if (isSubmitting) {
     return (
       <div className={cn('border-t p-4', className)}>
@@ -42,7 +48,11 @@ export function ResultsPanel({ result, isSubmitting, error, className, onCollaps
             <span className="text-sm font-medium">Execution Error</span>
           </div>
           {onCollapse && (
-            <button onClick={onCollapse} className="text-muted-foreground hover:text-foreground rounded p-0.5 transition-colors" aria-label="Close results">
+            <button
+              onClick={onCollapse}
+              className="text-muted-foreground hover:text-foreground rounded p-0.5 transition-colors"
+              aria-label="Close results"
+            >
               <X className="h-4 w-4" />
             </button>
           )}
@@ -60,7 +70,12 @@ export function ResultsPanel({ result, isSubmitting, error, className, onCollaps
   return (
     <div className={cn('border-t', className)}>
       {/* Summary banner */}
-      <ResultsBanner result={result} allPassed={allPassed} isError={isError} onCollapse={onCollapse} />
+      <ResultsBanner
+        result={result}
+        allPassed={allPassed}
+        isError={isError}
+        onCollapse={onCollapse}
+      />
 
       {/* Error message for execution errors */}
       {isError && result.error_message && (
@@ -133,7 +148,11 @@ function ResultsBanner({
           <span className="text-xs">{result.execution_time_ms}ms</span>
         </div>
         {onCollapse && (
-          <button onClick={onCollapse} className="text-muted-foreground hover:text-foreground rounded p-0.5 transition-colors" aria-label="Close results">
+          <button
+            onClick={onCollapse}
+            className="text-muted-foreground hover:text-foreground rounded p-0.5 transition-colors"
+            aria-label="Close results"
+          >
             <X className="h-4 w-4" />
           </button>
         )}

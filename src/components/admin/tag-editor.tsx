@@ -52,7 +52,7 @@ export function TagEditor({ tags, onChange, placeholder = 'Add a tag...' }: TagE
               <button
                 type="button"
                 onClick={() => removeTag(tag)}
-                className="ml-0.5 rounded-full p-0.5 hover:bg-foreground/10 transition-colors"
+                className="hover:bg-foreground/10 ml-0.5 rounded-full p-0.5 transition-colors"
                 aria-label={`Remove ${tag}`}
               >
                 <X className="size-3" />

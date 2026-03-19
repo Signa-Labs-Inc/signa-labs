@@ -9,7 +9,7 @@ export function ActiveJobIndicator() {
   if (jobCount === 0) return null;
 
   return (
-    <div className="flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+    <div className="bg-primary/10 text-primary flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium">
       <Loader2 className="h-3 w-3 animate-spin" />
       {jobCount} {jobCount === 1 ? 'task' : 'tasks'}
     </div>

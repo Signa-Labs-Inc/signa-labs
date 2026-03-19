@@ -121,14 +121,13 @@ export function PathDashboard({ progress }: PathDashboardProps) {
   const isCompleted = progress.status === 'completed';
 
   const completedMilestones = progress.milestones.filter((m) => m.status === 'completed').length;
-  const languageLabel =
-    LANGUAGE_LABELS[progress.language.toLowerCase()] ?? progress.language;
+  const languageLabel = LANGUAGE_LABELS[progress.language.toLowerCase()] ?? progress.language;
 
   return (
     <div className="animate-fade-in">
       {/* ── Hero Header ── */}
-      <div className="relative overflow-hidden border-b border-border bg-linear-to-br from-primary/10 via-background to-violet-500/5">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent" />
+      <div className="border-border from-primary/10 via-background relative overflow-hidden border-b bg-linear-to-br to-violet-500/5">
+        <div className="from-primary/5 absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] via-transparent to-transparent" />
         <div className="relative mx-auto max-w-4xl px-6 py-8 md:py-12">
           {/* Back link */}
           <Link
@@ -184,9 +183,7 @@ export function PathDashboard({ progress }: PathDashboardProps) {
                 <div className="bg-muted/50 h-3 flex-1 overflow-hidden rounded-full">
                   <div
                     className={`h-full rounded-full transition-all duration-700 ${
-                      isCompleted
-                        ? 'bg-emerald-500'
-                        : 'bg-linear-to-r from-primary to-violet-400'
+                      isCompleted ? 'bg-emerald-500' : 'from-primary bg-linear-to-r to-violet-400'
                     }`}
                     style={{ width: `${progress.percentComplete}%` }}
                   />
@@ -202,8 +199,8 @@ export function PathDashboard({ progress }: PathDashboardProps) {
           <div className="mt-6 grid grid-cols-3 gap-4">
             <div className="bg-card/60 rounded-xl border p-4 backdrop-blur-sm">
               <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-                  <BookOpen className="h-4 w-4 text-primary" />
+                <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-lg">
+                  <BookOpen className="text-primary h-4 w-4" />
                 </div>
                 <div>
                   <p className="text-lg font-bold tabular-nums">
@@ -238,9 +235,7 @@ export function PathDashboard({ progress }: PathDashboardProps) {
                   <Zap className="h-4 w-4 text-amber-500" />
                 </div>
                 <div>
-                  <p className="text-lg font-bold tabular-nums">
-                    {progress.skillsAcquired.length}
-                  </p>
+                  <p className="text-lg font-bold tabular-nums">{progress.skillsAcquired.length}</p>
                   <p className="text-muted-foreground text-xs">Skills</p>
                 </div>
               </div>
@@ -248,30 +243,27 @@ export function PathDashboard({ progress }: PathDashboardProps) {
           </div>
 
           {/* Skills acquired — inline badges */}
-          {progress.skillsAcquired.length > 0 && (
-            <SkillsBadges skills={progress.skillsAcquired} />
-          )}
+          {progress.skillsAcquired.length > 0 && <SkillsBadges skills={progress.skillsAcquired} />}
         </div>
       </div>
 
       <div className="mx-auto max-w-4xl px-6 py-8">
         {/* Error message */}
-        {exerciseError && (
-          exerciseCode === 'FORBIDDEN' ? (
+        {exerciseError &&
+          (exerciseCode === 'FORBIDDEN' ? (
             <UpgradeBanner message={exerciseError} className="mb-6" />
           ) : (
-            <div className="bg-destructive/10 text-destructive mb-6 rounded-lg border border-destructive/20 px-4 py-3 text-center text-sm">
+            <div className="bg-destructive/10 text-destructive border-destructive/20 mb-6 rounded-lg border px-4 py-3 text-center text-sm">
               {exerciseError}
             </div>
-          )
-        )}
+          ))}
 
         {/* ── Continue CTA ── */}
         {isActive && (
-          <div className="mb-8 overflow-hidden rounded-xl border border-primary/20 bg-linear-to-r from-primary/5 via-card to-violet-500/5">
+          <div className="border-primary/20 from-primary/5 via-card mb-8 overflow-hidden rounded-xl border bg-linear-to-r to-violet-500/5">
             <div className="flex items-center gap-4 p-5 md:p-6">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                <Play className="h-6 w-6 text-primary" />
+              <div className="bg-primary/10 flex h-12 w-12 shrink-0 items-center justify-center rounded-xl">
+                <Play className="text-primary h-6 w-6" />
               </div>
               <div className="min-w-0 flex-1">
                 <p className="font-semibold">Ready to continue?</p>
@@ -303,7 +295,7 @@ export function PathDashboard({ progress }: PathDashboardProps) {
 
         {/* ── Completed Banner ── */}
         {isCompleted && (
-          <div className="mb-8 overflow-hidden rounded-xl border border-emerald-500/20 bg-linear-to-r from-emerald-500/5 via-card to-emerald-500/5">
+          <div className="via-card mb-8 overflow-hidden rounded-xl border border-emerald-500/20 bg-linear-to-r from-emerald-500/5 to-emerald-500/5">
             <div className="flex flex-col items-center p-8 text-center">
               <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10">
                 <Trophy className="h-8 w-8 text-emerald-500" />
@@ -369,7 +361,7 @@ function MilestoneTimelineItem({
       {/* Timeline connector */}
       {!isLast && (
         <div
-          className={`absolute left-4.25 top-10 bottom-0 w-0.5 ${
+          className={`absolute top-10 bottom-0 left-4.25 w-0.5 ${
             isCompleted ? 'bg-emerald-500' : 'bg-border'
           }`}
         />
@@ -382,12 +374,12 @@ function MilestoneTimelineItem({
             <CheckCircle2 className="h-5 w-5 text-white" />
           </div>
         ) : isActive ? (
-          <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-primary bg-primary/10">
-            <Circle className="h-4 w-4 fill-primary text-primary" />
+          <div className="border-primary bg-primary/10 flex h-9 w-9 items-center justify-center rounded-full border-2">
+            <Circle className="fill-primary text-primary h-4 w-4" />
           </div>
         ) : (
-          <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-border bg-muted">
-            <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+          <div className="border-border bg-muted flex h-9 w-9 items-center justify-center rounded-full border-2">
+            <Lock className="text-muted-foreground h-3.5 w-3.5" />
           </div>
         )}
       </div>
@@ -396,7 +388,7 @@ function MilestoneTimelineItem({
       <div
         className={`flex-1 overflow-hidden rounded-xl border transition-all duration-200 ${
           isActive
-            ? 'border-primary/30 bg-linear-to-br from-card to-primary/5 shadow-sm'
+            ? 'border-primary/30 from-card to-primary/5 bg-linear-to-br shadow-sm'
             : isCompleted
               ? 'bg-card'
               : 'border-border/60 bg-card'
@@ -404,7 +396,7 @@ function MilestoneTimelineItem({
       >
         <button
           onClick={() => setExpanded(!expanded)}
-          className="flex w-full items-start justify-between gap-3 p-4 text-left cursor-pointer"
+          className="flex w-full cursor-pointer items-start justify-between gap-3 p-4 text-left"
         >
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
@@ -412,12 +404,16 @@ function MilestoneTimelineItem({
                 {milestone.index + 1}. {milestone.title}
               </h3>
               {difficultyClass && (
-                <span className={`rounded-md px-2 py-0.5 text-xs font-medium capitalize ${difficultyClass}`}>
+                <span
+                  className={`rounded-md px-2 py-0.5 text-xs font-medium capitalize ${difficultyClass}`}
+                >
                   {milestone.targetDifficulty}
                 </span>
               )}
             </div>
-            <p className={`mt-1 text-sm ${isLocked ? 'text-muted-foreground/60' : 'text-muted-foreground'}`}>
+            <p
+              className={`mt-1 text-sm ${isLocked ? 'text-muted-foreground/60' : 'text-muted-foreground'}`}
+            >
               {milestone.description}
             </p>
 
@@ -427,7 +423,7 @@ function MilestoneTimelineItem({
                 <div className="bg-muted h-1.5 flex-1 overflow-hidden rounded-full">
                   <div
                     className={`h-full rounded-full transition-all duration-500 ${
-                      isCompleted ? 'bg-emerald-500' : 'bg-linear-to-r from-primary to-violet-400'
+                      isCompleted ? 'bg-emerald-500' : 'from-primary bg-linear-to-r to-violet-400'
                     }`}
                     style={{ width: `${isCompleted ? 100 : exerciseProgress}%` }}
                   />
@@ -440,7 +436,7 @@ function MilestoneTimelineItem({
 
             {/* Locked milestone teaser */}
             {isLocked && (
-              <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground/50">
+              <div className="text-muted-foreground/50 mt-3 flex items-center gap-2 text-xs">
                 <Lock className="h-3 w-3" />
                 {milestone.minExercises}+ exercises · {milestone.skills.length} skills to cover
               </div>
@@ -449,9 +445,9 @@ function MilestoneTimelineItem({
 
           <div className="shrink-0 pt-1">
             {expanded ? (
-              <ChevronUp className="h-4 w-4 text-muted-foreground" />
+              <ChevronUp className="text-muted-foreground h-4 w-4" />
             ) : (
-              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              <ChevronDown className="text-muted-foreground h-4 w-4" />
             )}
           </div>
         </button>
@@ -459,7 +455,7 @@ function MilestoneTimelineItem({
         {/* Expanded skill gates */}
         {expanded && !isLocked && milestone.skillGates.length > 0 && (
           <div className="border-t px-4 py-3">
-            <p className="text-muted-foreground mb-2 text-xs font-medium uppercase tracking-wider">
+            <p className="text-muted-foreground mb-2 text-xs font-medium tracking-wider uppercase">
               Skill Gates
             </p>
             <div className="flex flex-wrap gap-1.5">
@@ -492,25 +488,28 @@ function MilestoneTimelineItem({
         )}
 
         {/* Expanded skills list */}
-        {expanded && !isLocked && milestone.skills.length > 0 && milestone.skillGates.length === 0 && (
-          <div className="border-t px-4 py-3">
-            <p className="text-muted-foreground mb-2 text-xs font-medium uppercase tracking-wider">
-              Skills covered
-            </p>
-            <div className="flex flex-wrap gap-1.5">
-              {milestone.skills.map((skill) => (
-                <Badge key={skill} variant="outline" className="text-xs text-muted-foreground">
-                  {skill.replace(/_/g, ' ')}
-                </Badge>
-              ))}
+        {expanded &&
+          !isLocked &&
+          milestone.skills.length > 0 &&
+          milestone.skillGates.length === 0 && (
+            <div className="border-t px-4 py-3">
+              <p className="text-muted-foreground mb-2 text-xs font-medium tracking-wider uppercase">
+                Skills covered
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {milestone.skills.map((skill) => (
+                  <Badge key={skill} variant="outline" className="text-muted-foreground text-xs">
+                    {skill.replace(/_/g, ' ')}
+                  </Badge>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
         {/* Locked milestone preview — teases what's coming */}
         {expanded && isLocked && (
-          <div className="border-t border-border/60 px-4 py-3">
-            <p className="text-muted-foreground/60 mb-2 text-xs font-medium uppercase tracking-wider">
+          <div className="border-border/60 border-t px-4 py-3">
+            <p className="text-muted-foreground/60 mb-2 text-xs font-medium tracking-wider uppercase">
               What you&apos;ll learn
             </p>
             <div className="flex flex-wrap gap-1.5">
@@ -518,7 +517,7 @@ function MilestoneTimelineItem({
                 <Badge
                   key={skill}
                   variant="outline"
-                  className="border-border/40 text-xs text-muted-foreground/40"
+                  className="border-border/40 text-muted-foreground/40 text-xs"
                 >
                   <Lock className="mr-1 h-2.5 w-2.5" />
                   {skill.replace(/_/g, ' ')}
@@ -527,7 +526,7 @@ function MilestoneTimelineItem({
             </div>
             {milestone.skillGates.length > 0 && (
               <>
-                <p className="text-muted-foreground/60 mb-2 mt-3 text-xs font-medium uppercase tracking-wider">
+                <p className="text-muted-foreground/60 mt-3 mb-2 text-xs font-medium tracking-wider uppercase">
                   Skills required to unlock
                 </p>
                 <div className="flex flex-wrap gap-1.5">
@@ -549,4 +548,3 @@ function MilestoneTimelineItem({
     </div>
   );
 }
-

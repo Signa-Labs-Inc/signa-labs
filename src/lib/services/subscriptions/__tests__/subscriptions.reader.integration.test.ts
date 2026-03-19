@@ -1,5 +1,13 @@
 import { db } from '@/index';
-import { users, plans, planPrices, subscriptions, paymentRecords, subscriptionEvents, idempotencyKeys } from '@/db/schema/tables';
+import {
+  users,
+  plans,
+  planPrices,
+  subscriptions,
+  paymentRecords,
+  subscriptionEvents,
+  idempotencyKeys,
+} from '@/db/schema/tables';
 import {
   getActiveSubscriptionByUserId,
   getSubscriptionByStripeId,
@@ -14,57 +22,76 @@ import {
 // Seed helpers — use `db` (mocked to test DB) so seeding and production code
 // share the exact same connection, avoiding cross-connection visibility issues
 async function seedUser(id = crypto.randomUUID()) {
-  const [u] = await db.insert(users).values({
-    id,
-    clerkId: `clerk_${id}`,
-    email: `${id}@test.com`,
-    name: 'Test User',
-    role: 'learner',
-  }).onConflictDoNothing().returning();
+  const [u] = await db
+    .insert(users)
+    .values({
+      id,
+      clerkId: `clerk_${id}`,
+      email: `${id}@test.com`,
+      name: 'Test User',
+      role: 'learner',
+    })
+    .onConflictDoNothing()
+    .returning();
   return u;
 }
 
 async function seedPlan(id = `pro_${Date.now()}`, sortOrder = 1) {
-  const [p] = await db.insert(plans).values({
-    id,
-    name: id.charAt(0).toUpperCase() + id.slice(1),
-    description: `${id} plan`,
-    features: {
-      exercises: { limit: 10, window: 'day' },
-      paths: { limit: 3, window: 'week' },
-      aiGenerations: { limit: 10, window: 'day' },
-      submissions: { limit: 50, window: 'day' },
-    },
-    displayFeatures: [],
-    sortOrder,
-    isActive: true,
-  }).onConflictDoNothing().returning();
+  const [p] = await db
+    .insert(plans)
+    .values({
+      id,
+      name: id.charAt(0).toUpperCase() + id.slice(1),
+      description: `${id} plan`,
+      features: {
+        exercises: { limit: 10, window: 'day' },
+        paths: { limit: 3, window: 'week' },
+        aiGenerations: { limit: 10, window: 'day' },
+        submissions: { limit: 50, window: 'day' },
+      },
+      displayFeatures: [],
+      sortOrder,
+      isActive: true,
+    })
+    .onConflictDoNothing()
+    .returning();
   return p;
 }
 
 async function seedPlanPrice(planId: string, stripePriceId: string, interval = 'month') {
-  const [pp] = await db.insert(planPrices).values({
-    planId,
-    stripePriceId,
-    currency: 'usd',
-    interval,
-    isActive: true,
-  }).returning();
+  const [pp] = await db
+    .insert(planPrices)
+    .values({
+      planId,
+      stripePriceId,
+      currency: 'usd',
+      interval,
+      isActive: true,
+    })
+    .returning();
   return pp;
 }
 
-async function seedSubscription(userId: string, planId: string, planPriceId: string, overrides: Record<string, unknown> = {}) {
-  const [sub] = await db.insert(subscriptions).values({
-    userId,
-    ownerType: 'user',
-    planId,
-    planPriceId,
-    stripeSubscriptionId: `sub_int_${Date.now()}`,
-    stripeCustomerId: 'cus_int_123',
-    status: 'active',
-    totalSeats: null,
-    ...overrides,
-  }).returning();
+async function seedSubscription(
+  userId: string,
+  planId: string,
+  planPriceId: string,
+  overrides: Record<string, unknown> = {}
+) {
+  const [sub] = await db
+    .insert(subscriptions)
+    .values({
+      userId,
+      ownerType: 'user',
+      planId,
+      planPriceId,
+      stripeSubscriptionId: `sub_int_${Date.now()}`,
+      stripeCustomerId: 'cus_int_123',
+      status: 'active',
+      totalSeats: null,
+      ...overrides,
+    })
+    .returning();
   return sub;
 }
 
@@ -182,7 +209,9 @@ describe('subscriptions.reader integration', () => {
 
   describe('countActiveSubscriptionsForPlan', () => {
     it('returns correct count', async () => {
-      await seedSubscription(userId, planId, priceId, { stripeSubscriptionId: `sub_count_${Date.now()}` });
+      await seedSubscription(userId, planId, priceId, {
+        stripeSubscriptionId: `sub_count_${Date.now()}`,
+      });
       const count = await countActiveSubscriptionsForPlan(planId);
       expect(count).toBeGreaterThanOrEqual(1);
     });
@@ -205,7 +234,9 @@ describe('subscriptions.reader integration', () => {
 
   describe('getPaymentRecordsByUserId', () => {
     it('returns records with pagination', async () => {
-      const sub = await seedSubscription(userId, planId, priceId, { stripeSubscriptionId: `sub_pay_${Date.now()}` });
+      const sub = await seedSubscription(userId, planId, priceId, {
+        stripeSubscriptionId: `sub_pay_${Date.now()}`,
+      });
       await db.insert(paymentRecords).values({
         userId,
         subscriptionId: sub!.id,

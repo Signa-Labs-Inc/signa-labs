@@ -28,8 +28,7 @@ export function UserExercises({
   totalCount,
   showPracticeLibraryHeading,
 }: UserExercisesProps) {
-  const [localExercises, setLocalExercises] =
-    useState<ExerciseCardData[]>(exercises);
+  const [localExercises, setLocalExercises] = useState<ExerciseCardData[]>(exercises);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -43,9 +42,7 @@ export function UserExercises({
       });
 
       if (response.ok) {
-        setLocalExercises((prev) =>
-          prev.filter((ex) => ex.id !== deleteTarget)
-        );
+        setLocalExercises((prev) => prev.filter((ex) => ex.id !== deleteTarget));
       }
     } catch (err) {
       console.error('Failed to delete exercise:', err);
@@ -89,7 +86,7 @@ export function UserExercises({
                     variant="ghost"
                     size="icon"
                     aria-label="Delete exercise"
-                    className="text-muted-foreground hover:text-destructive absolute bottom-3 right-3 h-7 w-7 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
+                    className="text-muted-foreground hover:text-destructive absolute right-3 bottom-3 h-7 w-7 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -117,8 +114,8 @@ export function UserExercises({
           <AlertDialogHeader>
             <AlertDialogTitle>Delete exercise?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently remove this exercise and all your
-              submissions. This action cannot be undone.
+              This will permanently remove this exercise and all your submissions. This action
+              cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

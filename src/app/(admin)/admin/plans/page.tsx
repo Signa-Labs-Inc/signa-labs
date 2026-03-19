@@ -399,7 +399,10 @@ export default function AdminPlansPage() {
                   id="create-plan-id"
                   value={createForm.id}
                   onChange={(e) =>
-                    setCreateForm({ ...createForm, id: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '') })
+                    setCreateForm({
+                      ...createForm,
+                      id: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''),
+                    })
                   }
                   placeholder="e.g. starter, team"
                 />
@@ -435,7 +438,8 @@ export default function AdminPlansPage() {
             <div className="mt-6">
               <h4 className="text-sm font-medium">Pricing (optional)</h4>
               <p className="text-muted-foreground mt-1 text-xs">
-                Creates a Stripe Product and Price(s) automatically. Leave blank to create a plan without pricing.
+                Creates a Stripe Product and Price(s) automatically. Leave blank to create a plan
+                without pricing.
               </p>
               <div className="mt-3 grid gap-4 sm:grid-cols-3">
                 <div>
@@ -508,9 +512,20 @@ export default function AdminPlansPage() {
       )}
 
       {fetchError && (
-        <div role="alert" className="rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+        <div
+          role="alert"
+          className="border-destructive/20 bg-destructive/10 text-destructive rounded-lg border px-4 py-3 text-sm"
+        >
           {fetchError}
-          <Button size="sm" variant="ghost" className="ml-2" onClick={() => { setLoading(true); fetchPlans(); }}>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="ml-2"
+            onClick={() => {
+              setLoading(true);
+              fetchPlans();
+            }}
+          >
             Retry
           </Button>
         </div>
@@ -565,38 +580,40 @@ export default function AdminPlansPage() {
 
                 {/* Rate limits */}
                 <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                  {(['exercises', 'paths', 'aiGenerations', 'submissions'] as const).map((feature) => (
-                    <div key={feature} className="border-border rounded-lg border p-3">
-                      <p className="text-sm font-medium capitalize">
-                        {feature === 'aiGenerations' ? 'AI Generations' : feature}
-                      </p>
-                      {editingId === plan.id && editForm ? (
-                        <div className="mt-2 flex gap-2">
-                          <Input
-                            type="number"
-                            value={editForm[feature]?.limit ?? 0}
-                            onChange={(e) => updateLimit(feature, 'limit', e.target.value)}
-                            className="w-20"
-                            aria-label={`${feature} limit`}
-                          />
-                          <select
-                            value={editForm[feature]?.window ?? 'day'}
-                            onChange={(e) => updateLimit(feature, 'window', e.target.value)}
-                            className="border-input bg-background rounded-md border px-2 py-1 text-sm"
-                            aria-label={`${feature} window`}
-                          >
-                            <option value="day">/ day</option>
-                            <option value="week">/ week</option>
-                            <option value="month">/ month</option>
-                          </select>
-                        </div>
-                      ) : (
-                        <p className="text-muted-foreground mt-1 text-sm">
-                          {formatLimit(plan.features[feature])}
+                  {(['exercises', 'paths', 'aiGenerations', 'submissions'] as const).map(
+                    (feature) => (
+                      <div key={feature} className="border-border rounded-lg border p-3">
+                        <p className="text-sm font-medium capitalize">
+                          {feature === 'aiGenerations' ? 'AI Generations' : feature}
                         </p>
-                      )}
-                    </div>
-                  ))}
+                        {editingId === plan.id && editForm ? (
+                          <div className="mt-2 flex gap-2">
+                            <Input
+                              type="number"
+                              value={editForm[feature]?.limit ?? 0}
+                              onChange={(e) => updateLimit(feature, 'limit', e.target.value)}
+                              className="w-20"
+                              aria-label={`${feature} limit`}
+                            />
+                            <select
+                              value={editForm[feature]?.window ?? 'day'}
+                              onChange={(e) => updateLimit(feature, 'window', e.target.value)}
+                              className="border-input bg-background rounded-md border px-2 py-1 text-sm"
+                              aria-label={`${feature} window`}
+                            >
+                              <option value="day">/ day</option>
+                              <option value="week">/ week</option>
+                              <option value="month">/ month</option>
+                            </select>
+                          </div>
+                        ) : (
+                          <p className="text-muted-foreground mt-1 text-sm">
+                            {formatLimit(plan.features[feature])}
+                          </p>
+                        )}
+                      </div>
+                    )
+                  )}
                 </div>
 
                 {/* Display Features */}

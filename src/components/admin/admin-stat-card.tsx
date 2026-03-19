@@ -14,17 +14,13 @@ export function AdminStatCard({ title, value, description, icon: Icon }: AdminSt
     <Card>
       <CardContent className="flex items-start justify-between p-6">
         <div className="flex flex-col gap-1">
-          <span className="text-sm font-medium text-muted-foreground">{title}</span>
-          <span className="text-3xl font-bold tracking-tight text-foreground">
-            {value}
-          </span>
-          {description && (
-            <span className="text-xs text-muted-foreground/70">{description}</span>
-          )}
+          <span className="text-muted-foreground text-sm font-medium">{title}</span>
+          <span className="text-foreground text-3xl font-bold tracking-tight">{value}</span>
+          {description && <span className="text-muted-foreground/70 text-xs">{description}</span>}
         </div>
         {Icon && (
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-            <Icon className="h-4 w-4 text-primary/50" />
+          <div className="bg-primary/10 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg">
+            <Icon className="text-primary/50 h-4 w-4" />
           </div>
         )}
       </CardContent>
@@ -37,8 +33,8 @@ export function AdminStatCardSkeleton() {
     <Card className="overflow-hidden">
       <CardContent className="p-6">
         <div className="flex flex-col gap-2">
-          <div className="h-4 w-24 animate-pulse rounded bg-muted" />
-          <div className="h-8 w-16 animate-pulse rounded bg-muted" />
+          <div className="bg-muted h-4 w-24 animate-pulse rounded" />
+          <div className="bg-muted h-8 w-16 animate-pulse rounded" />
         </div>
       </CardContent>
     </Card>

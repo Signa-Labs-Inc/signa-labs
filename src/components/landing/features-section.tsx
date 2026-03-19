@@ -5,7 +5,7 @@ const features = [
     icon: Play,
     title: 'Try Instantly — No Sign-Up',
     description:
-      'Jump straight into any exercise and run your code in a live sandbox. Create an account when you\'re ready to save your progress.',
+      "Jump straight into any exercise and run your code in a live sandbox. Create an account when you're ready to save your progress.",
   },
   {
     icon: FlaskConical,
@@ -35,8 +35,8 @@ export function FeaturesSection() {
           Everything You Need to Level Up
         </h2>
         <p className="animate-fade-in mx-auto mt-4 max-w-2xl text-center text-lg text-zinc-400">
-          A complete platform designed to accelerate your coding skills with
-          intelligent tools and personalized learning.
+          A complete platform designed to accelerate your coding skills with intelligent tools and
+          personalized learning.
         </p>
 
         <div className="mt-16 grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -49,12 +49,8 @@ export function FeaturesSection() {
               <div className="mb-4 flex size-10 items-center justify-center rounded-lg bg-violet-500/10">
                 <feature.icon className="size-5 text-violet-400" />
               </div>
-              <h3 className="text-lg font-semibold text-white">
-                {feature.title}
-              </h3>
-              <p className="mt-2 leading-relaxed text-zinc-400">
-                {feature.description}
-              </p>
+              <h3 className="text-lg font-semibold text-white">{feature.title}</h3>
+              <p className="mt-2 leading-relaxed text-zinc-400">{feature.description}</p>
             </div>
           ))}
         </div>

@@ -16,18 +16,32 @@ import {
 
 export const metadata: Metadata = { title: 'Subscription History' };
 
-const EVENT_CONFIG: Record<
-  string,
-  { label: string; icon: typeof PlusCircle; className: string }
-> = {
-  created: { label: 'Subscribed', icon: PlusCircle, className: 'text-green-500 bg-green-500/10' },
-  upgraded: { label: 'Upgraded', icon: ArrowUpCircle, className: 'text-blue-500 bg-blue-500/10' },
-  downgraded: { label: 'Downgraded', icon: ArrowDownCircle, className: 'text-amber-500 bg-amber-500/10' },
-  cancelled: { label: 'Cancelled', icon: XCircle, className: 'text-destructive bg-destructive/10' },
-  reactivated: { label: 'Reactivated', icon: RefreshCw, className: 'text-green-500 bg-green-500/10' },
-  renewed: { label: 'Renewed', icon: CreditCard, className: 'text-green-500 bg-green-500/10' },
-  payment_failed: { label: 'Payment Failed', icon: AlertTriangle, className: 'text-destructive bg-destructive/10' },
-};
+const EVENT_CONFIG: Record<string, { label: string; icon: typeof PlusCircle; className: string }> =
+  {
+    created: { label: 'Subscribed', icon: PlusCircle, className: 'text-green-500 bg-green-500/10' },
+    upgraded: { label: 'Upgraded', icon: ArrowUpCircle, className: 'text-blue-500 bg-blue-500/10' },
+    downgraded: {
+      label: 'Downgraded',
+      icon: ArrowDownCircle,
+      className: 'text-amber-500 bg-amber-500/10',
+    },
+    cancelled: {
+      label: 'Cancelled',
+      icon: XCircle,
+      className: 'text-destructive bg-destructive/10',
+    },
+    reactivated: {
+      label: 'Reactivated',
+      icon: RefreshCw,
+      className: 'text-green-500 bg-green-500/10',
+    },
+    renewed: { label: 'Renewed', icon: CreditCard, className: 'text-green-500 bg-green-500/10' },
+    payment_failed: {
+      label: 'Payment Failed',
+      icon: AlertTriangle,
+      className: 'text-destructive bg-destructive/10',
+    },
+  };
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', {
@@ -53,13 +67,11 @@ export default async function SubscriptionHistoryPage() {
       </Button>
 
       <h1 className="text-2xl font-bold tracking-tight">Subscription History</h1>
-      <p className="text-muted-foreground mt-1">
-        A timeline of changes to your subscription.
-      </p>
+      <p className="text-muted-foreground mt-1">A timeline of changes to your subscription.</p>
 
       <div className="mt-8">
         {events.length === 0 ? (
-          <div className="rounded-xl border border-border bg-card p-8 text-center">
+          <div className="border-border bg-card rounded-xl border p-8 text-center">
             <p className="text-muted-foreground">No subscription events yet.</p>
             <p className="text-muted-foreground mt-1 text-sm">
               Events will appear here when your subscription changes.
@@ -68,7 +80,7 @@ export default async function SubscriptionHistoryPage() {
         ) : (
           <div className="relative">
             {/* Timeline line */}
-            <div className="absolute left-[19px] top-2 bottom-2 w-px bg-border" />
+            <div className="bg-border absolute top-2 bottom-2 left-[19px] w-px" />
 
             <div className="space-y-0">
               {events.map((event) => {
@@ -92,13 +104,11 @@ export default async function SubscriptionHistoryPage() {
                     <div className="min-w-0 flex-1 pt-1">
                       <div className="flex items-baseline gap-2">
                         <p className="text-sm font-medium">{config.label}</p>
-                        <time className="text-xs text-muted-foreground">
+                        <time className="text-muted-foreground text-xs">
                           {formatDate(event.createdAt)}
                         </time>
                       </div>
-                      <p className="mt-0.5 text-sm text-muted-foreground">
-                        {event.description}
-                      </p>
+                      <p className="text-muted-foreground mt-0.5 text-sm">{event.description}</p>
                     </div>
                   </div>
                 );

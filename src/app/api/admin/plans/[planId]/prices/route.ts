@@ -7,10 +7,7 @@ import { insertPlanPrice } from '@/lib/services/subscriptions/subscriptions.writ
 import { stripe } from '@/lib/stripe/client';
 import { revalidateTag } from 'next/cache';
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: Promise<{ planId: string }> }
-) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ planId: string }> }) {
   try {
     await requireAdmin();
     const { planId } = await params;
@@ -41,10 +38,7 @@ export async function GET(
   }
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ planId: string }> }
-) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ planId: string }> }) {
   try {
     await requireAdmin();
     const { planId } = await params;

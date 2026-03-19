@@ -179,10 +179,7 @@ export async function getExerciseForAdmin(id: string) {
 
 /** List all categories ordered by sortOrder (not just active) */
 export async function listAllCategories() {
-  return db
-    .select()
-    .from(exerciseCategories)
-    .orderBy(asc(exerciseCategories.sortOrder));
+  return db.select().from(exerciseCategories).orderBy(asc(exerciseCategories.sortOrder));
 }
 
 // --- Prompt Templates --------------------------------------------------------
@@ -222,10 +219,7 @@ export async function listAllPromptTemplates(filters?: { search?: string }) {
 
 /** List all environments ordered by name */
 export async function listAllEnvironments() {
-  return db
-    .select()
-    .from(exerciseEnvironments)
-    .orderBy(asc(exerciseEnvironments.name));
+  return db.select().from(exerciseEnvironments).orderBy(asc(exerciseEnvironments.name));
 }
 
 // --- Learning Paths ----------------------------------------------------------
@@ -239,7 +233,9 @@ export async function listAllLearningPaths(
   const conditions: ReturnType<typeof eq>[] = [];
 
   if (filters.status) {
-    conditions.push(eq(learningPaths.status, filters.status as 'active' | 'completed' | 'paused' | 'abandoned'));
+    conditions.push(
+      eq(learningPaths.status, filters.status as 'active' | 'completed' | 'paused' | 'abandoned')
+    );
   }
 
   if (filters.language) {
@@ -355,33 +351,34 @@ function toBreakdown(rows: { label: string; value: number }[]): BreakdownItem[] 
 }
 
 async function getOverviewStats(): Promise<AnalyticsData['overview']> {
-  const [
-    [completions],
-    [submissions],
-    [passRate],
-    [activeUsers],
-    [timeSpent],
-    [avgTime],
-  ] = await Promise.all([
-    db.select({ count: sql<number>`count(*)::int` })
-      .from(exerciseAttempts)
-      .where(sql`${exerciseAttempts.status} = 'completed'`),
-    db.select({ count: sql<number>`count(*)::int` })
-      .from(exerciseSubmissions),
-    db.select({
-      rate: sql<number>`round(coalesce(100.0 * count(*) filter (where ${exerciseSubmissions.isPassing}) / nullif(count(*), 0), 0), 1)`,
-    }).from(exerciseSubmissions),
-    db.select({ count: sql<number>`count(distinct ${exerciseAttempts.userId})::int` })
-      .from(exerciseAttempts)
-      .where(sql`${exerciseAttempts.startedAt} >= now() - interval '30 days'`),
-    db.select({
-      total: sql<number>`coalesce(sum(${userLearningStats.totalTimeSpentSeconds}), 0)::int`,
-    }).from(userLearningStats),
-    db.select({
-      avg: sql<number>`round(coalesce(avg(${exerciseAttempts.timeSpentSeconds}), 0) / 60.0, 1)`,
-    }).from(exerciseAttempts)
-      .where(sql`${exerciseAttempts.status} = 'completed'`),
-  ]);
+  const [[completions], [submissions], [passRate], [activeUsers], [timeSpent], [avgTime]] =
+    await Promise.all([
+      db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(exerciseAttempts)
+        .where(sql`${exerciseAttempts.status} = 'completed'`),
+      db.select({ count: sql<number>`count(*)::int` }).from(exerciseSubmissions),
+      db
+        .select({
+          rate: sql<number>`round(coalesce(100.0 * count(*) filter (where ${exerciseSubmissions.isPassing}) / nullif(count(*), 0), 0), 1)`,
+        })
+        .from(exerciseSubmissions),
+      db
+        .select({ count: sql<number>`count(distinct ${exerciseAttempts.userId})::int` })
+        .from(exerciseAttempts)
+        .where(sql`${exerciseAttempts.startedAt} >= now() - interval '30 days'`),
+      db
+        .select({
+          total: sql<number>`coalesce(sum(${userLearningStats.totalTimeSpentSeconds}), 0)::int`,
+        })
+        .from(userLearningStats),
+      db
+        .select({
+          avg: sql<number>`round(coalesce(avg(${exerciseAttempts.timeSpentSeconds}), 0) / 60.0, 1)`,
+        })
+        .from(exerciseAttempts)
+        .where(sql`${exerciseAttempts.status} = 'completed'`),
+    ]);
 
   return {
     totalCompletions: Number(completions?.count ?? 0),
@@ -406,7 +403,7 @@ async function getDailyCompletions(): Promise<DailyCount[]> {
     order by d
   `);
 
-  const resultRows = Array.isArray(rows) ? rows : (rows as { rows: unknown[] }).rows ?? [];
+  const resultRows = Array.isArray(rows) ? rows : ((rows as { rows: unknown[] }).rows ?? []);
   return (resultRows as { date: string; count: number }[]).map((r) => ({
     date: r.date,
     count: Number(r.count),
@@ -415,48 +412,54 @@ async function getDailyCompletions(): Promise<DailyCount[]> {
 
 async function getExerciseInsights(): Promise<AnalyticsData['exerciseInsights']> {
   const [langRows, diffRows, hardestRows, mostAttemptedRows] = await Promise.all([
-    db.select({
-      label: exercises.language,
-      value: sql<number>`count(*)::int`,
-    })
+    db
+      .select({
+        label: exercises.language,
+        value: sql<number>`count(*)::int`,
+      })
       .from(exercises)
       .where(isNull(exercises.deletedAt))
       .groupBy(exercises.language)
       .orderBy(sql`count(*) desc`),
 
-    db.select({
-      label: exercises.difficulty,
-      value: sql<number>`count(*)::int`,
-    })
+    db
+      .select({
+        label: exercises.difficulty,
+        value: sql<number>`count(*)::int`,
+      })
       .from(exercises)
       .where(isNull(exercises.deletedAt))
       .groupBy(exercises.difficulty)
       .orderBy(sql`count(*) desc`),
 
-    db.select({
-      id: exercises.id,
-      title: exercises.title,
-      language: exercises.language,
-      difficulty: exercises.difficulty,
-      passRate: sql<number>`round(100.0 * count(*) filter (where ${exerciseAttempts.status} = 'completed') / nullif(count(*), 0), 1)`,
-      attempts: sql<number>`count(*)::int`,
-    })
+    db
+      .select({
+        id: exercises.id,
+        title: exercises.title,
+        language: exercises.language,
+        difficulty: exercises.difficulty,
+        passRate: sql<number>`round(100.0 * count(*) filter (where ${exerciseAttempts.status} = 'completed') / nullif(count(*), 0), 1)`,
+        attempts: sql<number>`count(*)::int`,
+      })
       .from(exercises)
       .innerJoin(exerciseAttempts, eq(exercises.id, exerciseAttempts.exerciseId))
       .where(isNull(exercises.deletedAt))
       .groupBy(exercises.id, exercises.title, exercises.language, exercises.difficulty)
       .having(sql`count(*) >= 3`)
-      .orderBy(sql`round(100.0 * count(*) filter (where ${exerciseAttempts.status} = 'completed') / nullif(count(*), 0), 1) asc`)
+      .orderBy(
+        sql`round(100.0 * count(*) filter (where ${exerciseAttempts.status} = 'completed') / nullif(count(*), 0), 1) asc`
+      )
       .limit(10),
 
-    db.select({
-      id: exercises.id,
-      title: exercises.title,
-      language: exercises.language,
-      difficulty: exercises.difficulty,
-      attempts: sql<number>`count(*)::int`,
-      completions: sql<number>`count(*) filter (where ${exerciseAttempts.status} = 'completed')::int`,
-    })
+    db
+      .select({
+        id: exercises.id,
+        title: exercises.title,
+        language: exercises.language,
+        difficulty: exercises.difficulty,
+        attempts: sql<number>`count(*)::int`,
+        completions: sql<number>`count(*) filter (where ${exerciseAttempts.status} = 'completed')::int`,
+      })
       .from(exercises)
       .innerJoin(exerciseAttempts, eq(exercises.id, exerciseAttempts.exerciseId))
       .where(isNull(exercises.deletedAt))
@@ -502,13 +505,16 @@ async function getUserEngagement(): Promise<AnalyticsData['userEngagement']> {
     signupResult,
     roleRows,
   ] = await Promise.all([
-    db.select({ count: sql<number>`count(distinct ${exerciseAttempts.userId})::int` })
+    db
+      .select({ count: sql<number>`count(distinct ${exerciseAttempts.userId})::int` })
       .from(exerciseAttempts)
       .where(sql`${exerciseAttempts.startedAt} >= now() - interval '7 days'`),
-    db.select({ count: sql<number>`count(distinct ${exerciseAttempts.userId})::int` })
+    db
+      .select({ count: sql<number>`count(distinct ${exerciseAttempts.userId})::int` })
       .from(exerciseAttempts)
       .where(sql`${exerciseAttempts.startedAt} >= now() - interval '30 days'`),
-    db.select({ count: sql<number>`count(distinct ${exerciseAttempts.userId})::int` })
+    db
+      .select({ count: sql<number>`count(distinct ${exerciseAttempts.userId})::int` })
       .from(exerciseAttempts)
       .where(sql`${exerciseAttempts.startedAt} >= now() - interval '90 days'`),
 
@@ -544,10 +550,11 @@ async function getUserEngagement(): Promise<AnalyticsData['userEngagement']> {
       order by d
     `),
 
-    db.select({
-      label: users.role,
-      value: sql<number>`count(*)::int`,
-    })
+    db
+      .select({
+        label: users.role,
+        value: sql<number>`count(*)::int`,
+      })
       .from(users)
       .where(isNull(users.deletedAt))
       .groupBy(users.role),
@@ -583,15 +590,16 @@ async function getUserSegmentation(): Promise<AnalyticsData['userSegmentation']>
     [medianStreakResult],
   ] = await Promise.all([
     // Activity level segmentation based on completions in last 30 days
-    db.select({
-      label: sql<string>`case
+    db
+      .select({
+        label: sql<string>`case
         when coalesce(completions, 0) = 0 then 'Inactive'
         when coalesce(completions, 0) between 1 and 2 then 'Casual'
         when coalesce(completions, 0) between 3 and 9 then 'Active'
         else 'Power User'
       end`,
-      value: sql<number>`count(*)::int`,
-    })
+        value: sql<number>`count(*)::int`,
+      })
       .from(users)
       .leftJoin(
         sql`(
@@ -602,8 +610,7 @@ async function getUserSegmentation(): Promise<AnalyticsData['userSegmentation']>
         ) as recent_activity`,
         sql`recent_activity.user_id = ${users.id}`
       )
-      .where(isNull(users.deletedAt))
-      .groupBy(sql`case
+      .where(isNull(users.deletedAt)).groupBy(sql`case
         when coalesce(completions, 0) = 0 then 'Inactive'
         when coalesce(completions, 0) between 1 and 2 then 'Casual'
         when coalesce(completions, 0) between 3 and 9 then 'Active'
@@ -611,10 +618,11 @@ async function getUserSegmentation(): Promise<AnalyticsData['userSegmentation']>
       end`),
 
     // Subscription plan distribution
-    db.select({
-      label: sql<string>`coalesce(s.plan_id, 'free')`,
-      value: sql<number>`count(distinct ${users.id})::int`,
-    })
+    db
+      .select({
+        label: sql<string>`coalesce(s.plan_id, 'free')`,
+        value: sql<number>`count(distinct ${users.id})::int`,
+      })
       .from(users)
       .leftJoin(
         sql`(
@@ -629,13 +637,14 @@ async function getUserSegmentation(): Promise<AnalyticsData['userSegmentation']>
       .orderBy(sql`count(distinct ${users.id}) desc`),
 
     // Preferred coding language from profiles
-    db.select({
-      label: sql<string>`coalesce(
+    db
+      .select({
+        label: sql<string>`coalesce(
         ${usersProfiles.preferences}->>'preferred_coding_language',
         'python'
       )`,
-      value: sql<number>`count(*)::int`,
-    })
+        value: sql<number>`count(*)::int`,
+      })
       .from(users)
       .leftJoin(usersProfiles, eq(users.id, usersProfiles.userId))
       .where(isNull(users.deletedAt))
@@ -643,11 +652,12 @@ async function getUserSegmentation(): Promise<AnalyticsData['userSegmentation']>
       .orderBy(sql`count(*) desc`),
 
     // Retention: % of users who signed up 7+ days ago and were active in last 7 days
-    db.select({
-      rate: sql<number>`round(coalesce(
+    db
+      .select({
+        rate: sql<number>`round(coalesce(
         100.0 * count(distinct ea.user_id) / nullif(count(distinct u.id), 0)
       , 0), 1)`,
-    })
+      })
       .from(sql`users u`)
       .leftJoin(
         sql`exercise_attempts ea`,
@@ -656,11 +666,12 @@ async function getUserSegmentation(): Promise<AnalyticsData['userSegmentation']>
       .where(sql`u.deleted_at is null and u.created_at < now() - interval '7 days'`),
 
     // Retention 30d
-    db.select({
-      rate: sql<number>`round(coalesce(
+    db
+      .select({
+        rate: sql<number>`round(coalesce(
         100.0 * count(distinct ea.user_id) / nullif(count(distinct u.id), 0)
       , 0), 1)`,
-    })
+      })
       .from(sql`users u`)
       .leftJoin(
         sql`exercise_attempts ea`,
@@ -669,11 +680,12 @@ async function getUserSegmentation(): Promise<AnalyticsData['userSegmentation']>
       .where(sql`u.deleted_at is null and u.created_at < now() - interval '30 days'`),
 
     // Retention 90d
-    db.select({
-      rate: sql<number>`round(coalesce(
+    db
+      .select({
+        rate: sql<number>`round(coalesce(
         100.0 * count(distinct ea.user_id) / nullif(count(distinct u.id), 0)
       , 0), 1)`,
-    })
+      })
       .from(sql`users u`)
       .leftJoin(
         sql`exercise_attempts ea`,
@@ -682,14 +694,15 @@ async function getUserSegmentation(): Promise<AnalyticsData['userSegmentation']>
       .where(sql`u.deleted_at is null and u.created_at < now() - interval '90 days'`),
 
     // Top users by completions
-    db.select({
-      userId: userLearningStats.userId,
-      email: users.email,
-      displayName: usersProfiles.displayName,
-      completions: userLearningStats.totalExercisesCompleted,
-      timeSpentSeconds: userLearningStats.totalTimeSpentSeconds,
-      streak: userLearningStats.currentStreakDays,
-    })
+    db
+      .select({
+        userId: userLearningStats.userId,
+        email: users.email,
+        displayName: usersProfiles.displayName,
+        completions: userLearningStats.totalExercisesCompleted,
+        timeSpentSeconds: userLearningStats.totalTimeSpentSeconds,
+        streak: userLearningStats.currentStreakDays,
+      })
       .from(userLearningStats)
       .innerJoin(users, eq(userLearningStats.userId, users.id))
       .leftJoin(usersProfiles, eq(userLearningStats.userId, usersProfiles.userId))
@@ -698,18 +711,22 @@ async function getUserSegmentation(): Promise<AnalyticsData['userSegmentation']>
       .limit(10),
 
     // Avg completions and time per user
-    db.select({
-      avgCompletions: sql<number>`round(coalesce(avg(${userLearningStats.totalExercisesCompleted}), 0), 1)`,
-      avgTimeMinutes: sql<number>`round(coalesce(avg(${userLearningStats.totalTimeSpentSeconds}), 0) / 60.0, 1)`,
-    }).from(userLearningStats),
+    db
+      .select({
+        avgCompletions: sql<number>`round(coalesce(avg(${userLearningStats.totalExercisesCompleted}), 0), 1)`,
+        avgTimeMinutes: sql<number>`round(coalesce(avg(${userLearningStats.totalTimeSpentSeconds}), 0) / 60.0, 1)`,
+      })
+      .from(userLearningStats),
 
     // Median streak
-    db.select({
-      median: sql<number>`coalesce((
+    db
+      .select({
+        median: sql<number>`coalesce((
         select percentile_cont(0.5) within group (order by ${userLearningStats.currentStreakDays})
         from ${userLearningStats}
       ), 0)::int`,
-    }).from(sql`(select 1) as dummy`),
+      })
+      .from(sql`(select 1) as dummy`),
   ]);
 
   const topUsers: TopUser[] = topUserRows.map((r) => ({
@@ -737,29 +754,35 @@ async function getUserSegmentation(): Promise<AnalyticsData['userSegmentation']>
 
 async function getLearningPathStats(): Promise<AnalyticsData['learningPathStats']> {
   const [statusRows, langRows, [totals], [avgMilestones]] = await Promise.all([
-    db.select({
-      label: learningPaths.status,
-      value: sql<number>`count(*)::int`,
-    })
+    db
+      .select({
+        label: learningPaths.status,
+        value: sql<number>`count(*)::int`,
+      })
       .from(learningPaths)
       .groupBy(learningPaths.status),
 
-    db.select({
-      label: learningPaths.language,
-      value: sql<number>`count(*)::int`,
-    })
+    db
+      .select({
+        label: learningPaths.language,
+        value: sql<number>`count(*)::int`,
+      })
       .from(learningPaths)
       .groupBy(learningPaths.language)
       .orderBy(sql`count(*) desc`),
 
-    db.select({
-      total: sql<number>`count(*)::int`,
-      completed: sql<number>`count(*) filter (where ${learningPaths.status} = 'completed')::int`,
-    }).from(learningPaths),
+    db
+      .select({
+        total: sql<number>`count(*)::int`,
+        completed: sql<number>`count(*) filter (where ${learningPaths.status} = 'completed')::int`,
+      })
+      .from(learningPaths),
 
-    db.select({
-      avg: sql<number>`round(coalesce(avg(${learningPaths.currentMilestoneIndex}), 0), 1)`,
-    }).from(learningPaths),
+    db
+      .select({
+        avg: sql<number>`round(coalesce(avg(${learningPaths.currentMilestoneIndex}), 0), 1)`,
+      })
+      .from(learningPaths),
   ]);
 
   const totalPaths = Number(totals?.total ?? 0);
@@ -775,20 +798,17 @@ async function getLearningPathStats(): Promise<AnalyticsData['learningPathStats'
 }
 
 async function getSubmissionPerformance(): Promise<AnalyticsData['submissionPerformance']> {
-  const [
-    [passRate],
-    [avgAttempts],
-    [hintUsage],
-    [solutionView],
-    [avgExec],
-    [totalSubs],
-  ] = await Promise.all([
-    db.select({
-      rate: sql<number>`round(coalesce(100.0 * count(*) filter (where ${exerciseSubmissions.isPassing}) / nullif(count(*), 0), 0), 1)`,
-    }).from(exerciseSubmissions),
+  const [[passRate], [avgAttempts], [hintUsage], [solutionView], [avgExec], [totalSubs]] =
+    await Promise.all([
+      db
+        .select({
+          rate: sql<number>`round(coalesce(100.0 * count(*) filter (where ${exerciseSubmissions.isPassing}) / nullif(count(*), 0), 0), 1)`,
+        })
+        .from(exerciseSubmissions),
 
-    db.select({
-      avg: sql<number>`coalesce((
+      db
+        .select({
+          avg: sql<number>`coalesce((
         select round(avg(cnt), 1)
         from (
           select count(*) as cnt
@@ -798,23 +818,29 @@ async function getSubmissionPerformance(): Promise<AnalyticsData['submissionPerf
           group by es.attempt_id
         ) sub
       ), 0)`,
-    }).from(sql`(select 1) as dummy`),
+        })
+        .from(sql`(select 1) as dummy`),
 
-    db.select({
-      rate: sql<number>`round(coalesce(100.0 * count(*) filter (where ${exerciseAttempts.hintsRevealed} > 0) / nullif(count(*), 0), 0), 1)`,
-    }).from(exerciseAttempts),
+      db
+        .select({
+          rate: sql<number>`round(coalesce(100.0 * count(*) filter (where ${exerciseAttempts.hintsRevealed} > 0) / nullif(count(*), 0), 0), 1)`,
+        })
+        .from(exerciseAttempts),
 
-    db.select({
-      rate: sql<number>`round(coalesce(100.0 * count(*) filter (where ${exerciseAttempts.solutionViewed} = true) / nullif(count(*), 0), 0), 1)`,
-    }).from(exerciseAttempts),
+      db
+        .select({
+          rate: sql<number>`round(coalesce(100.0 * count(*) filter (where ${exerciseAttempts.solutionViewed} = true) / nullif(count(*), 0), 0), 1)`,
+        })
+        .from(exerciseAttempts),
 
-    db.select({
-      avg: sql<number>`round(coalesce(avg(${exerciseSubmissions.executionTimeMs}), 0))::int`,
-    }).from(exerciseSubmissions),
+      db
+        .select({
+          avg: sql<number>`round(coalesce(avg(${exerciseSubmissions.executionTimeMs}), 0))::int`,
+        })
+        .from(exerciseSubmissions),
 
-    db.select({ count: sql<number>`count(*)::int` })
-      .from(exerciseSubmissions),
-  ]);
+      db.select({ count: sql<number>`count(*)::int` }).from(exerciseSubmissions),
+    ]);
 
   return {
     overallPassRate: Number(passRate?.rate ?? 0),

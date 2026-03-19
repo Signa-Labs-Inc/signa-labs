@@ -1,7 +1,10 @@
 import type { Metadata } from 'next';
 import { Crown } from 'lucide-react';
 import { getCurrentUser } from '@/lib/services/auth/auth.service';
-import { getUserPlan, getPlansForPricingPage } from '@/lib/services/subscriptions/subscriptions.service';
+import {
+  getUserPlan,
+  getPlansForPricingPage,
+} from '@/lib/services/subscriptions/subscriptions.service';
 import { PricingCards } from './pricing-cards';
 
 export const metadata: Metadata = { title: 'Pricing' };
@@ -16,10 +19,10 @@ export default async function PricingPage() {
   return (
     <div className="animate-fade-in">
       {/* ── Hero Header ── */}
-      <div className="relative overflow-hidden border-b border-border bg-linear-to-br from-primary/10 via-background to-violet-500/5">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent" />
+      <div className="border-border from-primary/10 via-background relative overflow-hidden border-b bg-linear-to-br to-violet-500/5">
+        <div className="from-primary/5 absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] via-transparent to-transparent" />
         <div className="relative mx-auto max-w-5xl px-6 py-12 text-center">
-          <div className="mx-auto mb-3 flex items-center justify-center gap-2 text-sm font-medium text-primary">
+          <div className="text-primary mx-auto mb-3 flex items-center justify-center gap-2 text-sm font-medium">
             <Crown className="h-4 w-4" />
             Pricing
           </div>

@@ -1,5 +1,10 @@
 import { NextRequest } from 'next/server';
-import { buildStripeEvent, buildStripeCheckoutSession, buildStripeSubscription, buildStripeInvoice } from '@/test/helpers/stripe-fixtures';
+import {
+  buildStripeEvent,
+  buildStripeCheckoutSession,
+  buildStripeSubscription,
+  buildStripeInvoice,
+} from '@/test/helpers/stripe-fixtures';
 
 vi.mock('@/lib/stripe/client', () => ({
   stripe: {
@@ -27,7 +32,11 @@ vi.mock('@/lib/services/subscriptions/subscriptions.service', () => ({
 
 import { stripe } from '@/lib/stripe/client';
 import { getIdempotencyKeyStatus } from '@/lib/services/subscriptions/subscriptions.reader';
-import { insertIdempotencyKey, markIdempotencyKeyCompleted, deleteIdempotencyKey } from '@/lib/services/subscriptions/subscriptions.writer';
+import {
+  insertIdempotencyKey,
+  markIdempotencyKeyCompleted,
+  deleteIdempotencyKey,
+} from '@/lib/services/subscriptions/subscriptions.writer';
 import {
   handleCheckoutCompleted,
   handleSubscriptionUpdated,

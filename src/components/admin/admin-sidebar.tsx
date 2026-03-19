@@ -32,9 +32,7 @@ const navItems = [
   { href: '/admin/plans', label: 'Plans', icon: CreditCard },
 ];
 
-const superAdminItems = [
-  { href: '/admin/users', label: 'Users', icon: Users },
-];
+const superAdminItems = [{ href: '/admin/users', label: 'Users', icon: Users }];
 
 export function AdminSidebar({ userRole }: AdminSidebarProps) {
   const pathname = usePathname();
@@ -43,21 +41,22 @@ export function AdminSidebar({ userRole }: AdminSidebarProps) {
     if (href === '/admin') return pathname === '/admin';
     // Ensure /admin/exercises/generate doesn't also highlight /admin/exercises
     if (href === '/admin/exercises') {
-      return pathname === '/admin/exercises' || (pathname.startsWith('/admin/exercises/') && !pathname.startsWith('/admin/exercises/generate'));
+      return (
+        pathname === '/admin/exercises' ||
+        (pathname.startsWith('/admin/exercises/') &&
+          !pathname.startsWith('/admin/exercises/generate'))
+      );
     }
     return pathname.startsWith(href);
   };
 
-  const allItems = [
-    ...navItems,
-    ...(userRole === 'super_admin' ? superAdminItems : []),
-  ];
+  const allItems = [...navItems, ...(userRole === 'super_admin' ? superAdminItems : [])];
 
   return (
-    <aside className="flex h-full w-[240px] shrink-0 flex-col border-r border-border bg-background">
-      <div className="flex h-14 items-center gap-2 border-b border-border px-5">
-        <LayoutDashboard className="size-5 text-primary" />
-        <span className="text-lg font-semibold text-foreground">Admin</span>
+    <aside className="border-border bg-background flex h-full w-[240px] shrink-0 flex-col border-r">
+      <div className="border-border flex h-14 items-center gap-2 border-b px-5">
+        <LayoutDashboard className="text-primary size-5" />
+        <span className="text-foreground text-lg font-semibold">Admin</span>
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-4">

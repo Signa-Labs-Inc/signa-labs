@@ -13,14 +13,10 @@ function MiniBar({ current, limit }: { current: number; limit: number }) {
   const isAtLimit = current >= limit;
 
   return (
-    <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+    <div className="bg-muted h-1.5 w-full overflow-hidden rounded-full">
       <div
         className={`h-full rounded-full transition-all ${
-          isAtLimit
-            ? 'bg-destructive'
-            : pct >= 80
-              ? 'bg-amber-500'
-              : 'bg-primary'
+          isAtLimit ? 'bg-destructive' : pct >= 80 ? 'bg-amber-500' : 'bg-primary'
         }`}
         style={{ width: `${pct}%` }}
       />
@@ -34,16 +30,16 @@ export function PlanUsageCard({ planName, usage }: PlanUsageCardProps) {
   const atAnyLimit = usage.some((u) => u.limit !== -1 && u.current >= u.limit);
 
   return (
-    <div className="rounded-xl border border-border bg-card/50 backdrop-blur-sm">
+    <div className="border-border bg-card/50 rounded-xl border backdrop-blur-sm">
       {/* Header */}
       <div className="flex items-center justify-between px-5 pt-4 pb-3">
         <div className="flex items-center gap-2">
-          <Crown className="h-4 w-4 text-primary" />
+          <Crown className="text-primary h-4 w-4" />
           <span className="text-sm font-semibold">{planName} Plan</span>
         </div>
         <Link
           href="/settings/billing/usage"
-          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-xs transition-colors"
         >
           Details
           <ArrowRight className="h-3 w-3" />
@@ -57,8 +53,8 @@ export function PlanUsageCard({ planName, usage }: PlanUsageCardProps) {
             .filter((u) => u.limit !== -1)
             .map((u) => (
               <div key={u.feature}>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-muted-foreground">{u.label}</span>
+                <div className="mb-1 flex items-center justify-between">
+                  <span className="text-muted-foreground text-xs">{u.label}</span>
                   <span className="text-xs font-medium tabular-nums">
                     {u.current}/{u.limit}
                   </span>
@@ -71,18 +67,15 @@ export function PlanUsageCard({ planName, usage }: PlanUsageCardProps) {
 
       {/* Upgrade nudge for free users */}
       {isFree && (
-        <div className="border-t border-border px-5 py-3">
-          <Link
-            href="/pricing"
-            className="flex items-center justify-between group"
-          >
+        <div className="border-border border-t px-5 py-3">
+          <Link href="/pricing" className="group flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Zap className="h-3.5 w-3.5 text-amber-400" />
-              <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors">
+              <span className="text-muted-foreground group-hover:text-foreground text-xs transition-colors">
                 {atAnyLimit ? 'Limit reached — upgrade for more' : 'Unlock higher limits with Pro'}
               </span>
             </div>
-            <ArrowRight className="h-3 w-3 text-muted-foreground group-hover:text-foreground transition-colors" />
+            <ArrowRight className="text-muted-foreground group-hover:text-foreground h-3 w-3 transition-colors" />
           </Link>
         </div>
       )}

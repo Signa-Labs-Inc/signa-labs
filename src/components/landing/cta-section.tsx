@@ -9,8 +9,7 @@ export function CTASection() {
       <div
         className="absolute inset-0"
         style={{
-          background:
-            'linear-gradient(to right, oklch(0.55 0.22 280), oklch(0.45 0.20 260))',
+          background: 'linear-gradient(to right, oklch(0.55 0.22 280), oklch(0.45 0.20 260))',
         }}
       />
       <div
@@ -25,8 +24,8 @@ export function CTASection() {
           Ready to Start Coding?
         </h2>
         <p className="mx-auto mt-4 max-w-xl text-lg text-white/80">
-          Try any exercise right now — no account needed. Sign up to save your
-          progress, craft custom exercises, and build learning paths.
+          Try any exercise right now — no account needed. Sign up to save your progress, craft
+          custom exercises, and build learning paths.
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
           <Button

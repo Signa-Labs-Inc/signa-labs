@@ -23,12 +23,9 @@ export default async function CheckoutSuccessPage() {
       <div className="animate-fade-in flex min-h-[60vh] items-center justify-center">
         <div className="mx-auto max-w-md text-center">
           <CheckCircle className="mx-auto h-16 w-16 text-green-500" />
-          <h1 className="mt-6 text-2xl font-bold tracking-tight">
-            You&apos;re all set!
-          </h1>
+          <h1 className="mt-6 text-2xl font-bold tracking-tight">You&apos;re all set!</h1>
           <p className="text-muted-foreground mt-3">
-            Your subscription is now active. You have access to all your plan
-            features.
+            Your subscription is now active. You have access to all your plan features.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Button asChild>
@@ -48,12 +45,10 @@ export default async function CheckoutSuccessPage() {
     <div className="animate-fade-in flex min-h-[60vh] items-center justify-center">
       <div className="mx-auto max-w-md text-center">
         <Clock className="text-muted-foreground mx-auto h-16 w-16" />
-        <h1 className="mt-6 text-2xl font-bold tracking-tight">
-          Processing your subscription...
-        </h1>
+        <h1 className="mt-6 text-2xl font-bold tracking-tight">Processing your subscription...</h1>
         <p className="text-muted-foreground mt-3">
-          Your payment was received. It may take a moment for your subscription
-          to activate. Please refresh this page in a few seconds.
+          Your payment was received. It may take a moment for your subscription to activate. Please
+          refresh this page in a few seconds.
         </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <Button asChild>

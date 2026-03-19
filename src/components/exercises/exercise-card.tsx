@@ -45,26 +45,19 @@ export function ExerciseCard({ exercise, actions }: ExerciseCardProps) {
   const tags = exercise.tags ?? [];
 
   return (
-    <Card className="group relative h-full transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md bg-linear-to-br from-card via-card to-primary/5">
+    <Card className="group hover:border-primary/30 from-card via-card to-primary/5 relative h-full bg-linear-to-br transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between gap-2">
-          <Badge
-            variant="outline"
-            className={DIFFICULTY_COLORS[exercise.difficulty] ?? ''}
-          >
+          <Badge variant="outline" className={DIFFICULTY_COLORS[exercise.difficulty] ?? ''}>
             {exercise.difficulty}
           </Badge>
           <LanguageIcon language={exercise.language} showLabel className="h-4 w-4" />
         </div>
-        <CardTitle className="mt-2 text-lg leading-snug">
-          {exercise.title}
-        </CardTitle>
+        <CardTitle className="mt-2 text-lg leading-snug">{exercise.title}</CardTitle>
       </CardHeader>
 
       <CardContent className="pb-3">
-        <CardDescription className="line-clamp-3 text-sm">
-          {preview}
-        </CardDescription>
+        <CardDescription className="line-clamp-3 text-sm">{preview}</CardDescription>
       </CardContent>
 
       <CardFooter className="pt-0">

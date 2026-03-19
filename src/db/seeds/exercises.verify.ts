@@ -10,11 +10,15 @@ async function verify() {
   }
 
   console.log('\n--- Filter by Python ---');
-  const { totalCount: pythonCount } = await exerciseService.listPlatformExercises({ language: 'python' });
+  const { totalCount: pythonCount } = await exerciseService.listPlatformExercises({
+    language: 'python',
+  });
   console.log(`Found ${pythonCount} Python exercises`);
 
   console.log('\n--- Filter by medium difficulty ---');
-  const { totalCount: mediumCount } = await exerciseService.listPlatformExercises({ difficulty: 'medium' });
+  const { totalCount: mediumCount } = await exerciseService.listPlatformExercises({
+    difficulty: 'medium',
+  });
   console.log(`Found ${mediumCount} medium exercises`);
 
   console.log('\n--- Available tags ---');
