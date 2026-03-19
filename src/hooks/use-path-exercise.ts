@@ -217,11 +217,22 @@ export function usePathExercise(): UsePathExerciseReturn {
     }
   }, []);
 
+  // Only remove the job when the *server* confirms a terminal run status — NOT on
+  // transient realtime connection errors (where run is null but derived.status is 'failed').
+  const isTerminalRun =
+    run?.status === 'COMPLETED' ||
+    run?.status === 'FAILED' ||
+    run?.status === 'CRASHED' ||
+    run?.status === 'SYSTEM_FAILURE' ||
+    run?.status === 'CANCELED' ||
+    run?.status === 'EXPIRED' ||
+    run?.status === 'TIMED_OUT';
+
   useEffect(() => {
-    if ((derived.status === 'completed' || derived.status === 'failed') && state.runId) {
+    if (isTerminalRun && state.runId) {
       useJobStore.getState().removeJob(state.runId);
     }
-  }, [derived.status, state.runId]);
+  }, [isTerminalRun, state.runId]);
 
   const reset = useCallback(() => {
     if (state.runId) useJobStore.getState().removeJob(state.runId);

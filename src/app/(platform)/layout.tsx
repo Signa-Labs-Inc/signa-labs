@@ -8,11 +8,7 @@ import { OnboardingProvider } from '@/components/onboarding/onboarding-provider'
 import { GuidedTour } from '@/components/onboarding/guided-tour';
 import { JobTracker } from '@/components/job-tracker/job-tracker';
 
-export default function PlatformLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function PlatformLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isExerciseWorkspace =
     (/^\/exercises\/[^/]+$/.test(pathname) && pathname !== '/exercises/generate') ||
@@ -22,7 +18,7 @@ export default function PlatformLayout({
     return (
       <>
         <JobTracker />
-        <div className="h-screen flex flex-col bg-background">{children}</div>
+        <div className="bg-background flex h-screen flex-col">{children}</div>
       </>
     );
   }

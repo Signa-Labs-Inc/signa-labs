@@ -84,8 +84,9 @@ function getSuccessDescription(
   if (!output) return '';
   switch (job.jobType) {
     case 'generate-exercise':
-    case 'generate-path-exercise':
       return output.title ? `"${output.title}" has been generated` : '';
+    case 'generate-path-exercise':
+      return output.milestoneTitle ? `"${output.milestoneTitle}" has been generated` : '';
     case 'create-path':
       return output.title ? `"${output.title}" is ready` : '';
   }

@@ -21,7 +21,10 @@ interface JobStore {
   clearStaleJobs: () => void;
 }
 
-const ONE_HOUR_MS = 60 * 60 * 1000;
+// Eviction window: 2× the longest task maxDuration (5 min).
+// Keeps jobs long enough for normal completion while limiting how long
+// stale entries (and their potentially-expired access tokens) linger.
+const STALE_JOB_MS = 10 * 60 * 1000;
 
 export const useJobStore = create<JobStore>()(
   persist(
@@ -43,7 +46,7 @@ export const useJobStore = create<JobStore>()(
         const now = Date.now();
         const jobs = get().jobs;
         const fresh = Object.fromEntries(
-          Object.entries(jobs).filter(([, job]) => now - job.createdAt < ONE_HOUR_MS)
+          Object.entries(jobs).filter(([, job]) => now - job.createdAt < STALE_JOB_MS)
         );
         if (Object.keys(fresh).length !== Object.keys(jobs).length) {
           set({ jobs: fresh });
