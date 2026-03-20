@@ -8,7 +8,7 @@
 import { task, metadata } from '@trigger.dev/sdk/v3';
 import { PathService } from '@/lib/services/paths/paths.service';
 import type { NextExerciseResult } from '@/lib/services/paths/paths.types';
-import { insertNotification } from '@/lib/services/notifications/notifications.writer';
+import { createInAppNotification } from '@/lib/services/notifications/notifications.service';
 
 export interface GeneratePathExercisePayload {
   pathId: string;
@@ -32,14 +32,13 @@ export const generatePathExerciseTask = task({
     metadata.set('step', 'completed');
     metadata.set('progress', 'Exercise ready!');
 
-    await insertNotification({
+    await createInAppNotification({
       userId: payload.userId,
       type: 'job_completed',
-      channel: 'in_app',
       subject: 'Exercise ready!',
       body: `Your next path exercise "${result.milestoneTitle}" is ready.`,
       metadata: { url: `/exercises/${result.exerciseId}`, jobType: 'generate-path-exercise' },
-    }).catch((err) => console.error('Failed to insert notification:', err));
+    }).catch((err) => console.error('Failed to create notification:', err));
 
     return result;
   },

@@ -1,9 +1,11 @@
 import * as reader from './notifications.reader';
 import * as writer from './notifications.writer';
+import { NotificationError } from '@/lib/utils/errors';
 import type {
   UserNotification,
   NotificationChannel,
   NotificationStatus,
+  CreateInAppNotificationParams,
 } from './notifications.types';
 
 export async function getUserNotifications(
@@ -36,6 +38,40 @@ export async function markNotificationRead(notificationId: string, userId: strin
 
 export async function markAllNotificationsRead(userId: string) {
   return writer.markAllNotificationsRead(userId);
+}
+
+/**
+ * Create an in-app notification for a user.
+ * Throws NotificationError if the notification could not be created.
+ */
+export async function createInAppNotification(
+  params: CreateInAppNotificationParams
+): Promise<UserNotification> {
+  const row = await writer.insertNotification({
+    userId: params.userId,
+    type: params.type,
+    channel: 'in_app',
+    subject: params.subject,
+    body: params.body,
+    metadata: params.metadata,
+  });
+
+  if (!row) {
+    throw new NotificationError('Failed to create notification');
+  }
+
+  return {
+    id: row.id,
+    type: row.type,
+    channel: row.channel as NotificationChannel,
+    subject: row.subject,
+    body: row.body,
+    metadata: (row.metadata ?? {}) as Record<string, unknown>,
+    status: row.status as NotificationStatus,
+    sentAt: row.sentAt?.toISOString() ?? null,
+    readAt: row.readAt?.toISOString() ?? null,
+    createdAt: row.createdAt.toISOString(),
+  };
 }
 
 /**

@@ -53,6 +53,7 @@ vi.mock('next/cache', () => ({
 
 vi.mock('@/lib/services/notifications/notifications.service', () => ({
   createUsageAlertIfNeeded: vi.fn().mockResolvedValue(false),
+  createInAppNotification: vi.fn().mockResolvedValue(null),
 }));
 
 vi.mock('@/lib/services/users/users.reader', () => ({
