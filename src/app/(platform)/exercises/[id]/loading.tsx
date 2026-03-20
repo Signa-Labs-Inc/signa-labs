@@ -2,7 +2,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export default function ExerciseLoading() {
   return (
-    <div className="bg-background flex h-screen flex-col">
+    <div className="bg-background flex h-full flex-col">
       {/* Top bar */}
       <div className="bg-card flex items-center justify-between border-b px-4 py-2">
         <div className="flex items-center gap-3">
