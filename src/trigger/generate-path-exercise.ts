@@ -39,7 +39,7 @@ export const generatePathExerciseTask = task({
       subject: 'Exercise ready!',
       body: `Your next path exercise "${result.milestoneTitle}" is ready.`,
       metadata: { url: `/exercises/${result.exerciseId}`, jobType: 'generate-path-exercise' },
-    }).catch(() => {});
+    }).catch((err) => console.error('Failed to insert notification:', err));
 
     return result;
   },

@@ -35,7 +35,7 @@ export const createPathTask = task({
       subject: 'Learning path created!',
       body: `Your path "${result.title}" with ${result.totalMilestones} milestones is ready.`,
       metadata: { url: `/paths/${result.pathId}`, jobType: 'create-path' },
-    }).catch(() => {});
+    }).catch((err) => console.error('Failed to insert notification:', err));
 
     return result;
   },

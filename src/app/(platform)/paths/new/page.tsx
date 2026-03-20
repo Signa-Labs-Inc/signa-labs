@@ -109,6 +109,7 @@ export default function NewPathPage() {
             <textarea
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
+              aria-label="Describe the learning path you want to create"
               placeholder="What do you want to learn? e.g. I want to learn to build React components with Tailwind CSS..."
               rows={3}
               maxLength={500}

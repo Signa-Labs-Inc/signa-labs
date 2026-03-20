@@ -40,6 +40,8 @@ export function MobileNav() {
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="text-muted-foreground hover:bg-accent/50 rounded-md p-2 transition-colors"
+            aria-label={isOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={isOpen}
           >
             {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
@@ -57,6 +59,7 @@ export function MobileNav() {
               <button
                 onClick={() => setIsOpen(false)}
                 className="text-muted-foreground hover:bg-accent/50 rounded-md p-2 transition-colors"
+                aria-label="Close menu"
               >
                 <X className="h-5 w-5" />
               </button>

@@ -146,6 +146,7 @@ export default function GenerateExercisePage() {
             <textarea
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
+              aria-label="Describe the exercise you want to generate"
               placeholder={
                 mode === 'debugging'
                   ? 'Describe the code to debug, e.g. A binary search that fails on edge cases...'

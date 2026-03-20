@@ -31,7 +31,9 @@ const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
 
 function timeAgo(date: Date): string {
   const now = new Date();
-  const diffMs = now.getTime() - new Date(date).getTime();
+  const parsed = new Date(date);
+  if (isNaN(parsed.getTime())) return 'recently';
+  const diffMs = now.getTime() - parsed.getTime();
   const diffMins = Math.floor(diffMs / 60000);
   if (diffMins < 1) return 'Just now';
   if (diffMins < 60) return `${diffMins}m ago`;

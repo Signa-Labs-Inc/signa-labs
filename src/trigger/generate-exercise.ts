@@ -54,7 +54,7 @@ export const generateExerciseTask = task({
       subject: 'Exercise ready!',
       body: `Your exercise "${result.title}" has been generated.`,
       metadata: { url: `/exercises/${result.exerciseId}`, jobType: 'generate-exercise' },
-    }).catch(() => {}); // Best-effort — don't fail the task if notification insert fails
+    }).catch((err) => console.error('Failed to insert notification:', err));
 
     return {
       exerciseId: result.exerciseId,
