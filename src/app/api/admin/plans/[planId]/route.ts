@@ -1,12 +1,11 @@
 import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/lib/services/auth/auth.service';
 import { handleError } from '@/lib/utils/api.handler-errors';
-import { ConflictError, NotFoundError, ValidationError } from '@/lib/utils/errors';
+import { NotFoundError, ValidationError } from '@/lib/utils/errors';
 import {
   updatePlan,
   type UpdatePlanParams,
 } from '@/lib/services/subscriptions/subscriptions.writer';
-import { countActiveSubscriptionsForPlan } from '@/lib/services/subscriptions/subscriptions.reader';
 import { validatePlanFeatures } from '@/lib/services/subscriptions/subscriptions.service';
 import { revalidateTag } from 'next/cache';
 
@@ -72,18 +71,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ pl
       if (typeof isActive !== 'boolean') {
         throw new ValidationError('isActive must be a boolean');
       }
-
-      // Guard: prevent deactivating a plan with active subscribers
-      if (isActive === false) {
-        const activeSubCount = await countActiveSubscriptionsForPlan(planId);
-        if (activeSubCount > 0) {
-          throw new ConflictError(
-            `Cannot deactivate plan with ${activeSubCount} active subscriber(s). ` +
-              `Migrate them to another plan first.`
-          );
-        }
-      }
-
+      // Deactivating hides the plan from pricing/checkout for new users.
+      // Existing subscribers are unaffected — their subscriptions, rate limits,
+      // and billing all reference the plan directly and don't check isActive.
       set.isActive = isActive;
     }
 

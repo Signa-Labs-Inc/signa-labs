@@ -319,6 +319,26 @@ export default function AdminPlansPage() {
     currency: 'usd',
   };
 
+  async function togglePlanActive(planId: string, currentlyActive: boolean) {
+    try {
+      const res = await fetch(`/api/admin/plans/${planId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isActive: !currentlyActive }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        alert(data?.error?.message ?? 'Failed to update plan status');
+        return;
+      }
+      setPlans((prev) =>
+        prev.map((p) => (p.id === planId ? { ...p, isActive: !currentlyActive } : p))
+      );
+    } catch {
+      alert('Network error updating plan status');
+    }
+  }
+
   async function createPlan() {
     if (!createForm.id || !createForm.name) return;
     setCreatingPlan(true);
@@ -558,6 +578,14 @@ export default function AdminPlansPage() {
                     <Badge variant={plan.isActive ? 'default' : 'secondary'}>
                       {plan.isActive ? 'Active' : 'Inactive'}
                     </Badge>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-xs"
+                      onClick={() => togglePlanActive(plan.id, plan.isActive)}
+                    >
+                      {plan.isActive ? 'Deactivate' : 'Activate'}
+                    </Button>
                   </div>
                   {editingId === plan.id ? (
                     <div className="flex gap-2">
