@@ -53,3 +53,9 @@ export class InternalServerError extends AppError {
     super(message, 'INTERNAL_SERVER_ERROR', 500);
   }
 }
+
+export class NotificationError extends AppError {
+  constructor(message = 'Failed to create notification') {
+    super(message, 'NOTIFICATION_ERROR', 500);
+  }
+}

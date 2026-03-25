@@ -13,6 +13,7 @@ import {
 } from '@/lib/utils/errors';
 import type { UserPlan, PlanForPricingPage } from './subscriptions.types';
 import { toSubscriptionStatus, toPaymentStatus } from './subscriptions.types';
+import { createInAppNotification } from '@/lib/services/notifications/notifications.service';
 import type { PlanFeatures } from './subscriptions.gate';
 import type Stripe from 'stripe';
 import { unstable_cache } from 'next/cache';
@@ -499,6 +500,15 @@ export async function handleCheckoutCompleted(session: Stripe.Checkout.Session) 
     description: `Subscribed to ${planPrice.planId} plan`,
     metadata: { planId: planPrice.planId, stripeSubscriptionId: stripeSubId },
   });
+
+  // In-app notification — fire-and-forget, don't delay the webhook response
+  void createInAppNotification({
+    userId,
+    type: 'subscription_created',
+    subject: `Welcome to ${planPrice.planId} plan!`,
+    body: 'Your subscription is now active. Enjoy your upgraded limits.',
+    metadata: { url: '/settings/billing', planId: planPrice.planId },
+  }).catch((err) => console.error('Failed to create subscription notification:', err));
 }
 
 export async function handleSubscriptionUpdated(sub: Stripe.Subscription) {

@@ -52,6 +52,7 @@ export default function AdminPlansPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<PlanFeatures | null>(null);
   const [saving, setSaving] = useState(false);
+  const [togglingPlanId, setTogglingPlanId] = useState<string | null>(null);
 
   // Display features editing
   const [editingFeaturesId, setEditingFeaturesId] = useState<string | null>(null);
@@ -319,6 +320,30 @@ export default function AdminPlansPage() {
     currency: 'usd',
   };
 
+  async function togglePlanActive(planId: string, currentlyActive: boolean) {
+    if (togglingPlanId === planId) return;
+    setTogglingPlanId(planId);
+    try {
+      const res = await fetch(`/api/admin/plans/${planId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isActive: !currentlyActive }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        alert(data?.error?.message ?? 'Failed to update plan status');
+        return;
+      }
+      setPlans((prev) =>
+        prev.map((p) => (p.id === planId ? { ...p, isActive: !currentlyActive } : p))
+      );
+    } catch {
+      alert('Network error updating plan status');
+    } finally {
+      setTogglingPlanId(null);
+    }
+  }
+
   async function createPlan() {
     if (!createForm.id || !createForm.name) return;
     setCreatingPlan(true);
@@ -558,6 +583,19 @@ export default function AdminPlansPage() {
                     <Badge variant={plan.isActive ? 'default' : 'secondary'}>
                       {plan.isActive ? 'Active' : 'Inactive'}
                     </Badge>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-xs"
+                      disabled={togglingPlanId === plan.id}
+                      onClick={() => togglePlanActive(plan.id, plan.isActive)}
+                    >
+                      {togglingPlanId === plan.id
+                        ? 'Updating...'
+                        : plan.isActive
+                          ? 'Deactivate'
+                          : 'Activate'}
+                    </Button>
                   </div>
                   {editingId === plan.id ? (
                     <div className="flex gap-2">

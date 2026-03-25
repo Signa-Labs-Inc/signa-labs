@@ -10,6 +10,14 @@ export type CreateNotificationParams = {
   metadata?: Record<string, unknown>;
 };
 
+export type CreateInAppNotificationParams = {
+  userId: string;
+  type: string;
+  subject: string;
+  body?: string;
+  metadata?: Record<string, unknown>;
+};
+
 export type UserNotification = {
   id: string;
   type: string;
