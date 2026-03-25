@@ -52,6 +52,7 @@ export default function AdminPlansPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<PlanFeatures | null>(null);
   const [saving, setSaving] = useState(false);
+  const [togglingPlanId, setTogglingPlanId] = useState<string | null>(null);
 
   // Display features editing
   const [editingFeaturesId, setEditingFeaturesId] = useState<string | null>(null);
@@ -320,6 +321,8 @@ export default function AdminPlansPage() {
   };
 
   async function togglePlanActive(planId: string, currentlyActive: boolean) {
+    if (togglingPlanId === planId) return;
+    setTogglingPlanId(planId);
     try {
       const res = await fetch(`/api/admin/plans/${planId}`, {
         method: 'PATCH',
@@ -336,6 +339,8 @@ export default function AdminPlansPage() {
       );
     } catch {
       alert('Network error updating plan status');
+    } finally {
+      setTogglingPlanId(null);
     }
   }
 
@@ -582,9 +587,14 @@ export default function AdminPlansPage() {
                       size="sm"
                       variant="ghost"
                       className="text-xs"
+                      disabled={togglingPlanId === plan.id}
                       onClick={() => togglePlanActive(plan.id, plan.isActive)}
                     >
-                      {plan.isActive ? 'Deactivate' : 'Activate'}
+                      {togglingPlanId === plan.id
+                        ? 'Updating...'
+                        : plan.isActive
+                          ? 'Deactivate'
+                          : 'Activate'}
                     </Button>
                   </div>
                   {editingId === plan.id ? (

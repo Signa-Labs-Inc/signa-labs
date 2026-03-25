@@ -53,7 +53,18 @@ vi.mock('next/cache', () => ({
 
 vi.mock('@/lib/services/notifications/notifications.service', () => ({
   createUsageAlertIfNeeded: vi.fn().mockResolvedValue(false),
-  createInAppNotification: vi.fn().mockResolvedValue(null),
+  createInAppNotification: vi.fn().mockResolvedValue({
+    id: 'notif_mock',
+    type: 'subscription_created',
+    channel: 'in_app',
+    subject: 'Welcome!',
+    body: null,
+    metadata: {},
+    status: 'sent',
+    sentAt: new Date().toISOString(),
+    readAt: null,
+    createdAt: new Date().toISOString(),
+  }),
 }));
 
 vi.mock('@/lib/services/users/users.reader', () => ({

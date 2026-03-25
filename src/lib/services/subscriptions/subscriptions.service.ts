@@ -501,8 +501,8 @@ export async function handleCheckoutCompleted(session: Stripe.Checkout.Session) 
     metadata: { planId: planPrice.planId, stripeSubscriptionId: stripeSubId },
   });
 
-  // In-app notification — best-effort, don't fail the webhook if this errors
-  await createInAppNotification({
+  // In-app notification — fire-and-forget, don't delay the webhook response
+  void createInAppNotification({
     userId,
     type: 'subscription_created',
     subject: `Welcome to ${planPrice.planId} plan!`,

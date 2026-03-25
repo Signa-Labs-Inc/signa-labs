@@ -47,17 +47,24 @@ export async function markAllNotificationsRead(userId: string) {
 export async function createInAppNotification(
   params: CreateInAppNotificationParams
 ): Promise<UserNotification> {
-  const row = await writer.insertNotification({
-    userId: params.userId,
-    type: params.type,
-    channel: 'in_app',
-    subject: params.subject,
-    body: params.body,
-    metadata: params.metadata,
-  });
+  let row;
+  try {
+    row = await writer.insertNotification({
+      userId: params.userId,
+      type: params.type,
+      channel: 'in_app',
+      subject: params.subject,
+      body: params.body,
+      metadata: params.metadata,
+    });
+  } catch (err) {
+    throw new NotificationError(
+      `Failed to create notification: ${err instanceof Error ? err.message : String(err)}`
+    );
+  }
 
   if (!row) {
-    throw new NotificationError('Failed to create notification');
+    throw new NotificationError('Failed to create notification: insert returned no row');
   }
 
   return {
