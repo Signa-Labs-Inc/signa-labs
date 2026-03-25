@@ -8,7 +8,7 @@
 import 'dotenv/config';
 import { db } from '@/index';
 import { exerciseEnvironments } from '@/db/schema/tables';
-import { eq } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 
 type EnvironmentSeed = typeof exerciseEnvironments.$inferInsert;
 
@@ -155,29 +155,21 @@ async function seedEnvironments() {
   console.log('🌱 Seeding exercise environments...');
 
   for (const env of environments) {
-    const [inserted] = await db
+    await db
       .insert(exerciseEnvironments)
       .values(env)
-      .onConflictDoNothing()
-      .returning();
-
-    if (inserted) {
-      console.log(`  ✅ Created: ${env.name} (${env.displayName})`);
-    } else {
-      // Already exists — update mutable fields
-      await db
-        .update(exerciseEnvironments)
-        .set({
-          displayName: env.displayName,
-          description: env.description,
-          baseImage: env.baseImage,
-          preinstalledPackages: env.preinstalledPackages,
-          supportedLanguages: env.supportedLanguages,
-          maxExecutionSeconds: env.maxExecutionSeconds,
-        })
-        .where(eq(exerciseEnvironments.name, env.name));
-      console.log(`  🔄 Updated: ${env.name} (${env.displayName})`);
-    }
+      .onConflictDoUpdate({
+        target: exerciseEnvironments.name,
+        set: {
+          displayName: sql`excluded.display_name`,
+          description: sql`excluded.description`,
+          baseImage: sql`excluded.base_image`,
+          preinstalledPackages: sql`excluded.preinstalled_packages`,
+          supportedLanguages: sql`excluded.supported_languages`,
+          maxExecutionSeconds: sql`excluded.max_execution_seconds`,
+        },
+      });
+    console.log(`  ✅ ${env.name} (${env.displayName})`);
   }
 
   console.log(`\n✅ ${environments.length} environments seeded`);
