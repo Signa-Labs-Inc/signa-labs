@@ -146,7 +146,7 @@ export default async function PathsPage() {
                 <p className="text-muted-foreground mb-6 text-center text-sm">
                   Pick a featured path or create your own from scratch
                 </p>
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                   {featuredPaths.map((fp, i) => (
                     <FeaturedPathCard
                       key={fp.id}
@@ -201,7 +201,7 @@ export default async function PathsPage() {
                     create your own
                   </Link>
                 </p>
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {featuredPaths.map((fp, i) => (
                     <FeaturedPathCard
                       key={fp.id}

@@ -129,7 +129,7 @@ export default async function DiscoverPage() {
             </Link>
           </div>
           {featuredPaths.length > 0 ? (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {featuredPaths.map((fp, i) => (
                 <FeaturedPathCard
                   key={fp.id}
