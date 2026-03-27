@@ -23,6 +23,7 @@ import type { FailureExplanation } from '@/lib/services/teaching/teaching.types'
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { fireConfetti, fireBurst } from '@/lib/utils/confetti';
+import { UpgradeBanner } from '@/components/upgrade-banner';
 import { ShareButton } from './share-button';
 import {
   saveAnonymousExerciseDraft,
@@ -206,6 +207,7 @@ export function ExerciseWorkspace({
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [result, setResult] = useState<SandboxResult | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitErrorStatus, setSubmitErrorStatus] = useState<number | null>(null);
   const [resultsCollapsed, setResultsCollapsed] = useState(false);
 
   // Path completion state
@@ -282,8 +284,14 @@ export function ExerciseWorkspace({
           setSynthesisContent((prev) => (prev ? { ...prev, nextPreview: result.message } : prev));
           return result;
         }
+
+        toast.error('Progress may not have been saved', {
+          description: `Server returned ${response.status}. Try refreshing your path.`,
+        });
       } catch {
-        // Non-blocking — the exercise submission already succeeded
+        toast.error('Progress may not have been saved', {
+          description: 'Try refreshing your path to check.',
+        });
       }
       return null;
     },
@@ -342,6 +350,7 @@ export function ExerciseWorkspace({
     setIsSubmitting(true);
     setResult(null);
     setSubmitError(null);
+    setSubmitErrorStatus(null);
     setPathResult(null);
     setExplanation(null);
     setIsExplaining(false);
@@ -376,6 +385,7 @@ export function ExerciseWorkspace({
         setSubmitError(
           typeof errMsg === 'string' ? errMsg : `Submission failed (${response.status})`
         );
+        setSubmitErrorStatus(response.status);
         return;
       }
 
@@ -689,12 +699,16 @@ export function ExerciseWorkspace({
 
             {/* Results + Explanation + Synthesis + Anonymous CTA */}
             <div>
-              {!resultsCollapsed && (
+              {!resultsCollapsed && submitErrorStatus === 403 && submitError && (
+                <UpgradeBanner message={submitError} className="m-4" />
+              )}
+              {!resultsCollapsed && submitErrorStatus !== 403 && (
                 <ResultsPanel
                   result={result}
                   isSubmitting={isSubmitting}
                   error={submitError}
                   onCollapse={() => setResultsCollapsed(true)}
+                  onRetry={handleSubmit}
                 />
               )}
               {isAnonymous && showAnonymousCTA && <AnonymousSignupCTA variant={showAnonymousCTA} />}
