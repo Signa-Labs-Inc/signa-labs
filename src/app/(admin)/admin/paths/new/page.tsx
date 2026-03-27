@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, AlertTriangle, Route, Star } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { LanguageIcon } from '@/components/ui/language-icon';
@@ -41,20 +42,31 @@ export default function AdminNewPathPage() {
   const [level, setLevel] = useState('');
   const [featureOnCreate, setFeatureOnCreate] = useState(true);
 
-  const { status, progress, error, code, result, startCreation } = usePathCreation();
+  const { status, progress, error, result, startCreation } = usePathCreation();
 
   useEffect(() => {
     if (!result) return;
 
     if (featureOnCreate) {
-      // Feature the path automatically, then redirect
       fetch(`/api/admin/paths/${result.pathId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isFeatured: true, featuredOrder: 0 }),
-      }).finally(() => {
-        router.push('/admin/paths');
-      });
+        body: JSON.stringify({ isFeatured: true, featuredOrder: null }),
+      })
+        .then(async (res) => {
+          if (!res.ok) {
+            toast.error(
+              'Path created but failed to feature it. You can feature it manually from the paths list.'
+            );
+          }
+          router.push('/admin/paths');
+        })
+        .catch(() => {
+          toast.error(
+            'Path created but failed to feature it. You can feature it manually from the paths list.'
+          );
+          router.push('/admin/paths');
+        });
     } else {
       router.push('/admin/paths');
     }
