@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { Route, Inbox, Star } from 'lucide-react';
+import Link from 'next/link';
+import { Route, Inbox, Star, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AdminPageHeader } from '@/components/admin/admin-page-header';
@@ -108,7 +109,14 @@ export default function AdminPathsPage() {
         title="Learning Paths"
         description={`${totalCount} learning paths total`}
         icon={Route}
-      />
+      >
+        <Link href="/admin/paths/new">
+          <Button className="gap-2">
+            <Plus className="h-4 w-4" />
+            Create Path
+          </Button>
+        </Link>
+      </AdminPageHeader>
 
       <AdminFilterBar>
         <select

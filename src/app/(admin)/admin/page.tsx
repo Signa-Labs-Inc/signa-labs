@@ -51,10 +51,10 @@ export default async function AdminDashboardPage() {
       description: 'Execution environments',
     },
     {
-      href: '/admin/paths',
-      label: 'Learning Paths',
+      href: '/admin/paths/new',
+      label: 'Create Path',
       icon: Route,
-      description: 'View learning paths',
+      description: 'Create a featured learning path',
     },
     ...(user.role === 'super_admin'
       ? [{ href: '/admin/users', label: 'Users', icon: Users, description: 'User management' }]
