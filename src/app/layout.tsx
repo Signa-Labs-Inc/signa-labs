@@ -21,13 +21,15 @@ const mono = JetBrains_Mono({
   subsets: ['latin'],
 });
 
+const APP_TITLE = 'Signa - Become a Better Engineer';
+const APP_DESCRIPTION = 'AI-powered exercises that adapt to your skill level.';
+
 export const metadata: Metadata = {
   title: {
-    default: 'Signa - Become a Better Engineer',
+    default: APP_TITLE,
     template: '%s | Signa',
   },
-  description:
-    'AI-powered exercises that adapt to your skill level. Get personalized lessons, real-time feedback, and structured learning paths.',
+  description: `${APP_DESCRIPTION} Get personalized lessons, real-time feedback, and structured learning paths.`,
   keywords: [
     'software engineering',
     'programming',
@@ -38,16 +40,16 @@ export const metadata: Metadata = {
   ],
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://www.signalabs.com'),
   openGraph: {
-    title: 'Signa - Become a Better Engineer',
-    description: 'AI-powered exercises that adapt to your skill level.',
+    title: APP_TITLE,
+    description: APP_DESCRIPTION,
     type: 'website',
     siteName: 'Signa',
     locale: 'en_US',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Signa - Become a Better Engineer',
-    description: 'AI-powered exercises that adapt to your skill level.',
+    title: APP_TITLE,
+    description: APP_DESCRIPTION,
   },
 };
 

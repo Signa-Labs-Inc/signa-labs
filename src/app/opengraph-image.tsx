@@ -55,7 +55,7 @@ export default function OGImage() {
           letterSpacing: '-0.01em',
         }}
       >
-        Learn to Code by Doing
+        Become a Better Engineer
       </div>
 
       {/* Description */}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 const ROLES = [
   'Engineer',
@@ -15,17 +15,21 @@ const INTERVAL_MS = 2500;
 export function RotatingText() {
   const [index, setIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+  const innerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
       setIsAnimating(true);
-      setTimeout(() => {
+      innerTimerRef.current = setTimeout(() => {
         setIndex((prev) => (prev + 1) % ROLES.length);
         setIsAnimating(false);
       }, 300);
     }, INTERVAL_MS);
 
-    return () => clearInterval(timer);
+    return () => {
+      clearInterval(timer);
+      if (innerTimerRef.current) clearTimeout(innerTimerRef.current);
+    };
   }, []);
 
   return (
