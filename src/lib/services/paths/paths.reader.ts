@@ -70,7 +70,7 @@ export async function getFeaturedPaths(limit = 10) {
     })
     .from(learningPaths)
     .where(eq(learningPaths.isFeatured, true))
-    .orderBy(asc(learningPaths.featuredOrder))
+    .orderBy(asc(learningPaths.featuredOrder), asc(learningPaths.createdAt))
     .limit(limit);
 }
 

@@ -80,14 +80,19 @@ export default function AdminPathsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           isFeatured: newFeatured,
-          featuredOrder: newFeatured ? 0 : null,
+          featuredOrder: newFeatured ? null : null,
         }),
       });
       if (res.ok) {
+        const data = await res.json();
         setPaths((prev) =>
           prev.map((p) =>
             p.id === path.id
-              ? { ...p, isFeatured: newFeatured, featuredOrder: newFeatured ? 0 : null }
+              ? {
+                  ...p,
+                  isFeatured: data.isFeatured ?? newFeatured,
+                  featuredOrder: data.featuredOrder ?? null,
+                }
               : p
           )
         );

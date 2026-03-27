@@ -57,12 +57,10 @@ export class PathService {
       throw new PathError('PATH_NOT_FOUND', 'Featured path not found');
     }
 
-    const sourceMilestones = await reader.getMilestonesByPath(featuredPathId);
-
     const { pathId } = await writer.createPathWithMilestones({
       userId,
       title: sourcePath.title,
-      userPrompt: sourcePath.userPrompt,
+      userPrompt: `Started from featured path: ${sourcePath.title}`,
       startingLevel: sourcePath.startingLevel,
       language: sourcePath.language,
       detectedFramework: sourcePath.detectedFramework,

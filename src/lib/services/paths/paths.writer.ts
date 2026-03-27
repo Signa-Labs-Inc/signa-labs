@@ -108,11 +108,14 @@ export async function updatePathFeatured(
   pathId: string,
   isFeatured: boolean,
   featuredOrder: number | null
-): Promise<void> {
-  await db
+): Promise<boolean> {
+  const result = await db
     .update(learningPaths)
     .set({ isFeatured, featuredOrder })
-    .where(eq(learningPaths.id, pathId));
+    .where(eq(learningPaths.id, pathId))
+    .returning({ id: learningPaths.id });
+
+  return result.length > 0;
 }
 
 export async function advancePathMilestone(

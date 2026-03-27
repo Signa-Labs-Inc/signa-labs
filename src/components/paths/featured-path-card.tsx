@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { LanguageIcon } from '@/components/ui/language-icon';
 
 type FeaturedPath = {
@@ -38,14 +39,13 @@ export function FeaturedPathCard({
       const data = await res.json();
       if (res.ok && data.pathId) {
         router.push(`/paths/${data.pathId}`);
+      } else if (res.status === 401) {
+        router.push(`/sign-in?redirect_url=${encodeURIComponent('/paths')}`);
       } else {
-        // If not authenticated, redirect to sign-in
-        if (res.status === 401) {
-          router.push(`/sign-in?redirect_url=${encodeURIComponent(`/paths?start=${path.id}`)}`);
-        }
+        toast.error(data?.error?.message ?? data?.error ?? 'Failed to start path');
       }
     } catch {
-      // ignore
+      toast.error('Network error — please try again');
     } finally {
       setStarting(false);
     }

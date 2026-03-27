@@ -54,7 +54,7 @@ export default async function PathsPage() {
           return [] as Awaited<ReturnType<PathService['getUserPaths']>>;
         })
       : ([] as Awaited<ReturnType<PathService['getUserPaths']>>),
-    getFeaturedPaths(),
+    getFeaturedPaths().catch(() => [] as Awaited<ReturnType<typeof getFeaturedPaths>>),
   ]);
   paths = userPaths;
 
