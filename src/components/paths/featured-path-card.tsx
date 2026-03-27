@@ -28,10 +28,12 @@ export function FeaturedPathCard({
   path,
   index,
   compact,
+  onUsageLimit,
 }: {
   path: FeaturedPath;
   index: number;
   compact?: boolean;
+  onUsageLimit?: (message: string) => void;
 }) {
   const router = useRouter();
   const [starting, setStarting] = useState(false);
@@ -49,6 +51,10 @@ export function FeaturedPathCard({
         router.push(`/paths/${data.pathId}`);
       } else if (res.status === 401) {
         router.push(`/sign-in?redirect_url=${encodeURIComponent('/paths')}`);
+      } else if (res.status === 403 && onUsageLimit) {
+        const message =
+          data?.error?.message ?? data?.error ?? 'You have reached your path creation limit.';
+        onUsageLimit(message);
       } else {
         toast.error(data?.error?.message ?? data?.error ?? 'Failed to start path');
       }

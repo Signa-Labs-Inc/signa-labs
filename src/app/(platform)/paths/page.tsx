@@ -9,7 +9,7 @@ import { PathService } from '@/lib/services/paths/paths.service';
 import { getFeaturedPaths } from '@/lib/services/paths/paths.reader';
 import { Button } from '@/components/ui/button';
 import { PathCard } from '@/components/paths/path-card';
-import { FeaturedPathCard } from '@/components/paths/featured-path-card';
+import { FeaturedPathsGrid } from '@/components/paths/featured-paths-grid';
 import { PageHint } from '@/components/onboarding/page-hint';
 
 // ============================================================
@@ -146,15 +146,13 @@ export default async function PathsPage() {
                 <p className="text-muted-foreground mb-6 text-center text-sm">
                   Pick a featured path or create your own from scratch
                 </p>
-                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                  {featuredPaths.map((fp, i) => (
-                    <FeaturedPathCard
-                      key={fp.id}
-                      path={{ ...fp, plan: fp.plan as { overview?: string } }}
-                      index={i}
-                    />
-                  ))}
-                </div>
+                <FeaturedPathsGrid
+                  paths={featuredPaths.map((fp) => ({
+                    ...fp,
+                    plan: fp.plan as { overview?: string },
+                  }))}
+                  className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
+                />
               </div>
             )}
           </div>
@@ -201,15 +199,13 @@ export default async function PathsPage() {
                     create your own
                   </Link>
                 </p>
-                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                  {featuredPaths.map((fp, i) => (
-                    <FeaturedPathCard
-                      key={fp.id}
-                      path={{ ...fp, plan: fp.plan as { overview?: string } }}
-                      index={i}
-                    />
-                  ))}
-                </div>
+                <FeaturedPathsGrid
+                  paths={featuredPaths.map((fp) => ({
+                    ...fp,
+                    plan: fp.plan as { overview?: string },
+                  }))}
+                  className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
+                />
               </div>
             )}
           </div>

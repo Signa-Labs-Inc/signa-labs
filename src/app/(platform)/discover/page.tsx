@@ -15,7 +15,7 @@ import { getCategorizedExercises } from '@/lib/services/exercises/exercises.serv
 import { getPlatformExerciseCount } from '@/lib/services/exercises/exercises.reader';
 import { getTotalPathCount, getFeaturedPaths } from '@/lib/services/paths/paths.reader';
 import { CategorySection } from '@/components/exercises/category-section';
-import { FeaturedPathCard } from '@/components/paths/featured-path-card';
+import { FeaturedPathsGrid } from '@/components/paths/featured-paths-grid';
 
 export const metadata: Metadata = { title: 'Discover' };
 export const dynamic = 'force-dynamic';
@@ -129,15 +129,13 @@ export default async function DiscoverPage() {
             </Link>
           </div>
           {featuredPaths.length > 0 ? (
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {featuredPaths.map((fp, i) => (
-                <FeaturedPathCard
-                  key={fp.id}
-                  path={{ ...fp, plan: fp.plan as { overview?: string } }}
-                  index={i}
-                />
-              ))}
-            </div>
+            <FeaturedPathsGrid
+              paths={featuredPaths.map((fp) => ({
+                ...fp,
+                plan: fp.plan as { overview?: string },
+              }))}
+              className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
+            />
           ) : (
             <p className="text-muted-foreground text-sm">
               No featured paths yet.{' '}
