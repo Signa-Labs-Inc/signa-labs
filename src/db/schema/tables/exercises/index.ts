@@ -89,10 +89,10 @@ export const exercises = pgTable(
       'exercises_language_check',
       sql`${table.language} IN ('python', 'typescript', 'javascript', 'ruby', 'go', 'sql')`
     ),
-    // Origin consistency: platform exercises have no creator, user exercises must have one
+    // Origin consistency: user exercises must have a creator and prompt; platform exercises allow either
     check(
       'exercises_origin_consistency_check',
-      sql`(${table.origin} = 'platform' AND ${table.createdBy} IS NULL AND ${table.userPrompt} IS NULL) OR (${table.origin} = 'user' AND ${table.createdBy} IS NOT NULL AND ${table.userPrompt} IS NOT NULL)`
+      sql`(${table.origin} = 'platform') OR (${table.origin} = 'user' AND ${table.createdBy} IS NOT NULL AND ${table.userPrompt} IS NOT NULL)`
     ),
     // Indexes
     index('idx_exercises_origin')
