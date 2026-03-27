@@ -46,7 +46,7 @@ export default async function DiscoverPage() {
     getCategorizedExercises(3),
     getPlatformExerciseCount(),
     getTotalPathCount(),
-    getFeaturedPaths(),
+    getFeaturedPaths().catch(() => [] as Awaited<ReturnType<typeof getFeaturedPaths>>),
   ]);
 
   return (
