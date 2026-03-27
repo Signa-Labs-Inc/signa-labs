@@ -132,7 +132,7 @@ export default function GenerateExercisePage() {
           </div>
           <h1 className="text-3xl font-bold tracking-tight">Craft an Exercise</h1>
           <p className="text-muted-foreground mt-2">
-            Describe what you want to practice and we&apos;ll craft a custom exercise for you.
+            Describe what you want to learn and we&apos;ll craft a custom exercise for you.
           </p>
         </div>
       </div>
@@ -150,7 +150,7 @@ export default function GenerateExercisePage() {
               placeholder={
                 mode === 'debugging'
                   ? 'Describe the code to debug, e.g. A binary search that fails on edge cases...'
-                  : 'What do you want to practice? e.g. Build a function that flattens a deeply nested array...'
+                  : 'What do you want to learn? e.g. Build a function that flattens a deeply nested array...'
               }
               rows={3}
               maxLength={2000}

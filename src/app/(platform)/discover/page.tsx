@@ -164,7 +164,7 @@ export default async function DiscoverPage() {
                 </div>
                 <h2 className="text-2xl font-bold tracking-tight">Craft your own exercise</h2>
                 <p className="text-muted-foreground mt-2">
-                  Describe any topic you want to practice and our AI will generate a custom exercise
+                  Describe any topic you want to learn and our AI will generate a custom exercise
                   with tests, hints, and a solution — in seconds.
                 </p>
               </div>
