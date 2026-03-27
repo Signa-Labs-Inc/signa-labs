@@ -254,8 +254,8 @@ export function PathDashboard({ progress }: PathDashboardProps) {
             <UpgradeBanner message={exerciseError} className="mb-6" />
           ) : (
             <div className="bg-destructive/10 text-destructive border-destructive/20 mb-6 rounded-lg border px-4 py-3 text-sm">
-              <div className="flex items-center justify-between">
-                <span>{exerciseError}</span>
+              <div className="flex items-center justify-between gap-4">
+                <span className="min-w-0 break-words">{exerciseError}</span>
                 <Button
                   variant="outline"
                   size="sm"

@@ -31,6 +31,15 @@ type ResultsPanelProps = {
 // Component
 // ============================================================
 
+function RetryButton({ onRetry }: { onRetry: () => void }) {
+  return (
+    <Button variant="outline" size="sm" onClick={onRetry} className="mt-3 gap-1.5">
+      <RotateCcw className="h-3.5 w-3.5" />
+      Run Again
+    </Button>
+  );
+}
+
 export function ResultsPanel({
   result,
   isSubmitting,
@@ -69,12 +78,7 @@ export function ResultsPanel({
           )}
         </div>
         <p className="mt-2 font-mono text-sm text-red-300/80">{error}</p>
-        {onRetry && (
-          <Button variant="outline" size="sm" onClick={onRetry} className="mt-3 gap-1.5">
-            <RotateCcw className="h-3.5 w-3.5" />
-            Run Again
-          </Button>
-        )}
+        {onRetry && <RetryButton onRetry={onRetry} />}
       </div>
     );
   }

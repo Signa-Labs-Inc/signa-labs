@@ -284,6 +284,10 @@ export function ExerciseWorkspace({
           setSynthesisContent((prev) => (prev ? { ...prev, nextPreview: result.message } : prev));
           return result;
         }
+
+        toast.error('Progress may not have been saved', {
+          description: `Server returned ${response.status}. Try refreshing your path.`,
+        });
       } catch {
         toast.error('Progress may not have been saved', {
           description: 'Try refreshing your path to check.',
