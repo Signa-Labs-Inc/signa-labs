@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { Route, Inbox, Star, Plus } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AdminPageHeader } from '@/components/admin/admin-page-header';
@@ -80,7 +81,7 @@ export default function AdminPathsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           isFeatured: newFeatured,
-          featuredOrder: newFeatured ? null : null,
+          featuredOrder: null,
         }),
       });
       if (res.ok) {
@@ -96,9 +97,12 @@ export default function AdminPathsPage() {
               : p
           )
         );
+      } else {
+        const data = await res.json().catch(() => null);
+        toast.error(data?.error ?? 'Failed to update featured status');
       }
     } catch {
-      console.error('Failed to toggle featured status');
+      toast.error('Network error — failed to toggle featured status');
     } finally {
       setTogglingId(null);
     }

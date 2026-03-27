@@ -5,16 +5,7 @@ import Link from 'next/link';
 import { Zap, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FeaturedPathCard } from './featured-path-card';
-
-type FeaturedPath = {
-  id: string;
-  title: string;
-  language: string;
-  startingLevel: string;
-  totalMilestones: number;
-  estimatedTotalExercises: number;
-  plan: { overview?: string };
-};
+import type { FeaturedPath } from './featured-path-card';
 
 const AUTO_DISMISS_MS = 10_000;
 

@@ -130,10 +130,7 @@ export default async function DiscoverPage() {
           </div>
           {featuredPaths.length > 0 ? (
             <FeaturedPathsGrid
-              paths={featuredPaths.map((fp) => ({
-                ...fp,
-                plan: fp.plan as { overview?: string },
-              }))}
+              paths={featuredPaths}
               className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
             />
           ) : (

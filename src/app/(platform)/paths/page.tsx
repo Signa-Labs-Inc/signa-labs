@@ -147,10 +147,7 @@ export default async function PathsPage() {
                   Pick a featured path or create your own from scratch
                 </p>
                 <FeaturedPathsGrid
-                  paths={featuredPaths.map((fp) => ({
-                    ...fp,
-                    plan: fp.plan as { overview?: string },
-                  }))}
+                  paths={featuredPaths}
                   className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
                 />
               </div>
@@ -200,10 +197,7 @@ export default async function PathsPage() {
                   </Link>
                 </p>
                 <FeaturedPathsGrid
-                  paths={featuredPaths.map((fp) => ({
-                    ...fp,
-                    plan: fp.plan as { overview?: string },
-                  }))}
+                  paths={featuredPaths}
                   className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
                 />
               </div>

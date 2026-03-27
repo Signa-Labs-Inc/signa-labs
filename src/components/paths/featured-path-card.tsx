@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { LanguageIcon } from '@/components/ui/language-icon';
 
-type FeaturedPath = {
+export type FeaturedPath = {
   id: string;
   title: string;
   language: string;
