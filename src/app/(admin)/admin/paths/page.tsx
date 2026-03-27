@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { Route, Inbox } from 'lucide-react';
+import { Route, Inbox, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AdminPageHeader } from '@/components/admin/admin-page-header';
@@ -23,6 +23,8 @@ type LearningPath = {
   estimatedTotalExercises: number;
   createdAt: string;
   userEmail: string | null;
+  isFeatured: boolean;
+  featuredOrder: number | null;
 };
 
 const STATUS_STYLES: Record<string, { dot: string; text: string }> = {
@@ -65,6 +67,36 @@ export default function AdminPathsPage() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  const [togglingId, setTogglingId] = useState<string | null>(null);
+
+  async function toggleFeatured(path: LearningPath) {
+    setTogglingId(path.id);
+    try {
+      const newFeatured = !path.isFeatured;
+      const res = await fetch(`/api/admin/paths/${path.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          isFeatured: newFeatured,
+          featuredOrder: newFeatured ? 0 : null,
+        }),
+      });
+      if (res.ok) {
+        setPaths((prev) =>
+          prev.map((p) =>
+            p.id === path.id
+              ? { ...p, isFeatured: newFeatured, featuredOrder: newFeatured ? 0 : null }
+              : p
+          )
+        );
+      }
+    } catch {
+      console.error('Failed to toggle featured status');
+    } finally {
+      setTogglingId(null);
+    }
+  }
 
   const totalPages = Math.ceil(totalCount / limit);
   const selectClasses =
@@ -136,14 +168,17 @@ export default function AdminPathsPage() {
               <th className="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider uppercase">
                 Created
               </th>
+              <th className="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider uppercase">
+                Featured
+              </th>
             </tr>
           </thead>
           <tbody className="divide-border divide-y">
             {loading ? (
-              <AdminTableSkeleton columns={7} />
+              <AdminTableSkeleton columns={8} />
             ) : paths.length === 0 ? (
               <tr>
-                <td colSpan={7}>
+                <td colSpan={8}>
                   <AdminEmptyState message="No learning paths found." icon={Inbox} />
                 </td>
               </tr>
@@ -194,6 +229,18 @@ export default function AdminPathsPage() {
                     </td>
                     <td className="text-muted-foreground px-4 py-4">
                       {new Date(path.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="px-4 py-4">
+                      <Button
+                        variant={path.isFeatured ? 'default' : 'outline'}
+                        size="sm"
+                        disabled={togglingId === path.id}
+                        onClick={() => toggleFeatured(path)}
+                        className="gap-1.5"
+                      >
+                        <Star className={`h-3.5 w-3.5 ${path.isFeatured ? 'fill-current' : ''}`} />
+                        {path.isFeatured ? 'Featured' : 'Feature'}
+                      </Button>
                     </td>
                   </tr>
                 );

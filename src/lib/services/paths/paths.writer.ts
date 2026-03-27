@@ -104,6 +104,17 @@ export async function updatePathStatus(
     .where(eq(learningPaths.id, pathId));
 }
 
+export async function updatePathFeatured(
+  pathId: string,
+  isFeatured: boolean,
+  featuredOrder: number | null
+): Promise<void> {
+  await db
+    .update(learningPaths)
+    .set({ isFeatured, featuredOrder })
+    .where(eq(learningPaths.id, pathId));
+}
+
 export async function advancePathMilestone(
   pathId: string,
   newMilestoneIndex: number,

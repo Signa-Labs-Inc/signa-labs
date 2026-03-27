@@ -49,6 +49,32 @@ export class PathService {
   // ============================================================
 
   /**
+   * Start a copy of a featured path for a user (no AI generation needed).
+   */
+  async startFeaturedPath(userId: string, featuredPathId: string): Promise<{ pathId: string }> {
+    const sourcePath = await reader.getPathById(featuredPathId);
+    if (!sourcePath || !sourcePath.isFeatured) {
+      throw new PathError('PATH_NOT_FOUND', 'Featured path not found');
+    }
+
+    const sourceMilestones = await reader.getMilestonesByPath(featuredPathId);
+
+    const { pathId } = await writer.createPathWithMilestones({
+      userId,
+      title: sourcePath.title,
+      userPrompt: sourcePath.userPrompt,
+      startingLevel: sourcePath.startingLevel,
+      language: sourcePath.language,
+      detectedFramework: sourcePath.detectedFramework,
+      plan: sourcePath.plan as LearningPlan,
+      llmModel: sourcePath.llmModel,
+      planGenerationTimeMs: 0,
+    });
+
+    return { pathId };
+  }
+
+  /**
    * Create a new learning path from a user's prompt.
    * AI generates the full plan with milestones, then we persist it.
    */
