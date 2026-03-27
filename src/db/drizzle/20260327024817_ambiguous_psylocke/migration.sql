@@ -1,0 +1,1 @@
+ALTER TABLE "exercises" DROP CONSTRAINT "exercises_origin_consistency_check", ADD CONSTRAINT "exercises_origin_consistency_check" CHECK (("origin" = 'platform') OR ("origin" = 'user' AND "created_by" IS NOT NULL AND "user_prompt" IS NOT NULL));
