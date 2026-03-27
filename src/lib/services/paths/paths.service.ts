@@ -37,6 +37,7 @@ import { assessSkills } from './skill-assessor';
 import { ExerciseGenerationService } from '../generation/generation.service';
 import type { GenerateExerciseInput } from '../generation/generation.types';
 import { enrichSynthesisWithPathContext } from './teaching-integration';
+import { requireUsageLimit } from '@/lib/services/subscriptions/subscriptions.gate';
 import * as exerciseReader from '../exercises/exercises.reader';
 import * as exerciseWriter from '../exercises/exercises.writer';
 import type { SynthesisContent } from '../teaching/teaching.types';
@@ -65,6 +66,9 @@ export class PathService {
     if (existing) {
       return { pathId: existing.id };
     }
+
+    // Only check usage limits when actually creating a new path
+    await requireUsageLimit(userId, 'paths');
 
     const { pathId } = await writer.createPathWithMilestones({
       userId,
