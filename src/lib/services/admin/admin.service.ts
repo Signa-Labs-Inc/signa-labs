@@ -173,6 +173,7 @@ export async function generateExercise(
     language: input.language as GenerateExerciseInput['language'],
     difficulty: input.difficulty as GenerateExerciseInput['difficulty'],
     exerciseType: input.exerciseType as GenerateExerciseInput['exerciseType'],
+    origin: 'platform',
   });
 
   return { runId: handle.id, publicAccessToken: handle.publicAccessToken };

@@ -204,6 +204,7 @@ export class ExerciseGenerationService {
         templateId: input.templateId,
         lessonContent,
         synthesisContent,
+        origin: input.origin,
       },
       files
     );
