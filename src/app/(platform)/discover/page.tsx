@@ -1,15 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import {
-  Compass,
-  FlaskConical,
-  ArrowRight,
-  Target,
-  Brain,
-  Code2,
-  Route,
-  Sparkles,
-} from 'lucide-react';
+import { Compass, FlaskConical, ArrowRight, Code2, Route, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getCategorizedExercises } from '@/lib/services/exercises/exercises.service';
 import { getPlatformExerciseCount } from '@/lib/services/exercises/exercises.reader';
@@ -21,25 +12,6 @@ export const metadata: Metadata = { title: 'Discover' };
 export const dynamic = 'force-dynamic';
 
 const SUPPORTED_LANGUAGE_COUNT = 6;
-
-const FEATURES = [
-  {
-    icon: Target,
-    title: 'Adaptive Learning Paths',
-    description:
-      'AI-generated curricula that adjust to your skill level in real-time based on your performance.',
-  },
-  {
-    icon: FlaskConical,
-    title: 'Custom Exercises',
-    description: 'Craft your own exercises on any topic — just describe what you want to practice.',
-  },
-  {
-    icon: Brain,
-    title: 'Skill Assessment',
-    description: 'AI evaluates your code to identify strengths and target areas for growth.',
-  },
-];
 
 export default async function DiscoverPage() {
   const [sections, exerciseCount, pathCount, featuredPaths] = await Promise.all([
@@ -203,28 +175,6 @@ export default async function DiscoverPage() {
                 </Button>
               </Link>
             </div>
-          </div>
-        </section>
-
-        {/* ── Feature Highlights ── */}
-        <section>
-          <h2 className="mb-6 text-center text-lg font-semibold">Why developers love Signa</h2>
-          <div className="grid gap-6 sm:grid-cols-3">
-            {FEATURES.map((feature, i) => (
-              <div
-                key={feature.title}
-                className="animate-fade-in bg-card rounded-xl border p-6 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
-                style={{ animationDelay: `${i * 100}ms` }}
-              >
-                <div className="bg-primary/10 text-primary mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl">
-                  <feature.icon className="h-6 w-6" />
-                </div>
-                <h3 className="font-semibold">{feature.title}</h3>
-                <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
-                  {feature.description}
-                </p>
-              </div>
-            ))}
           </div>
         </section>
       </div>

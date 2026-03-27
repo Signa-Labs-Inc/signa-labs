@@ -54,6 +54,11 @@ export default function AdminPlansPage() {
   const [saving, setSaving] = useState(false);
   const [togglingPlanId, setTogglingPlanId] = useState<string | null>(null);
 
+  // Description editing
+  const [editingDescId, setEditingDescId] = useState<string | null>(null);
+  const [editDescription, setEditDescription] = useState('');
+  const [savingDesc, setSavingDesc] = useState(false);
+
   // Display features editing
   const [editingFeaturesId, setEditingFeaturesId] = useState<string | null>(null);
   const [editDisplayFeatures, setEditDisplayFeatures] = useState<string[]>([]);
@@ -210,6 +215,40 @@ export default function AdminPlansPage() {
       cancelEditFeatures();
     } finally {
       setSavingFeatures(false);
+    }
+  }
+
+  // Description editing
+  function startEditDescription(plan: Plan) {
+    setEditingDescId(plan.id);
+    setEditDescription(plan.description ?? '');
+  }
+
+  function cancelEditDescription() {
+    setEditingDescId(null);
+    setEditDescription('');
+  }
+
+  async function saveDescription(planId: string) {
+    setSavingDesc(true);
+    try {
+      const res = await fetch(`/api/admin/plans/${planId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description: editDescription.trim() || null }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        alert(data?.error?.message ?? 'Failed to save description');
+        return;
+      }
+      const data = await res.json();
+      setPlans((prev) =>
+        prev.map((p) => (p.id === planId ? { ...p, description: data.plan.description } : p))
+      );
+      cancelEditDescription();
+    } finally {
+      setSavingDesc(false);
     }
   }
 
@@ -613,6 +652,45 @@ export default function AdminPlansPage() {
                       <Pencil className="mr-1 h-4 w-4" />
                       Edit Limits
                     </Button>
+                  )}
+                </div>
+
+                {/* Description */}
+                <div className="mt-3">
+                  {editingDescId === plan.id ? (
+                    <div className="flex items-center gap-2">
+                      <Input
+                        value={editDescription}
+                        onChange={(e) => setEditDescription(e.target.value)}
+                        placeholder="Short description for pricing page"
+                        className="flex-1"
+                        aria-label="Plan description"
+                      />
+                      <Button size="sm" variant="ghost" onClick={cancelEditDescription}>
+                        <X className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => saveDescription(plan.id)}
+                        disabled={savingDesc}
+                      >
+                        <Save className="mr-1 h-4 w-4" />
+                        Save
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <p className="text-muted-foreground text-sm">
+                        {plan.description || <span className="italic">No description</span>}
+                      </p>
+                      <button
+                        onClick={() => startEditDescription(plan)}
+                        className="text-muted-foreground hover:text-foreground"
+                        aria-label="Edit description"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                   )}
                 </div>
 
