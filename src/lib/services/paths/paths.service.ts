@@ -57,6 +57,15 @@ export class PathService {
       throw new PathError('PATH_NOT_FOUND', 'Featured path not found');
     }
 
+    // If the user already has an active copy of this featured path, return it
+    const userActivePaths = await reader.getUserActivePaths(userId);
+    const existing = userActivePaths.find(
+      (p) => p.title === sourcePath.title && p.language === sourcePath.language
+    );
+    if (existing) {
+      return { pathId: existing.id };
+    }
+
     const { pathId } = await writer.createPathWithMilestones({
       userId,
       title: sourcePath.title,
