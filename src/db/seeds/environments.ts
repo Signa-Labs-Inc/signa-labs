@@ -12,13 +12,17 @@ import { sql } from 'drizzle-orm';
 
 type EnvironmentSeed = typeof exerciseEnvironments.$inferInsert;
 
+// Fly registry prefix — sandbox images are pushed here by deploy-sandboxes.sh
+const FLY_APP = process.env.FLY_SANDBOX_APP || 'signa-labs-sandboxes';
+const REGISTRY = `registry.fly.io/${FLY_APP}`;
+
 const environments: EnvironmentSeed[] = [
   // ── Python ──────────────────────────────────────────────────────
   {
     name: 'python_core',
     displayName: 'Python',
     description: 'Standard Python environment with pytest',
-    baseImage: 'python:3.12-slim',
+    baseImage: `${REGISTRY}:sandbox-python`,
     preinstalledPackages: ['pytest', 'pytest-json-report', 'pytest-timeout'],
     supportedLanguages: ['python'],
     maxExecutionSeconds: 30,
@@ -27,7 +31,7 @@ const environments: EnvironmentSeed[] = [
     name: 'python-web',
     displayName: 'Python Web (Flask/FastAPI)',
     description: 'Python with Flask, FastAPI, and web testing tools',
-    baseImage: 'python:3.12-slim',
+    baseImage: `${REGISTRY}:sandbox-python-web`,
     preinstalledPackages: [
       'pytest',
       'pytest-json-report',
@@ -44,7 +48,7 @@ const environments: EnvironmentSeed[] = [
     name: 'python-data-science',
     displayName: 'Python Data Science',
     description: 'Python with NumPy, Pandas, and data science libraries',
-    baseImage: 'python:3.12-slim',
+    baseImage: `${REGISTRY}:sandbox-python-data-science`,
     preinstalledPackages: [
       'pytest',
       'pytest-json-report',
@@ -60,7 +64,7 @@ const environments: EnvironmentSeed[] = [
     name: 'python-bio',
     displayName: 'Python Bioinformatics',
     description: 'Python with bioinformatics libraries',
-    baseImage: 'python:3.12-slim',
+    baseImage: `${REGISTRY}:sandbox-python-bio`,
     preinstalledPackages: ['pytest', 'pytest-json-report', 'pytest-timeout', 'biopython'],
     supportedLanguages: ['python'],
     maxExecutionSeconds: 30,
@@ -71,7 +75,7 @@ const environments: EnvironmentSeed[] = [
     name: 'node_core',
     displayName: 'JavaScript',
     description: 'Node.js with Vitest for JavaScript exercises',
-    baseImage: 'node:20-slim',
+    baseImage: `${REGISTRY}:sandbox-javascript`,
     preinstalledPackages: ['vitest'],
     supportedLanguages: ['javascript'],
     maxExecutionSeconds: 30,
@@ -80,7 +84,7 @@ const environments: EnvironmentSeed[] = [
     name: 'typescript',
     displayName: 'TypeScript',
     description: 'Node.js with Vitest and TypeScript',
-    baseImage: 'node:20-slim',
+    baseImage: `${REGISTRY}:sandbox-typescript`,
     preinstalledPackages: ['vitest', 'typescript'],
     supportedLanguages: ['typescript'],
     maxExecutionSeconds: 30,
@@ -89,7 +93,7 @@ const environments: EnvironmentSeed[] = [
     name: 'typescript-react',
     displayName: 'TypeScript React',
     description: 'React with TypeScript, Vitest, and Testing Library',
-    baseImage: 'node:20-slim',
+    baseImage: `${REGISTRY}:sandbox-typescript-react`,
     preinstalledPackages: [
       'vitest',
       'typescript',
@@ -106,7 +110,7 @@ const environments: EnvironmentSeed[] = [
     name: 'javascript-react',
     displayName: 'JavaScript React',
     description: 'React with JavaScript, Vitest, and Testing Library',
-    baseImage: 'node:20-slim',
+    baseImage: `${REGISTRY}:sandbox-javascript-react`,
     preinstalledPackages: [
       'vitest',
       'react',
@@ -122,7 +126,7 @@ const environments: EnvironmentSeed[] = [
     name: 'typescript-express',
     displayName: 'TypeScript Express',
     description: 'Express.js with TypeScript and Vitest',
-    baseImage: 'node:20-slim',
+    baseImage: `${REGISTRY}:sandbox-typescript-express`,
     preinstalledPackages: ['vitest', 'typescript', 'express', '@types/express', 'supertest'],
     supportedLanguages: ['typescript', 'javascript'],
     maxExecutionSeconds: 30,
@@ -133,7 +137,7 @@ const environments: EnvironmentSeed[] = [
     name: 'go_core',
     displayName: 'Go',
     description: 'Go standard library with built-in testing',
-    baseImage: 'golang:1.23-bookworm',
+    baseImage: `${REGISTRY}:sandbox-go`,
     preinstalledPackages: [],
     supportedLanguages: ['go'],
     maxExecutionSeconds: 30,
@@ -144,7 +148,7 @@ const environments: EnvironmentSeed[] = [
     name: 'sql-sqlite',
     displayName: 'SQL',
     description: 'SQLite with Python-based test runner',
-    baseImage: 'python:3.12-slim',
+    baseImage: `${REGISTRY}:sandbox-sql`,
     preinstalledPackages: ['pytest', 'pytest-json-report', 'pytest-timeout'],
     supportedLanguages: ['sql'],
     maxExecutionSeconds: 30,
