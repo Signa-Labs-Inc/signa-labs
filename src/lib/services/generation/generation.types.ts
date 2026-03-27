@@ -32,6 +32,7 @@ export interface GenerateExerciseInput {
     | 'config';
   templateId?: string;
   pathContext?: string; // Injected by the adaptive paths system
+  origin?: 'user' | 'platform'; // Defaults to 'user'; admin generation sets 'platform'
 }
 
 // ============================================================
@@ -99,6 +100,7 @@ export interface CreateGeneratedExerciseInput {
   templateId?: string;
   lessonContent?: LessonContent | null;
   synthesisContent?: SynthesisContent | null;
+  origin?: 'user' | 'platform';
 }
 
 export interface CreateGeneratedExerciseResult {

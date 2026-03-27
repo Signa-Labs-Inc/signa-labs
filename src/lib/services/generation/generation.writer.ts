@@ -28,7 +28,7 @@ export async function createExerciseWithFiles(
     const [exercise] = await tx
       .insert(exercises)
       .values({
-        origin: 'user',
+        origin: input.origin ?? 'user',
         createdBy: input.userId,
         userPrompt: input.userPrompt,
         promptTemplateId: input.templateId ?? null,

@@ -26,8 +26,16 @@ export const generateExerciseTask = task({
   retry: { maxAttempts: 1 }, // Not idempotent — retries would create duplicates
 
   run: async (payload: GenerateExercisePayload): Promise<GenerateExerciseOutput> => {
-    const { userId, userPrompt, language, difficulty, exerciseType, templateId, pathContext } =
-      payload;
+    const {
+      userId,
+      userPrompt,
+      language,
+      difficulty,
+      exerciseType,
+      templateId,
+      pathContext,
+      origin,
+    } = payload;
 
     metadata.set('step', 'generating');
     metadata.set('progress', 'AI is generating your exercise...');
@@ -42,6 +50,7 @@ export const generateExerciseTask = task({
       exerciseType,
       templateId,
       pathContext,
+      origin,
     });
 
     metadata.set('step', 'completed');
