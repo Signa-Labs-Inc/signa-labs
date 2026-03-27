@@ -201,13 +201,12 @@ export default async function PathsPage() {
                     create your own
                   </Link>
                 </p>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                   {featuredPaths.map((fp, i) => (
                     <FeaturedPathCard
                       key={fp.id}
                       path={{ ...fp, plan: fp.plan as { overview?: string } }}
                       index={i}
-                      compact
                     />
                   ))}
                 </div>
