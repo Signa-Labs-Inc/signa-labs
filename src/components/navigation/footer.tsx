@@ -53,7 +53,7 @@ export function Footer({ variant = 'default' }: FooterProps) {
                 S
               </div>
               <span className={`text-lg font-bold ${isDark ? 'text-white' : 'text-foreground'}`}>
-                Signa Labs
+                Signa
               </span>
             </Link>
             <p
@@ -61,7 +61,7 @@ export function Footer({ variant = 'default' }: FooterProps) {
                 isDark ? 'text-zinc-400' : 'text-muted-foreground'
               }`}
             >
-              AI-powered coding exercises that adapt to your skill level.
+              AI-powered exercises that adapt to your skill level.
             </p>
           </div>
 

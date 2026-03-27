@@ -72,7 +72,7 @@ export default async function DiscoverPage() {
                 </span>
               </h1>
               <p className="text-muted-foreground mt-3 text-lg">
-                Explore exercises, learning paths, and tools to level up your coding skills.
+                Explore exercises, learning paths, and tools to level up your skills.
               </p>
             </div>
             <div className="flex shrink-0 gap-3">
@@ -208,7 +208,7 @@ export default async function DiscoverPage() {
 
         {/* ── Feature Highlights ── */}
         <section>
-          <h2 className="mb-6 text-center text-lg font-semibold">Why developers love Signa Labs</h2>
+          <h2 className="mb-6 text-center text-lg font-semibold">Why developers love Signa</h2>
           <div className="grid gap-6 sm:grid-cols-3">
             {FEATURES.map((feature, i) => (
               <div

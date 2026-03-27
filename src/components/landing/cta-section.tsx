@@ -21,7 +21,7 @@ export function CTASection() {
       />
       <div className="relative mx-auto max-w-3xl text-center">
         <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-          Ready to Start Coding?
+          Ready to Start Building?
         </h2>
         <p className="mx-auto mt-4 max-w-xl text-lg text-white/80">
           Try any exercise right now — no account needed. Sign up to save your progress, craft

@@ -18,16 +18,15 @@ export const TOUR_STEPS: TourStep[] = [
   {
     id: 'discover-hero',
     targetSelector: '[data-onboarding="discover-hero"]',
-    title: 'Welcome to Signa Labs!',
-    description: 'Explore exercises, learning paths, and tools to level up your coding skills.',
+    title: 'Welcome to Signa!',
+    description: 'Explore exercises, learning paths, and tools to level up your skills.',
     side: 'bottom',
   },
   {
     id: 'nav-exercises',
     targetSelector: '[data-onboarding="nav-exercises"]',
     title: 'Practice Exercises',
-    description:
-      'Browse and practice coding exercises across multiple languages and difficulty levels.',
+    description: 'Browse exercises across multiple languages and difficulty levels.',
     side: 'bottom',
   },
   {

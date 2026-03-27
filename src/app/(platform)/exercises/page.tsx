@@ -34,7 +34,7 @@ export default async function ExercisesPage() {
                 Exercises
               </div>
               <p className="text-muted-foreground text-sm">
-                Practice coding with hands-on exercises across multiple languages and topics.
+                Hands-on exercises across multiple languages and topics.
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-2">

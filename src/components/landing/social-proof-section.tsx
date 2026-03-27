@@ -1,21 +1,21 @@
 const testimonials = [
   {
     quote:
-      'Signa Labs helped me land my first developer job. The AI feedback is like having a senior engineer review every line.',
+      'Signa helped me land my first developer job. The AI feedback is like having a senior engineer review every line.',
     name: 'Alex Chen',
     role: 'Junior Developer at Stripe',
     initials: 'AC',
   },
   {
     quote:
-      'I tried every coding platform out there. This is the only one where the exercises actually adapt to what I need to learn.',
+      'I tried every platform out there. This is the only one where the exercises actually adapt to what I need to learn.',
     name: 'Maria Santos',
     role: 'Full-Stack Engineer',
     initials: 'MS',
   },
   {
     quote:
-      'We onboard all new hires through Signa Labs now. The team dashboard makes it easy to track who needs support.',
+      'We onboard all new hires through Signa now. The team dashboard makes it easy to track who needs support.',
     name: 'James Wright',
     role: 'Engineering Manager at Datadog',
     initials: 'JW',

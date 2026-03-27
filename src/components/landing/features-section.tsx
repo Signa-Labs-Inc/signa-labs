@@ -35,7 +35,7 @@ export function FeaturesSection() {
           Everything You Need to Level Up
         </h2>
         <p className="animate-fade-in mx-auto mt-4 max-w-2xl text-center text-lg text-zinc-400">
-          A complete platform designed to accelerate your coding skills with intelligent tools and
+          A complete platform designed to accelerate your growth with intelligent tools and
           personalized learning.
         </p>
 
