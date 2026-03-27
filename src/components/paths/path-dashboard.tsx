@@ -253,8 +253,19 @@ export function PathDashboard({ progress }: PathDashboardProps) {
           (exerciseCode === 'FORBIDDEN' ? (
             <UpgradeBanner message={exerciseError} className="mb-6" />
           ) : (
-            <div className="bg-destructive/10 text-destructive border-destructive/20 mb-6 rounded-lg border px-4 py-3 text-center text-sm">
-              {exerciseError}
+            <div className="bg-destructive/10 text-destructive border-destructive/20 mb-6 rounded-lg border px-4 py-3 text-sm">
+              <div className="flex items-center justify-between">
+                <span>{exerciseError}</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleContinue}
+                  disabled={isLoadingExercise}
+                  className="ml-4 shrink-0"
+                >
+                  Try Again
+                </Button>
+              </div>
             </div>
           ))}
 

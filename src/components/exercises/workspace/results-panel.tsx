@@ -1,8 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { CheckCircle2, XCircle, AlertTriangle, Clock, ChevronDown, X } from 'lucide-react';
+import {
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
+  Clock,
+  ChevronDown,
+  X,
+  RotateCcw,
+} from 'lucide-react';
 import { cn } from '@/lib/utils/helpers';
+import { Button } from '@/components/ui/button';
 import type { SandboxResult, SandboxTestResult } from '@/lib/sandboxes/types';
 
 // ============================================================
@@ -15,6 +24,7 @@ type ResultsPanelProps = {
   error: string | null;
   className?: string;
   onCollapse?: () => void;
+  onRetry?: () => void;
 };
 
 // ============================================================
@@ -27,6 +37,7 @@ export function ResultsPanel({
   error,
   className,
   onCollapse,
+  onRetry,
 }: ResultsPanelProps) {
   if (isSubmitting) {
     return (
@@ -58,6 +69,12 @@ export function ResultsPanel({
           )}
         </div>
         <p className="mt-2 font-mono text-sm text-red-300/80">{error}</p>
+        {onRetry && (
+          <Button variant="outline" size="sm" onClick={onRetry} className="mt-3 gap-1.5">
+            <RotateCcw className="h-3.5 w-3.5" />
+            Run Again
+          </Button>
+        )}
       </div>
     );
   }
@@ -83,6 +100,12 @@ export function ResultsPanel({
           <p className="font-mono text-sm whitespace-pre-wrap text-red-300/80">
             {asString(result.error_message)}
           </p>
+          {onRetry && (
+            <Button variant="outline" size="sm" onClick={onRetry} className="mt-3 gap-1.5">
+              <RotateCcw className="h-3.5 w-3.5" />
+              Run Again
+            </Button>
+          )}
         </div>
       )}
 
