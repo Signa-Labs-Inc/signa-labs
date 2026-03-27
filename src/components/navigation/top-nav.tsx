@@ -27,7 +27,7 @@ export function TopNav() {
           <div className="from-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-linear-to-br to-violet-400 text-sm font-bold text-white">
             S
           </div>
-          <span className="text-foreground hidden text-lg font-bold sm:block">Signa Labs</span>
+          <span className="text-foreground hidden text-lg font-bold sm:block">Signa</span>
         </Link>
 
         {/* Desktop Nav */}

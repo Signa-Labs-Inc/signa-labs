@@ -23,24 +23,31 @@ const mono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Signa Labs - Learn to Code by Doing',
-    template: '%s | Signa Labs',
+    default: 'Signa - Become a Better Engineer',
+    template: '%s | Signa',
   },
   description:
-    'AI-powered coding exercises that adapt to your skill level. Get personalized lessons, real-time feedback, and structured learning paths.',
-  keywords: ['coding', 'programming', 'learn to code', 'AI', 'exercises', 'learning paths'],
+    'AI-powered exercises that adapt to your skill level. Get personalized lessons, real-time feedback, and structured learning paths.',
+  keywords: [
+    'software engineering',
+    'programming',
+    'interview prep',
+    'AI',
+    'exercises',
+    'learning paths',
+  ],
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://www.signalabs.com'),
   openGraph: {
-    title: 'Signa Labs - Learn to Code by Doing',
-    description: 'AI-powered coding exercises that adapt to your skill level.',
+    title: 'Signa - Become a Better Engineer',
+    description: 'AI-powered exercises that adapt to your skill level.',
     type: 'website',
-    siteName: 'Signa Labs',
+    siteName: 'Signa',
     locale: 'en_US',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Signa Labs - Learn to Code by Doing',
-    description: 'AI-powered coding exercises that adapt to your skill level.',
+    title: 'Signa - Become a Better Engineer',
+    description: 'AI-powered exercises that adapt to your skill level.',
   },
 };
 

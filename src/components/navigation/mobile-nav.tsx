@@ -33,7 +33,7 @@ export function MobileNav() {
           <div className="from-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-linear-to-br to-violet-400 text-sm font-bold text-white">
             S
           </div>
-          <span className="text-foreground text-lg font-bold">Signa Labs</span>
+          <span className="text-foreground text-lg font-bold">Signa</span>
         </Link>
         <div className="flex items-center gap-1">
           <NotificationBell />
@@ -55,7 +55,7 @@ export function MobileNav() {
           <div className="bg-card border-border fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r">
             {/* Header */}
             <div className="border-border flex h-14 items-center justify-between border-b px-4">
-              <span className="text-primary text-lg font-bold">Signa Labs</span>
+              <span className="text-primary text-lg font-bold">Signa</span>
               <button
                 onClick={() => setIsOpen(false)}
                 className="text-muted-foreground hover:bg-accent/50 rounded-md p-2 transition-colors"

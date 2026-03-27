@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { SignUpButton } from '@clerk/nextjs';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { RotatingText } from './rotating-text';
 
 export function HeroSection() {
   return (
@@ -14,18 +15,16 @@ export function HeroSection() {
     >
       <div className="mx-auto max-w-4xl text-center">
         <h1 className="animate-fade-in text-5xl leading-tight font-bold tracking-tight text-white sm:text-6xl md:text-7xl">
-          Master Coding
+          Become a Better
           <br />
-          <span className="bg-linear-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
-            Through Practice
-          </span>
+          <RotatingText />
         </h1>
 
         <p
           className="animate-fade-in mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-zinc-400 sm:text-xl"
           style={{ animationDelay: '0.1s' }}
         >
-          AI-powered exercises that adapt to your skill level. Write code, run tests, and get
+          AI-powered exercises that adapt to your skill level. Write real code, run tests, and get
           instant feedback — no sign-up required.
         </p>
 

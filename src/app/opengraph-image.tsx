@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
-export const alt = 'Signa Labs - Learn to Code by Doing';
+export const alt = 'Signa - Become a Better Engineer';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -44,7 +44,7 @@ export default function OGImage() {
           marginBottom: 16,
         }}
       >
-        Signa Labs
+        Signa
       </div>
 
       {/* Tagline */}
@@ -68,7 +68,7 @@ export default function OGImage() {
           textAlign: 'center',
         }}
       >
-        AI-powered coding exercises that adapt to your skill level
+        AI-powered exercises that adapt to your skill level
       </div>
     </div>,
     { ...size }

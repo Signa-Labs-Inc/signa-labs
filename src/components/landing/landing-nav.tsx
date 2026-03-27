@@ -27,7 +27,7 @@ export function LandingNav() {
     >
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
         <Link href="/" className="text-xl font-bold text-white">
-          Signa Labs
+          Signa
         </Link>
 
         <div className="flex items-center gap-3">

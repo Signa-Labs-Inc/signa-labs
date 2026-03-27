@@ -92,7 +92,7 @@ export default async function PathsPage() {
                 Your personalized
                 <span className="from-primary bg-linear-to-r to-violet-400 bg-clip-text text-transparent">
                   {' '}
-                  coding journey
+                  learning journey
                 </span>
               </h1>
               <p className="text-muted-foreground mt-3 text-lg">

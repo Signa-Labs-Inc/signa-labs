@@ -59,7 +59,7 @@ export default async function DashboardPage() {
             Dashboard
           </div>
           <h1 className="text-3xl font-bold tracking-tight">Welcome back</h1>
-          <p className="text-muted-foreground mt-1">Track your coding practice progress</p>
+          <p className="text-muted-foreground mt-1">Track your progress</p>
 
           {(hasActivity || paths.length > 0) && (
             <div className="mt-6 space-y-4">

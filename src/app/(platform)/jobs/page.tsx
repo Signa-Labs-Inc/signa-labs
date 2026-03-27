@@ -16,7 +16,7 @@ export default function JobsPage() {
           </div>
           <h1 className="text-3xl font-bold tracking-tight">Join the Team</h1>
           <p className="text-muted-foreground mt-1">
-            Help us build the future of coding education.
+            Help us build the future of engineering education.
           </p>
         </div>
       </div>

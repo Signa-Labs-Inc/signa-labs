@@ -159,7 +159,7 @@ export function ShareButton({ exerciseId, initialIsPublic, initialSlug }: ShareB
                     className="border-border/60 bg-card flex flex-1 items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all hover:-translate-y-0.5 hover:border-sky-500/30 hover:bg-sky-500/5 hover:text-sky-500 hover:shadow-sm"
                     onClick={() => {
                       const text = encodeURIComponent(
-                        `Can you solve this? Check out this exercise on Signa Labs!`
+                        `Can you solve this? Check out this exercise on Signa!`
                       );
                       const url = encodeURIComponent(shareUrl);
                       window.open(
