@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireCurrentUser } from '@/lib/services/auth/auth.service';
+import { requireUsageLimit } from '@/lib/services/subscriptions/subscriptions.gate';
 import { PathService } from '@/lib/services/paths/paths.service';
 import { PathError } from '@/lib/services/paths/paths.types';
 import { handleError } from '@/lib/utils/api.handler-errors';
@@ -10,6 +11,7 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 export async function POST(request: NextRequest) {
   try {
     const user = await requireCurrentUser();
+    await requireUsageLimit(user.id, 'paths');
 
     let body: { featuredPathId?: unknown };
     try {
