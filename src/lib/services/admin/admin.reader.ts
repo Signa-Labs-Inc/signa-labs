@@ -267,6 +267,8 @@ export async function listAllLearningPaths(
         createdAt: learningPaths.createdAt,
         updatedAt: learningPaths.updatedAt,
         completedAt: learningPaths.completedAt,
+        isFeatured: learningPaths.isFeatured,
+        featuredOrder: learningPaths.featuredOrder,
         userEmail: users.email,
       })
       .from(learningPaths)

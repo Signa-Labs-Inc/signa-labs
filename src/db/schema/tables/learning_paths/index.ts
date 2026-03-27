@@ -1,4 +1,14 @@
-import { pgTable, uuid, text, integer, timestamp, jsonb, index, check } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  uuid,
+  text,
+  integer,
+  timestamp,
+  jsonb,
+  boolean,
+  index,
+  check,
+} from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 import { users } from '../users';
 
@@ -27,6 +37,8 @@ export const learningPaths = pgTable(
       .notNull()
       .defaultNow()
       .$onUpdateFn(() => new Date()),
+    isFeatured: boolean('is_featured').notNull().default(false),
+    featuredOrder: integer('featured_order'),
     completedAt: timestamp('completed_at', { withTimezone: true }),
   },
   (table) => [
@@ -46,5 +58,8 @@ export const learningPaths = pgTable(
     index('idx_learning_paths_active')
       .on(table.userId)
       .where(sql`${table.status} = 'active'`),
+    index('idx_learning_paths_featured')
+      .on(table.isFeatured, table.featuredOrder)
+      .where(sql`${table.isFeatured} = true`),
   ]
 );

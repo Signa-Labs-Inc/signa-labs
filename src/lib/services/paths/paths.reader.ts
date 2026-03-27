@@ -4,7 +4,7 @@
  * All database reads for learning paths.
  */
 
-import { eq, and, desc, sql, inArray } from 'drizzle-orm';
+import { eq, and, asc, desc, sql, inArray } from 'drizzle-orm';
 import { db } from '@/index';
 import { learningPaths } from '@/db/schema/tables/learning_paths';
 import { pathMilestones } from '@/db/schema/tables/path_milestones';
@@ -54,6 +54,49 @@ export async function getTotalPathCount(): Promise<number> {
   const count = result?.count ?? 0;
   _totalPathCountCache = { value: count, expiresAt: Date.now() + PATH_COUNT_TTL_MS };
   return count;
+}
+
+export interface FeaturedPathRow {
+  id: string;
+  title: string;
+  language: string;
+  startingLevel: string;
+  totalMilestones: number;
+  estimatedTotalExercises: number;
+  plan: { overview?: string };
+}
+
+export async function getFeaturedPaths(limit = 10): Promise<FeaturedPathRow[]> {
+  const rows = await db
+    .select({
+      id: learningPaths.id,
+      title: learningPaths.title,
+      language: learningPaths.language,
+      startingLevel: learningPaths.startingLevel,
+      totalMilestones: learningPaths.totalMilestones,
+      estimatedTotalExercises: learningPaths.estimatedTotalExercises,
+      plan: learningPaths.plan,
+      featuredOrder: learningPaths.featuredOrder,
+    })
+    .from(learningPaths)
+    .where(eq(learningPaths.isFeatured, true))
+    .orderBy(asc(learningPaths.featuredOrder), asc(learningPaths.createdAt))
+    .limit(limit);
+
+  return rows.map((row) => {
+    const rawPlan = row.plan as Record<string, unknown> | null;
+    return {
+      id: row.id,
+      title: row.title,
+      language: row.language,
+      startingLevel: row.startingLevel,
+      totalMilestones: row.totalMilestones,
+      estimatedTotalExercises: row.estimatedTotalExercises,
+      plan: {
+        overview: typeof rawPlan?.overview === 'string' ? rawPlan.overview : undefined,
+      },
+    };
+  });
 }
 
 export async function getUserActivePaths(userId: string) {

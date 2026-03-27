@@ -11,48 +11,16 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { LanguageIcon } from '@/components/ui/language-icon';
 import { getCategorizedExercises } from '@/lib/services/exercises/exercises.service';
 import { getPlatformExerciseCount } from '@/lib/services/exercises/exercises.reader';
-import { getTotalPathCount } from '@/lib/services/paths/paths.reader';
+import { getTotalPathCount, getFeaturedPaths } from '@/lib/services/paths/paths.reader';
 import { CategorySection } from '@/components/exercises/category-section';
+import { FeaturedPathsGrid } from '@/components/paths/featured-paths-grid';
 
 export const metadata: Metadata = { title: 'Discover' };
 export const dynamic = 'force-dynamic';
 
 const SUPPORTED_LANGUAGE_COUNT = 6;
-
-const QUICK_STARTS = [
-  {
-    title: 'Master TypeScript',
-    description: 'Generics, utility types, and advanced patterns',
-    language: 'typescript',
-    level: 'intermediate',
-    prompt: 'I want to master TypeScript generics, utility types, and advanced type patterns',
-  },
-  {
-    title: 'Python Fundamentals',
-    description: 'From basics to data structures and algorithms',
-    language: 'python',
-    level: 'beginner',
-    prompt: 'Teach me Python from the basics through data structures and algorithms',
-  },
-  {
-    title: 'Go Concurrency',
-    description: 'Goroutines, channels, and concurrent patterns',
-    language: 'go',
-    level: 'some_experience',
-    prompt: 'Teach me Go concurrency patterns including goroutines, channels, and sync primitives',
-  },
-  {
-    title: 'SQL Deep Dive',
-    description: 'Queries, joins, window functions, and optimization',
-    language: 'sql',
-    level: 'some_experience',
-    prompt:
-      'I want to learn SQL from basic queries to complex joins, window functions, and query optimization',
-  },
-];
 
 const FEATURES = [
   {
@@ -74,10 +42,11 @@ const FEATURES = [
 ];
 
 export default async function DiscoverPage() {
-  const [sections, exerciseCount, pathCount] = await Promise.all([
+  const [sections, exerciseCount, pathCount, featuredPaths] = await Promise.all([
     getCategorizedExercises(3),
     getPlatformExerciseCount(),
     getTotalPathCount(),
+    getFeaturedPaths().catch(() => [] as Awaited<ReturnType<typeof getFeaturedPaths>>),
   ]);
 
   return (
@@ -159,25 +128,19 @@ export default async function DiscoverPage() {
               <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
             </Link>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {QUICK_STARTS.map((qs, i) => (
-              <Link
-                key={qs.title}
-                href={`/paths/new?prompt=${encodeURIComponent(qs.prompt)}&language=${qs.language}&level=${qs.level}`}
-                className="animate-fade-in bg-card group hover:border-primary/30 flex items-center gap-4 rounded-xl border p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
-                style={{ animationDelay: `${i * 60}ms` }}
-              >
-                <div className="bg-muted flex h-11 w-11 shrink-0 items-center justify-center rounded-lg">
-                  <LanguageIcon language={qs.language} className="h-6 w-6" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h3 className="font-semibold">{qs.title}</h3>
-                  <p className="text-muted-foreground text-sm">{qs.description}</p>
-                </div>
-                <ArrowRight className="text-muted-foreground h-4 w-4 shrink-0 transition-transform group-hover:translate-x-1" />
+          {featuredPaths.length > 0 ? (
+            <FeaturedPathsGrid
+              paths={featuredPaths}
+              className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
+            />
+          ) : (
+            <p className="text-muted-foreground text-sm">
+              No featured paths yet.{' '}
+              <Link href="/paths/new" className="text-primary hover:underline">
+                Create your own
               </Link>
-            ))}
-          </div>
+            </p>
+          )}
         </section>
 
         {/* ── Exercise Categories ── */}

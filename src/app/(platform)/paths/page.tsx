@@ -3,49 +3,14 @@ import Link from 'next/link';
 
 export const metadata: Metadata = { title: 'Learning Paths' };
 
-import { FlaskConical, Target, Brain, ArrowRight, Route } from 'lucide-react';
+import { FlaskConical, Target, Brain, Route } from 'lucide-react';
 import { getCurrentUser } from '@/lib/services/auth/auth.service';
 import { PathService } from '@/lib/services/paths/paths.service';
+import { getFeaturedPaths } from '@/lib/services/paths/paths.reader';
 import { Button } from '@/components/ui/button';
 import { PathCard } from '@/components/paths/path-card';
-import { LanguageIcon } from '@/components/ui/language-icon';
+import { FeaturedPathsGrid } from '@/components/paths/featured-paths-grid';
 import { PageHint } from '@/components/onboarding/page-hint';
-
-// ============================================================
-// Quick-start path templates
-// ============================================================
-
-const QUICK_STARTS = [
-  {
-    title: 'Master TypeScript',
-    description: 'Generics, utility types, and advanced patterns',
-    language: 'typescript',
-    level: 'intermediate',
-    prompt: 'I want to master TypeScript generics, utility types, and advanced type patterns',
-  },
-  {
-    title: 'Python Fundamentals',
-    description: 'From basics to data structures and algorithms',
-    language: 'python',
-    level: 'beginner',
-    prompt: 'Teach me Python from the basics through data structures and algorithms',
-  },
-  {
-    title: 'Go Concurrency',
-    description: 'Goroutines, channels, and concurrent patterns',
-    language: 'go',
-    level: 'some_experience',
-    prompt: 'Teach me Go concurrency patterns including goroutines, channels, and sync primitives',
-  },
-  {
-    title: 'SQL Deep Dive',
-    description: 'Queries, joins, window functions, and optimization',
-    language: 'sql',
-    level: 'some_experience',
-    prompt:
-      'I want to learn SQL from basic queries to complex joins, window functions, and query optimization',
-  },
-];
 
 // ============================================================
 // Feature highlights for empty state
@@ -82,14 +47,16 @@ export default async function PathsPage() {
   let paths: Awaited<ReturnType<PathService['getUserPaths']>> = [];
   let pathsError = false;
 
-  if (user) {
-    const pathService = new PathService();
-    try {
-      paths = await pathService.getUserPaths(user.id);
-    } catch {
-      pathsError = true;
-    }
-  }
+  const [userPaths, featuredPaths] = await Promise.all([
+    user
+      ? new PathService().getUserPaths(user.id).catch(() => {
+          pathsError = true;
+          return [] as Awaited<ReturnType<PathService['getUserPaths']>>;
+        })
+      : ([] as Awaited<ReturnType<PathService['getUserPaths']>>),
+    getFeaturedPaths().catch(() => [] as Awaited<ReturnType<typeof getFeaturedPaths>>),
+  ]);
+  paths = userPaths;
 
   if (pathsError) {
     return (
@@ -108,12 +75,6 @@ export default async function PathsPage() {
 
   // For anonymous users, the "Create New Path" button links to sign-in
   const createPathHref = isAnonymous ? '/sign-in?redirect_url=/paths/new' : '/paths/new';
-
-  // For anonymous users, quick-start links go through sign-in
-  function getQuickStartHref(qs: (typeof QUICK_STARTS)[number]) {
-    const target = `/paths/new?prompt=${encodeURIComponent(qs.prompt)}&language=${qs.language}&level=${qs.level}`;
-    return isAnonymous ? `/sign-in?redirect_url=${encodeURIComponent(target)}` : target;
-  }
 
   return (
     <div className="animate-fade-in">
@@ -178,31 +139,19 @@ export default async function PathsPage() {
               </div>
             </div>
 
-            {/* Quick starts */}
-            <div>
-              <h2 className="mb-2 text-center text-lg font-semibold">Get started in seconds</h2>
-              <p className="text-muted-foreground mb-6 text-center text-sm">
-                Pick a popular path or create your own from scratch
-              </p>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {QUICK_STARTS.map((qs) => (
-                  <Link
-                    key={qs.title}
-                    href={getQuickStartHref(qs)}
-                    className="bg-card group hover:border-primary/30 flex items-center gap-4 rounded-xl border p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
-                  >
-                    <div className="bg-muted flex h-11 w-11 shrink-0 items-center justify-center rounded-lg">
-                      <LanguageIcon language={qs.language} className="h-6 w-6" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <h3 className="font-semibold">{qs.title}</h3>
-                      <p className="text-muted-foreground text-sm">{qs.description}</p>
-                    </div>
-                    <ArrowRight className="text-muted-foreground h-4 w-4 shrink-0 transition-transform group-hover:translate-x-1" />
-                  </Link>
-                ))}
+            {/* Featured paths */}
+            {featuredPaths.length > 0 && (
+              <div>
+                <h2 className="mb-2 text-center text-lg font-semibold">Get started in seconds</h2>
+                <p className="text-muted-foreground mb-6 text-center text-sm">
+                  Pick a featured path or create your own from scratch
+                </p>
+                <FeaturedPathsGrid
+                  paths={featuredPaths}
+                  className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
+                />
               </div>
-            </div>
+            )}
           </div>
         ) : (
           <div className="space-y-10">
@@ -237,30 +186,22 @@ export default async function PathsPage() {
               </div>
             )}
 
-            {/* ── Quick Start Suggestions ── */}
-            <div className="border-border border-t pt-10">
-              <h2 className="mb-2 text-lg font-semibold">Start something new</h2>
-              <p className="text-muted-foreground mb-6 text-sm">
-                Pick a popular path or create your own
-              </p>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                {QUICK_STARTS.map((qs) => (
-                  <Link
-                    key={qs.title}
-                    href={`/paths/new?prompt=${encodeURIComponent(qs.prompt)}&language=${qs.language}&level=${qs.level}`}
-                    className="bg-card group hover:border-primary/30 flex items-center gap-3 rounded-xl border p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
-                  >
-                    <div className="bg-muted flex h-9 w-9 shrink-0 items-center justify-center rounded-lg">
-                      <LanguageIcon language={qs.language} className="h-5 w-5" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium">{qs.title}</p>
-                      <p className="text-muted-foreground truncate text-xs">{qs.description}</p>
-                    </div>
+            {/* ── Featured Path Suggestions ── */}
+            {featuredPaths.length > 0 && (
+              <div className="border-border border-t pt-10">
+                <h2 className="mb-2 text-lg font-semibold">Start something new</h2>
+                <p className="text-muted-foreground mb-6 text-sm">
+                  Pick a featured path or{' '}
+                  <Link href="/paths/new" className="text-primary hover:underline">
+                    create your own
                   </Link>
-                ))}
+                </p>
+                <FeaturedPathsGrid
+                  paths={featuredPaths}
+                  className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
+                />
               </div>
-            </div>
+            )}
           </div>
         )}
       </div>

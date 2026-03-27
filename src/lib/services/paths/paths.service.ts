@@ -37,6 +37,7 @@ import { assessSkills } from './skill-assessor';
 import { ExerciseGenerationService } from '../generation/generation.service';
 import type { GenerateExerciseInput } from '../generation/generation.types';
 import { enrichSynthesisWithPathContext } from './teaching-integration';
+import { requireUsageLimit } from '@/lib/services/subscriptions/subscriptions.gate';
 import * as exerciseReader from '../exercises/exercises.reader';
 import * as exerciseWriter from '../exercises/exercises.writer';
 import type { SynthesisContent } from '../teaching/teaching.types';
@@ -47,6 +48,42 @@ export class PathService {
   // ============================================================
   // Path creation
   // ============================================================
+
+  /**
+   * Start a copy of a featured path for a user (no AI generation needed).
+   */
+  async startFeaturedPath(userId: string, featuredPathId: string): Promise<{ pathId: string }> {
+    const sourcePath = await reader.getPathById(featuredPathId);
+    if (!sourcePath || !sourcePath.isFeatured) {
+      throw new PathError('PATH_NOT_FOUND', 'Featured path not found');
+    }
+
+    // If the user already has an active copy of this featured path, return it
+    const userActivePaths = await reader.getUserActivePaths(userId);
+    const existing = userActivePaths.find(
+      (p) => p.title === sourcePath.title && p.language === sourcePath.language
+    );
+    if (existing) {
+      return { pathId: existing.id };
+    }
+
+    // Only check usage limits when actually creating a new path
+    await requireUsageLimit(userId, 'paths');
+
+    const { pathId } = await writer.createPathWithMilestones({
+      userId,
+      title: sourcePath.title,
+      userPrompt: `Started from featured path: ${sourcePath.title}`,
+      startingLevel: sourcePath.startingLevel,
+      language: sourcePath.language,
+      detectedFramework: sourcePath.detectedFramework,
+      plan: sourcePath.plan as LearningPlan,
+      llmModel: sourcePath.llmModel,
+      planGenerationTimeMs: 0,
+    });
+
+    return { pathId };
+  }
 
   /**
    * Create a new learning path from a user's prompt.
