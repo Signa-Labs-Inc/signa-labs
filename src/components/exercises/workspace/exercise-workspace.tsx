@@ -24,6 +24,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { fireConfetti, fireBurst } from '@/lib/utils/confetti';
 import { UpgradeBanner } from '@/components/upgrade-banner';
+import { trackEvent } from '@/lib/analytics';
 import { ShareButton } from './share-button';
 import {
   saveAnonymousExerciseDraft,
@@ -424,6 +425,12 @@ export function ExerciseWorkspace({
         toast.success('All tests passed!', {
           description: `${data.testsPassed} of ${data.testsTotal} tests passed in ${data.executionTimeMs}ms`,
         });
+        trackEvent('exercise_completed', {
+          exerciseId: exercise.id,
+          language: exercise.language,
+          pathId: pathId ?? undefined,
+          executionTimeMs: data.executionTimeMs,
+        });
         fireConfetti();
         if (isAnonymous) {
           setShowAnonymousCTA('pass');
@@ -438,11 +445,13 @@ export function ExerciseWorkspace({
           toast.success('Path completed!', {
             description: pathRes.message,
           });
+          trackEvent('path_completed', { pathId });
         } else if (pathRes?.milestoneAdvanced) {
           fireBurst();
           toast.success('Milestone complete!', {
             description: pathRes.message,
           });
+          trackEvent('milestone_completed', { pathId });
         }
       }
     } catch (err) {

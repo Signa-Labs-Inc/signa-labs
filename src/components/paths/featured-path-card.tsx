@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowRight, Loader2, Route, BookOpen, Milestone } from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
+import { trackEvent } from '@/lib/analytics';
 import { LanguageIcon } from '@/components/ui/language-icon';
 
 export type FeaturedPath = {
@@ -48,6 +49,11 @@ export function FeaturedPathCard({
       });
       const data = await res.json();
       if (res.ok && data.pathId) {
+        trackEvent('path_started', {
+          pathId: data.pathId,
+          language: path.language,
+          title: path.title,
+        });
         router.push(`/paths/${data.pathId}`);
       } else if (res.status === 401) {
         router.push(`/sign-in?redirect_url=${encodeURIComponent('/paths')}`);
