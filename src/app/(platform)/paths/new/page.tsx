@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { Suspense, useState, useCallback, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
 import { ArrowRight, AlertTriangle, Route } from 'lucide-react';
@@ -53,6 +53,14 @@ const EXAMPLE_PROMPTS = [
 // ============================================================
 
 export default function NewPathPage() {
+  return (
+    <Suspense>
+      <NewPathPageContent />
+    </Suspense>
+  );
+}
+
+function NewPathPageContent() {
   const router = useRouter();
   const { user } = useUser();
   const searchParams = useSearchParams();
