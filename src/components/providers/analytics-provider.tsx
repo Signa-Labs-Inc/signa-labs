@@ -1,13 +1,14 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
 import posthog from 'posthog-js';
 import * as Sentry from '@sentry/nextjs';
 
 export function AnalyticsProvider({ children }: { children?: React.ReactNode }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { user, isLoaded } = useUser();
   const prevUserIdRef = useRef<string | null>(null);
 
@@ -41,10 +42,10 @@ export function AnalyticsProvider({ children }: { children?: React.ReactNode }) 
     }
   }, [user, isLoaded]);
 
-  // Track page views on route change
+  // Track page views on route or query string change
   useEffect(() => {
     posthog.capture('$pageview', { $current_url: window.location.href });
-  }, [pathname]);
+  }, [pathname, searchParams]);
 
   return children ? <>{children}</> : null;
 }

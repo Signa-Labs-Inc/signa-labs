@@ -445,13 +445,13 @@ export function ExerciseWorkspace({
           toast.success('Path completed!', {
             description: pathRes.message,
           });
-          trackEvent('path_completed', { pathId });
+          trackEvent('path_completed', { pathId: pathId ?? undefined });
         } else if (pathRes?.milestoneAdvanced) {
           fireBurst();
           toast.success('Milestone complete!', {
             description: pathRes.message,
           });
-          trackEvent('milestone_completed', { pathId });
+          trackEvent('milestone_completed', { pathId: pathId ?? undefined });
         }
       }
     } catch (err) {
@@ -471,6 +471,8 @@ export function ExerciseWorkspace({
     recordPathCompletion,
     fetchExplanation,
     synthesisContent,
+    exercise.language,
+    pathId,
   ]);
 
   return (

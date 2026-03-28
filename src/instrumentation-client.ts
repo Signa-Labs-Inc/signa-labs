@@ -16,8 +16,8 @@ Sentry.init({
   enableLogs: true,
   integrations: [
     replayIntegration({
-      maskAllText: false,
-      blockAllMedia: false,
+      maskAllText: true,
+      blockAllMedia: true,
     }),
   ],
   // Record 10% of all sessions, 100% of sessions with errors
