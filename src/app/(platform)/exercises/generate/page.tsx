@@ -14,6 +14,7 @@ import { LanguageIcon } from '@/components/ui/language-icon';
 import { cn } from '@/lib/utils/helpers';
 import { useGenerationJob } from '@/hooks/use-generation-job';
 import { UpgradeBanner } from '@/components/upgrade-banner';
+import { trackEvent } from '@/lib/analytics';
 
 // ============================================================
 // Types
@@ -99,9 +100,10 @@ export default function GenerateExercisePage() {
 
   useEffect(() => {
     if (result) {
+      trackEvent('exercise_crafted', { exerciseId: result.exerciseId, language, mode });
       router.push(`/exercises/${result.exerciseId}`);
     }
-  }, [result, router]);
+  }, [result, router, language, mode]);
 
   const handleGenerate = useCallback(async (): Promise<void> => {
     if (!user) {

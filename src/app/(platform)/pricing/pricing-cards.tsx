@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Check, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { trackEvent } from '@/lib/analytics';
 import type {
   UserPlan,
   PlanForPricingPage,
@@ -44,6 +45,7 @@ export function PricingCards({
   const [error, setError] = useState<string | null>(null);
 
   async function handleCheckout(planId: string) {
+    trackEvent('checkout_started', { planId, interval });
     setLoading(planId);
     setError(null);
     try {

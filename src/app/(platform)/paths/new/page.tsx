@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { Suspense, useState, useCallback, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
 import { ArrowRight, AlertTriangle, Route } from 'lucide-react';
@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { LanguageIcon } from '@/components/ui/language-icon';
 import { cn } from '@/lib/utils/helpers';
 import { usePathCreation } from '@/hooks/use-path-creation';
+import { trackEvent } from '@/lib/analytics';
 import { UpgradeBanner } from '@/components/upgrade-banner';
 
 // ============================================================
@@ -52,6 +53,14 @@ const EXAMPLE_PROMPTS = [
 // ============================================================
 
 export default function NewPathPage() {
+  return (
+    <Suspense>
+      <NewPathPageContent />
+    </Suspense>
+  );
+}
+
+function NewPathPageContent() {
   const router = useRouter();
   const { user } = useUser();
   const searchParams = useSearchParams();
@@ -64,9 +73,10 @@ export default function NewPathPage() {
 
   useEffect(() => {
     if (result) {
+      trackEvent('path_created', { pathId: result.pathId, language, title: result.title });
       router.push(`/paths/${result.pathId}`);
     }
-  }, [result, router]);
+  }, [result, router, language]);
 
   const handleCreate = useCallback(async () => {
     if (!prompt.trim() || !level) return;
