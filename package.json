@@ -88,7 +88,7 @@
     "@testing-library/user-event": "^14.6.1",
     "@trigger.dev/build": "4.4.2",
     "@types/canvas-confetti": "^1.9.0",
-    "@types/node": "^20",
+    "@types/node": "^25",
     "@types/pg": "^8.16.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
