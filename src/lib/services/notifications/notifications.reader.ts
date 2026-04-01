@@ -20,6 +20,21 @@ export async function getUnreadCount(userId: string): Promise<number> {
   return result?.count ?? 0;
 }
 
+export async function getEmailCountSince(userId: string, since: Date): Promise<number> {
+  const [result] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(notifications)
+    .where(
+      and(
+        eq(notifications.userId, userId),
+        eq(notifications.channel, 'email'),
+        eq(notifications.status, 'sent'),
+        gte(notifications.createdAt, since)
+      )
+    );
+  return result?.count ?? 0;
+}
+
 export async function hasRecentUsageAlert(
   userId: string,
   feature: string,

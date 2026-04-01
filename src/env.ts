@@ -12,6 +12,7 @@ export const env = createEnv({
     DATABASE_URL: z.string().min(1),
     STRIPE_SECRET_KEY: z.string().startsWith('sk_'),
     STRIPE_WEBHOOK_SECRET: z.string().startsWith('whsec_'),
+    RESEND_API_KEY: z.string().startsWith('re_'),
   },
 
   /**
@@ -36,6 +37,7 @@ export const env = createEnv({
     SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN,
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
     NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,

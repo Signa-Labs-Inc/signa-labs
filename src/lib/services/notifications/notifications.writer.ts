@@ -13,11 +13,25 @@ export async function insertNotification(params: CreateNotificationParams) {
       subject: params.subject,
       body: params.body,
       metadata: params.metadata ?? {},
-      status: 'sent',
-      sentAt: new Date(),
+      status: params.status ?? 'sent',
+      sentAt: params.status === 'pending' ? undefined : new Date(),
     })
     .returning();
   return notification ?? null;
+}
+
+export async function updateNotificationStatus(
+  notificationId: string,
+  status: 'sent' | 'failed' | 'bounced',
+  sentAt?: Date
+) {
+  await db
+    .update(notifications)
+    .set({
+      status,
+      ...(sentAt && { sentAt }),
+    })
+    .where(eq(notifications.id, notificationId));
 }
 
 export async function markNotificationRead(notificationId: string, userId: string) {

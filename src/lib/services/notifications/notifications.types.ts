@@ -8,6 +8,7 @@ export type CreateNotificationParams = {
   subject?: string;
   body?: string;
   metadata?: Record<string, unknown>;
+  status?: NotificationStatus;
 };
 
 export type CreateInAppNotificationParams = {
