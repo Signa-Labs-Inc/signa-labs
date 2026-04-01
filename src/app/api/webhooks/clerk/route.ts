@@ -2,6 +2,7 @@ import { verifyWebhook } from '@clerk/nextjs/webhooks';
 import { NextRequest } from 'next/server';
 import * as userService from '@/lib/services/users/users.service';
 import { USER_DEFAULT_ROLE } from '@/lib/services/users/users.constants';
+import { sendWelcomeEmail } from '@/lib/services/email/email.service';
 import { handleError } from '@/lib/utils/api.handler-errors';
 import { isClerkRuntimeError } from '@clerk/nextjs/errors';
 export async function POST(req: NextRequest) {
@@ -23,6 +24,14 @@ export async function POST(req: NextRequest) {
           role: USER_DEFAULT_ROLE,
           emailVerifiedAt: isVerified ? new Date() : undefined,
         });
+
+        // Send welcome email (fire-and-forget)
+        const createdUser = await userService.getUserByClerkId(id);
+        if (createdUser) {
+          sendWelcomeEmail(createdUser.id, email, event.data.first_name ?? undefined).catch((err) =>
+            console.error('Failed to queue welcome email:', err)
+          );
+        }
         break;
       }
       case 'user.updated': {

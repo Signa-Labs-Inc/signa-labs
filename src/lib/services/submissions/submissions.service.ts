@@ -10,9 +10,12 @@ import { createExecutionClient } from '@/lib/sandboxes/execution_clients';
 import type { ExecutionClient } from '@/lib/sandboxes/execution_clients';
 import type { SandboxResult } from '@/lib/sandboxes/types';
 import { db } from '@/index';
+import { eq } from 'drizzle-orm';
+import { userLearningStats } from '@/db/schema/tables/user_learning_stats';
 import * as reader from './submissions.reader';
 import * as writer from './submissions.writer';
 import { SubmissionError, SUPPORTED_LANGUAGES } from './submissions.types';
+import { sendFirstCompletionEmail } from '@/lib/services/email/email.service';
 import type {
   AttemptRecord,
   SubmitSolutionInput,
@@ -165,6 +168,20 @@ export class SubmissionService {
         }
       }
     });
+
+    // Send first-completion email (fire-and-forget, after transaction)
+    if (isPassing) {
+      const [stats] = await db
+        .select({ totalExercisesCompleted: userLearningStats.totalExercisesCompleted })
+        .from(userLearningStats)
+        .where(eq(userLearningStats.userId, userId));
+
+      if (stats?.totalExercisesCompleted === 1) {
+        sendFirstCompletionEmail(userId, exercise.title).catch((err) =>
+          console.error('Failed to queue first-completion email:', err)
+        );
+      }
+    }
 
     return {
       submissionId: submission.id,
