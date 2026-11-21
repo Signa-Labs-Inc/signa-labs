@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.15-slim
 
 # Install system dependencies for scipy and matplotlib
 RUN apt-get update && apt-get install -y --no-install-recommends \
